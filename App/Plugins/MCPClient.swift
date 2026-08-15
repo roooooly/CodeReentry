@@ -64,11 +64,13 @@ final class ProcessTransport: @unchecked Sendable {
         process.standardInput = stdinPipe
         process.standardOutput = stdoutPipe
         process.standardError = stderrPipe
-        // 后台读 stderr → OSLog（不阻塞，不丢弃）
-        Task {
-            let handle = stderrPipe.fileHandleForReading
+        // FileHandle.availableData blocks. Keep the drain on a GCD worker so an
+        // unresponsive server cannot occupy Swift's cooperative executor (or the
+        // MainActor inherited from MCPClient.start()).
+        let stderrHandle = stderrPipe.fileHandleForReading
+        DispatchQueue.global(qos: .utility).async {
             while true {
-                let chunk = handle.availableData
+                let chunk = stderrHandle.availableData
                 if chunk.isEmpty { break }
                 logger.warning("MCP server emitted \(chunk.count) stderr bytes (content redacted)")
             }
@@ -363,7 +365,7 @@ final class MCPClient {
         let gate = MCPHandshakeGate()
         try await withCheckedThrowingContinuation {
             (continuation: CheckedContinuation<Void, any Error>) in
-            Task {
+            Task.detached {
                 do {
                     _ = try await client.connect(transport: stdio)
                     if gate.claim() { continuation.resume() }
@@ -371,7 +373,7 @@ final class MCPClient {
                     if gate.claim() { continuation.resume(throwing: error) }
                 }
             }
-            Task {
+            Task.detached {
                 try? await Task.sleep(nanoseconds: timeoutNanoseconds)
                 guard gate.claim() else { return }
                 await processTransport.terminate()
