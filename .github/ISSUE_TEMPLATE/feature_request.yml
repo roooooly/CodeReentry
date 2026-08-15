@@ -1,0 +1,59 @@
+name: Feature request
+description: Propose a focused improvement to the project-recovery workflow.
+title: "proposal: "
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        DevHub prioritizes returning to the correct project context over collecting
+        integrations. Explain the user problem before describing a solution.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: User problem
+      description: What concrete project-recovery task is difficult today?
+      placeholder: When I return to three active projects after two days away…
+    validations:
+      required: true
+
+  - type: textarea
+    id: workaround
+    attributes:
+      label: Current workaround
+      description: What do you do now, and where does it fail?
+    validations:
+      required: true
+
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Desired outcome
+      description: Describe an observable result, not only a UI control or integration name.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Possible approach
+      description: Optional. Include format versions and synthetic fixtures for tool integrations.
+
+  - type: textarea
+    id: privacy
+    attributes:
+      label: Privacy and failure boundaries
+      description: What data is read or written, and how should unsupported states fail?
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Scope check
+      options:
+        - label: This proposal supports a concrete project-recovery use case.
+          required: true
+        - label: The description contains no private project or session data.
+          required: true

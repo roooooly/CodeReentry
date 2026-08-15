@@ -3,6 +3,11 @@
 Contributions are welcome. Keep changes focused, explain user impact, and include tests
 for behavior changes.
 
+DevHub prioritizes reliable recovery of the correct local project context. A new
+integration should begin with a concrete user problem, supported versions, sanitized
+fixtures, and an honest unsupported state. Please open a Discussion before investing in
+a broad feature or a new product area.
+
 ## Development workflow
 
 1. Update `project.yml` when changing project structure or resources.
@@ -25,7 +30,22 @@ xcodebuild -project DevHub.xcodeproj -scheme DevHub \
   and must be obviously non-functional examples.
 - Never commit signing certificates, provisioning profiles, update keys, or API tokens.
 
+Run `git diff --cached` before every commit and confirm that no generated history,
+diagnostic output, account identifier, or local absolute path is included.
+
+## Compatibility changes
+
+When changing a reader or launcher:
+
+1. Name the third-party tool and version used for verification.
+2. Add the smallest synthetic fixture that demonstrates the supported format.
+3. Preserve bounded reads and explicit errors for unsupported data.
+4. Document whether DevHub can discover, read, resume, or only open the tool.
+5. Do not turn a successful local experiment into a claim of universal compatibility.
+
 ## Pull requests
 
 Describe what changed, why it changed, visible impact, and the checks you ran. For UI
 changes, include synthetic snapshots only.
+
+By participating, you agree to follow [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).

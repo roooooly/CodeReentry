@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  repository-privacy:
+    name: Repository privacy
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Install ripgrep when missing
+        run: command -v rg >/dev/null || (sudo apt-get update && sudo apt-get install -y ripgrep)
+      - name: Reject private paths, generated data, and credential shapes
+        run: ./scripts/privacy-audit.sh
+
+  macos-tests:
+    name: macOS tests
+    runs-on: macos-15
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install XcodeGen
+        run: brew install xcodegen
+      - name: Generate the Xcode project
+        run: xcodegen generate
+      - name: Test DevHubCore
+        run: swift test --package-path DevHubPackage
+      - name: Test the app without signing
+        run: >-
+          xcodebuild
+          -project DevHub.xcodeproj
+          -scheme DevHub
+          -destination 'platform=macOS'
+          -skip-testing:DevHubTests/GallerySnapshotTests
+          -skip-testing:DevHubTests/ProjectDetailSnapshotTests
+          test CODE_SIGNING_ALLOWED=NO

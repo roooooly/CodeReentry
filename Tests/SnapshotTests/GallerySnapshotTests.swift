@@ -160,11 +160,44 @@ struct GallerySnapshotTests {
     func projectsOverview() throws {
         let container = try makeContainer(withProjects: true)
         let ctx = container.mainContext
-        // 给部分项目设置状态/版本/工具，让卡片更有内容
-        if let exampleApp = try ctx.fetch(FetchDescriptor<Project>()).first(where: { $0.name == "ExampleApp" }) {
+        let fixtureRoot = FileManager.default.temporaryDirectory
+            .appendingPathComponent("devhub-projects-overview-fixtures", isDirectory: true)
+        try? FileManager.default.removeItem(at: fixtureRoot)
+        try FileManager.default.createDirectory(at: fixtureRoot, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: fixtureRoot) }
+
+        // Marketing-facing snapshot fixtures must look usable while remaining fully
+        // synthetic. Give every project a temporary live path instead of rendering a
+        // wall of intentional "missing path" warnings from the shared unit fixtures.
+        let projects = try ctx.fetch(FetchDescriptor<Project>())
+        for project in projects {
+            let path = fixtureRoot.appendingPathComponent(project.name, isDirectory: true)
+            try FileManager.default.createDirectory(at: path, withIntermediateDirectories: true)
+            project.path = path.path
+            switch project.name {
+            case "archived-demo": project.statusEnum = .archived
+            case "sample-workspace": project.statusEnum = .completed
+            default: project.statusEnum = .active
+            }
+        }
+
+        if let exampleApp = projects.first(where: { $0.name == "ExampleApp" }) {
             exampleApp.statusEnum = .active
             exampleApp.version = "0.9.0"
             exampleApp.color = "#3B82F6"
+            let session = SessionIndex(
+                tool: "claude-code",
+                toolSessionId: "synthetic-session-1",
+                sourcePath: fixtureRoot.appendingPathComponent("session.jsonl").path,
+                projectCwd: exampleApp.path,
+                startedAt: Date(timeIntervalSince1970: 1_900_000_000),
+                updatedAt: Date(timeIntervalSince1970: 1_900_003_600),
+                messageCount: 12,
+                title: "Prepare the next release",
+                preview: "Review the release checklist",
+                project: exampleApp
+            )
+            ctx.insert(session)
         }
         try ctx.save()
         let deps = makeDeps(container: container)

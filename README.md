@@ -1,41 +1,101 @@
-# DevHub
+<p align="center">
+  <img src="DevHub/Assets.xcassets/AppIcon.appiconset/icon_512x512.png" width="112" height="112" alt="DevHub app icon">
+</p>
 
-DevHub is a native, local-first workspace for organizing software projects, developer
-tools, local AI sessions, memory notes, usage, subscriptions, and publishing accounts.
-It is built with SwiftUI and SwiftData for macOS 14 or newer.
+<h1 align="center">DevHub</h1>
 
-![DevHub project overview](Tests/SnapshotTests/__Snapshots__/GallerySnapshotTests/projectsOverview.1.png)
+<p align="center"><strong>Resume AI coding work from the project, not from the tool.</strong></p>
 
-## Why DevHub
+<p align="center">
+  A native, local-first macOS project cockpit for finding past sessions, keeping
+  project memory, and reopening the right developer tool with the right context.
+</p>
 
-Developer work is usually scattered across folders, terminals, editors, AI tools,
-session histories, notes, and recurring services. DevHub keeps the project as the
-primary context, then connects the resources that belong to it.
+<p align="center">
+  <a href="README.zh-CN.md">简体中文</a> ·
+  <a href="#build-from-source">Build from source</a> ·
+  <a href="PRIVACY.md">Privacy</a> ·
+  <a href="ROADMAP.md">Roadmap</a> ·
+  <a href="CONTRIBUTING.md">Contributing</a>
+</p>
 
-- Project-centered workspace and status overview
-- Local session index for supported developer tools
-- Bounded, streaming JSONL readers for large histories
-- Project memory, tool launchers, usage, subscriptions, and platform accounts
-- MCP and script-plugin management with explicit permission checks
-- Native settings, dark/light appearance, Simplified Chinese, and English
-- On-demand refresh with no background crawl of full session histories
+<p align="center">
+  <a href="https://github.com/roooooly/DevHub/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/roooooly/DevHub/ci.yml?branch=main&label=CI" alt="CI status"></a>
+  <img src="https://img.shields.io/badge/macOS-14%2B-111111?logo=apple" alt="macOS 14 or newer">
+  <img src="https://img.shields.io/badge/Swift-6-F05138?logo=swift&logoColor=white" alt="Swift 6">
+  <img src="https://img.shields.io/badge/data-local--first-1F7A67" alt="Local-first">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-7D1727" alt="MIT license"></a>
+</p>
 
-## Privacy model
+> **Source beta:** DevHub does not have a signed and notarized public binary yet.
+> Build it from source for evaluation, and do not install binaries from unofficial
+> mirrors. Public distribution remains blocked until the Apple signing and
+> notarization requirements in [RELEASE.md](RELEASE.md) are satisfied.
+
+![DevHub project overview rendered with synthetic fixture data](Tests/SnapshotTests/__Snapshots__/GallerySnapshotTests/projectsOverview.1.png)
+
+_The screenshot uses synthetic projects and paths. DevHub includes English and
+Simplified Chinese interfaces._
+
+## The problem DevHub focuses on
+
+When several local projects and AI coding tools are active at once, starting a tool is
+easy. Recovering the **correct project, session, and working context** is the expensive
+part. DevHub keeps the project as the stable unit of work:
+
+1. Register a local project without copying its source into DevHub.
+2. Refresh a lightweight index of supported local session records on demand.
+3. Inspect a bounded conversation view or continue in the original tool.
+4. Save a reviewed session summary into project memory for the next handoff.
+
+DevHub is aimed at independent developers and small teams who maintain multiple local
+repositories and use more than one coding tool. It is not a cloud session host or a
+claim of lossless cross-tool conversation migration.
+
+## Current capabilities
+
+- Project overview, status, tags, Git state, detected scripts, and quick launchers
+- Local session aggregation for Claude Code, Codex, ZCode, and Kimi metadata
+- Bounded streaming readers for large JSONL histories
+- On-demand conversation loading and original-tool resume where supported
+- Reviewed session summaries and project-scoped memory
+- Local Claude Code and Codex usage estimates, kept separate from fixed subscriptions
+- Explicit permission checks for script plugins and MCP servers
+- Native settings, light/dark appearance, English, and Simplified Chinese
+- No background crawl of full session histories
+
+### Tool compatibility
+
+| Tool | Local session discovery | Conversation in DevHub | Continue or open | Project-memory handoff |
+| --- | --- | --- | --- | --- |
+| Claude Code | Yes | Bounded, on demand | Resume session | Append system-prompt file |
+| Codex | Yes | Bounded, on demand | Resume session | New user prompt |
+| ZCode | Yes | Supported local records | Resume session | Prompt argument |
+| Kimi | Metadata only | No | Open app, not an exact session | No |
+| OpenCode | Not yet | No | Launch from project | Prompt argument |
+| VS Code | Not applicable | Not applicable | Open project | Clipboard-assisted when requested |
+
+This table describes the paths implemented in the current source. Third-party storage
+formats and command-line behavior can change, so every compatibility change needs
+sanitized fixtures and version notes.
+
+## Privacy boundary
 
 DevHub is designed to keep project and session data on the Mac.
 
-- It does not include telemetry or an analytics SDK.
-- Session discovery reads local metadata; full message bodies are loaded only when a
-  user opens a conversation.
-- Tool credentials are stored in macOS Keychain and are never exported in backups.
-- Diagnostic export is opt-in, limited to DevHub's subsystem, and redacts common
+- No telemetry or analytics SDK is included.
+- Session discovery is metadata-first; message bodies load only when opened.
+- Source session files are treated as read-only.
+- Tool credentials stay in macOS Keychain and are excluded from backups.
+- Diagnostic export is user initiated, limited to DevHub logs, and redacts common
   credential patterns.
-- Local databases, histories, logs, build outputs, signing material, and user-specific
-  settings are excluded from Git.
+- Repository checks reject local databases, histories, private paths, signing files,
+  and common credential shapes.
 
-See [PRIVACY.md](PRIVACY.md) for the complete data boundary.
+Read [PRIVACY.md](PRIVACY.md) for the complete boundary and [SECURITY.md](SECURITY.md)
+for private vulnerability reporting.
 
-## Build
+## Build from source
 
 Requirements:
 
@@ -50,10 +110,10 @@ xcodegen generate
 open DevHub.xcodeproj
 ```
 
-The Xcode project is generated from `project.yml`. When project settings or resources
-change, update `project.yml` first and regenerate the project.
+The Xcode project is generated from `project.yml`. Update that file first when project
+settings or resources change, then regenerate the project.
 
-## Test
+## Verify a checkout
 
 ```bash
 ./scripts/privacy-audit.sh
@@ -61,26 +121,23 @@ swift test --package-path DevHubPackage
 xcodebuild \
   -project DevHub.xcodeproj \
   -scheme DevHub \
-  -destination 'platform=macOS,arch=arm64' \
-  test
+  -destination 'platform=macOS' \
+  test CODE_SIGNING_ALLOWED=NO
 ```
 
-## Local package
-
-```bash
-./scripts/release-local.sh
-```
-
-This creates an arm64 DMG and ZIP under `dist/`. The local package is ad-hoc signed and
-is not notarized for public distribution. See [RELEASE.md](RELEASE.md) before sharing a
-binary.
+For a local, ad-hoc-signed evaluation package, see [RELEASE.md](RELEASE.md). That path
+is intentionally separate from public distribution.
 
 ## Contributing
 
-Please read [CONTRIBUTING.md](CONTRIBUTING.md) and [SECURITY.md](SECURITY.md). Use only
-synthetic project names, paths, sessions, screenshots, and credentials in tests and
-documentation.
+Start with [CONTRIBUTING.md](CONTRIBUTING.md), the public [roadmap](ROADMAP.md), or a
+scoped issue. Tests and documentation must use synthetic project names, paths,
+sessions, screenshots, and credentials.
+
+Questions and design proposals belong in
+[Discussions](https://github.com/roooooly/DevHub/discussions). Reproducible bugs and
+accepted work belong in Issues.
 
 ## License
 
-See [LICENSE](LICENSE).
+DevHub is available under the [MIT License](LICENSE).
