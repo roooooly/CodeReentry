@@ -1,0 +1,17 @@
+<?xml version="1.0" standalone="yes"?>
+<rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
+  <channel>
+    <title>DevHub</title>
+    <item>
+      <title>Version 0.1.0</title>
+      <sparkle:version>1</sparkle:version>
+      <sparkle:shortVersionString>0.1.0</sparkle:shortVersionString>
+      <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+      <!-- 发布前替换 enclosure url + sparkle:edSignature + length -->
+      <enclosure url="https://example.com/devhub/DevHub-0.1.0.zip"
+                 sparkle:edSignature="REPLACE_ME"
+                 length="0"
+                 type="application/octet-stream"/>
+    </item>
+  </channel>
+</rss>

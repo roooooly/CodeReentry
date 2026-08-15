@@ -1,0 +1,46 @@
+# Xcode
+build/
+dist/
+*.xcuserstate
+xcuserdata/
+DerivedData/
+
+# Swift Package Manager
+.build/
+.swiftpm/
+
+# macOS
+.DS_Store
+
+# Secrets / local
+*.local.json
+.env
+.env.*
+!.env.example
+DevHub.xcodeproj/xcuserdata/
+*.xcuserstate
+.spm-packages/
+
+# Local data and diagnostics
+*.jsonl
+*.sqlite
+*.sqlite3
+*.db
+*.log
+*.trace
+*.xcresult
+local-data/
+
+# Signing and release credentials
+*.pem
+*.key
+*.p12
+*.pfx
+*.cer
+*.crt
+*.mobileprovision
+
+# Generated release artifacts
+*.dmg
+*.zip
+appcast.xml

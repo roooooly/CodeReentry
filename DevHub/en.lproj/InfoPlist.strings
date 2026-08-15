@@ -1,0 +1,2 @@
+"CFBundleName" = "DevHub";
+"NSAppleEventsUsageDescription" = "DevHub needs to control Terminal.app or iTerm2 to launch CLI development tools such as Claude and Codex in the selected project context.";

@@ -1,0 +1,110 @@
+# xcodegen spec for DevHub (P0 UI).
+# Regenerate with:  cd DevHub && xcodegen generate
+name: DevHub
+options:
+  bundleIdPrefix: io.github.roooooly.devhub
+  deploymentTarget:
+    macOS: "14.0"
+  developmentLanguage: zh-Hans
+  createIntermediateGroups: true
+  groupSortPosition: top
+  defaultConfig: Debug
+
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    SWIFT_STRICT_CONCURRENCY: complete
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    DEVELOPMENT_TEAM: ""
+    CODE_SIGN_IDENTITY: "-"
+    CODE_SIGN_STYLE: Automatic
+    ENABLE_HARDENED_RUNTIME: YES
+
+packages:
+  DevHubCore:
+    path: DevHubPackage/
+  SnapshotTesting:
+    url: https://github.com/pointfreeco/swift-snapshot-testing
+    from: "1.17.0"
+  SwiftSDK:
+    url: https://github.com/modelcontextprotocol/swift-sdk.git
+    from: "0.12.1"
+  Sparkle:
+    url: https://github.com/sparkle-project/Sparkle.git
+    from: "2.7.0"
+
+targets:
+  DevHub:
+    type: application
+    platform: macOS
+    deploymentTarget: "14.0"
+    sources:
+      - path: App
+      - path: Features
+      - path: DevHub/Assets.xcassets
+      - path: DevHub
+        includes:
+          - "en.lproj/**"
+          - "zh-Hans.lproj/**"
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: io.github.roooooly.devhub
+        PRODUCT_NAME: DevHub
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        INFOPLIST_FILE: DevHub/Info.plist
+        CODE_SIGN_ENTITLEMENTS: DevHub.entitlements
+        ENABLE_PREVIEWS: YES
+        # Xcode 26's debug-dylib (for previews) mis-links SwiftUICore for app
+        # targets embedding a local SPM package. Disable it; previews still
+        # work via ENABLE_PREVIEWS without the separate .debug.dylib.
+        ENABLE_DEBUG_DYLIB: NO
+        DEAD_CODE_STRIPPING: YES
+        LD_RUNPATH_SEARCH_PATHS:
+          - "$(inherited)"
+          - "@executable_path/../Frameworks"
+      configs:
+        Release:
+          # Local ad-hoc builds still use the hardened runtime. Do not let
+          # Xcode inject the development-only get-task-allow entitlement.
+          CODE_SIGN_INJECT_BASE_ENTITLEMENTS: NO
+    dependencies:
+      - package: DevHubCore
+        product: DevHubCore
+      - package: SwiftSDK
+        product: MCP
+      - package: Sparkle
+        product: Sparkle
+
+  DevHubTests:
+    type: bundle.unit-test
+    platform: macOS
+    deploymentTarget: "14.0"
+    sources:
+      - path: Tests/UITests
+      - path: Tests/SnapshotTests
+        excludes:
+          - "__Snapshots__/**"
+    dependencies:
+      - target: DevHub
+      - package: SnapshotTesting
+        product: SnapshotTesting
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: io.github.roooooly.devhub.tests
+        GENERATE_INFOPLIST_FILE: YES
+        BUNDLE_LOADER: "$(TEST_HOST)"
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/DevHub.app/Contents/MacOS/DevHub"
+
+schemes:
+  DevHub:
+    build:
+      targets:
+        DevHub: all
+        DevHubTests: [test]
+    run:
+      config: Debug
+    test:
+      config: Debug
+      targets:
+        - DevHubTests

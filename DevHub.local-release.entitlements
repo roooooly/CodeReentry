@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>com.apple.security.automation.apple-events</key>
+    <true/>
+    <!--
+      Ad-hoc signatures do not carry an Apple Team ID. The hardened runtime
+      therefore cannot prove that the embedded Sparkle framework belongs to the
+      same team. This exception is scoped to the personal local-release path.
+      A Developer ID release must re-sign Sparkle with the app's real identity
+      and use DevHub.entitlements instead.
+    -->
+    <key>com.apple.security.cs.disable-library-validation</key>
+    <true/>
+</dict>
+</plist>
