@@ -84,13 +84,13 @@ struct MCPToolRunnerViewModelTests {
         vm.argumentsJSON = "[1, 2]"
         vm.requestExecution()
         #expect(!vm.isConfirming)
-        #expect(vm.errorMessage == "工具参数必须是 JSON 对象。")
+        #expect(vm.errorMessage == String(localized: "工具参数必须是 JSON 对象。"))
 
         vm.errorMessage = nil
         vm.argumentsJSON = "{broken"
         vm.requestExecution()
         #expect(!vm.isConfirming)
-        #expect(vm.errorMessage == "工具参数必须是 JSON 对象。")
+        #expect(vm.errorMessage == String(localized: "工具参数必须是 JSON 对象。"))
         #expect(caller.invocations.isEmpty)
     }
 

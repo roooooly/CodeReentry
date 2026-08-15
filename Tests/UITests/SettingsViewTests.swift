@@ -38,7 +38,9 @@ struct SettingsViewTests {
         let saved = try env.ctx.fetch(FetchDescriptor<AppSettings>()).first
         #expect(saved?.locale == "en")
         #expect(env.preferences.string(forKey: AppLanguage.preferenceKey) == "en")
-        #expect(env.preferences.stringArray(forKey: "AppleLanguages") == ["en"])
+        let persistedAppleLanguages = env.preferences
+            .persistentDomain(forName: env.preferencesSuiteName)?["AppleLanguages"] as? [String]
+        #expect(persistedAppleLanguages == ["en"])
         #expect(vm.languageChangeRequiresRestart == true)
     }
 
@@ -288,6 +290,7 @@ struct SettingsViewTests {
         let ctx: ModelContext
         let deps: AppDependencies
         let preferences: UserDefaults
+        let preferencesSuiteName: String
     }
 
     static func makeSettingsEnv() throws -> SettingsEnv {
@@ -307,7 +310,8 @@ struct SettingsViewTests {
             container: container,
             ctx: ctx,
             deps: deps,
-            preferences: preferences
+            preferences: preferences,
+            preferencesSuiteName: suiteName
         )
     }
 }

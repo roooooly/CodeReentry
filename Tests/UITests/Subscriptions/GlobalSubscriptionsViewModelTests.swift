@@ -63,8 +63,9 @@ struct GlobalSubscriptionsViewModelTests {
 
         #expect(viewModel.subscriptions.count == 1)
         #expect(viewModel.subscriptions.first?.name == "Saved")
-        #expect(viewModel.operationMessage?.contains("已保存") == true)
-        #expect(viewModel.operationMessage?.contains("提醒创建失败") == true)
+        let expectedPrefix = String(localized: "订阅已保存，但续费提醒创建失败：")
+        #expect(viewModel.operationMessage?.hasPrefix(expectedPrefix) == true)
+        #expect(viewModel.operationMessage?.contains(MockNotificationError.addFailed.localizedDescription) == true)
     }
 
     @Test("续费日历按月份分组且忽略停用订阅")

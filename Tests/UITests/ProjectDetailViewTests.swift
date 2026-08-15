@@ -92,7 +92,7 @@ struct ProjectDetailViewTests {
             pathAvailability: .missing
         )
 
-        #expect(header.headerAccessibility.contains("项目路径已失效"))
+        #expect(header.headerAccessibility.contains(String(localized: "项目路径已失效")))
         #expect(header.headerAccessibility.contains("finish relocation"))
     }
 }

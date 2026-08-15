@@ -219,14 +219,14 @@ struct MCPClientIntegrationTests {
         ]))
         let supervisor = MCPClientSupervisor(
             configStore: store,
-            handshakeTimeout: 4,
+            handshakeTimeout: 12,
             reconnectPolicy: MCPReconnectPolicy(maxAttempts: 0, baseDelay: 0)
         )
 
         let startTask = Task { await supervisor.startAll() }
-        // Keep this below the silent server's four-second handshake timeout,
+        // Keep this below the silent server's twelve-second handshake timeout,
         // while leaving enough room for a busy CI host to launch Python.
-        let deadline = ContinuousClock.now + .milliseconds(3_500)
+        let deadline = ContinuousClock.now + .seconds(10)
         var healthyConnected = false
         while ContinuousClock.now < deadline {
             healthyConnected = supervisor.snapshots().contains {

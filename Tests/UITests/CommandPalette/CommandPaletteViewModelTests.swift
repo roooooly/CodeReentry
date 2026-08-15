@@ -112,7 +112,7 @@ struct CommandPaletteViewModelTests {
 
         #expect(item.id == "mcp-tool:filesystem.read_file")
         #expect(item.title == "读取文件 · filesystem")
-        #expect(item.group == "MCP 工具")
+        #expect(item.group == String(localized: "MCP 工具"))
         guard case .runMCPTool(_, let serverName, let toolName) = item else {
             Issue.record("应生成 MCP 工具命令")
             return

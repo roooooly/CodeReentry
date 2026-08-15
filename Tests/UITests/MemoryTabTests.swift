@@ -144,8 +144,8 @@ struct MemoryTabTests {
     func starterTemplateIsSafe() {
         let vm = MemoryTabViewModel()
         #expect(vm.insertStarterTemplate())
-        #expect(vm.contextMd.contains("# 项目目标"))
-        #expect(vm.contextMd.contains("# 当前约束"))
+        #expect(vm.contextMd.contains(String(localized: "# 项目目标")))
+        #expect(vm.contextMd.contains(String(localized: "# 当前约束")))
         #expect(vm.dirty)
 
         vm.contextMd = "已有的重要内容"

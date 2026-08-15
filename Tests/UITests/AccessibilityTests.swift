@@ -27,6 +27,17 @@ struct AccessibilityTests {
         #expect(AppLanguage.resolved("unsupported") == .simplifiedChinese)
     }
 
+    @Test("关键界面文案同时提供简体中文与英文资源")
+    func keyStringsExistInBothLanguages() throws {
+        let englishURL = try #require(Bundle.main.url(forResource: "en", withExtension: "lproj"))
+        let chineseURL = try #require(Bundle.main.url(forResource: "zh-Hans", withExtension: "lproj"))
+        let english = try #require(Bundle(url: englishURL))
+        let chinese = try #require(Bundle(url: chineseURL))
+
+        #expect(english.localizedString(forKey: "MCP 工具", value: nil, table: nil) == "MCP Tools")
+        #expect(chinese.localizedString(forKey: "MCP 工具", value: nil, table: nil) == "MCP 工具")
+    }
+
     @Test("PlaceholderStage rawValue 为 P1/P2（用于 badge 文本）")
     func placeholderStageRawValues() {
         #expect(PlaceholderStage.p1.rawValue == "P1")

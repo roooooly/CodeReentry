@@ -67,7 +67,12 @@ struct OnboardingViewTests {
         #expect(flow.step == .permissions)
         #expect(flow.registrationSummary?.registeredCount == 1)
         #expect(flow.registrationSummary?.alreadyRegisteredCount == 0)
-        #expect(flow.registrationSummary?.message.contains("新注册 1 个项目") == true)
+        let registeredMessage = String(
+            format: String(localized: "新注册 %d 个项目"),
+            locale: .current,
+            1
+        )
+        #expect(flow.registrationSummary?.message.contains(registeredMessage) == true)
     }
 
     @Test("没有候选或未勾选项目时可以跳过并继续")
@@ -120,7 +125,13 @@ struct OnboardingViewTests {
         #expect(flow.registrationSummary?.registeredCount == 1)
         #expect(flow.registrationSummary?.identityConflictNames == ["archived-copy"])
         #expect(flow.registrationSummary?.hasSkippedCandidates == true)
-        #expect(flow.registrationSummary?.message.contains("跳过 1 个身份重复目录：archived-copy") == true)
+        let identityConflictMessage = String(
+            format: String(localized: "跳过 %d 个身份重复目录：%@"),
+            locale: .current,
+            1,
+            "archived-copy"
+        )
+        #expect(flow.registrationSummary?.message.contains(identityConflictMessage) == true)
         #expect(flow.registrationSummary?.message.contains("identityConflictNames") == false)
     }
 

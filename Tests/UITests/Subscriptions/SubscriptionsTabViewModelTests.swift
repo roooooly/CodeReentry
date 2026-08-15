@@ -147,7 +147,7 @@ struct SubscriptionsTabViewModelTests {
         let (store, _, projectId) = try makeStore()
         let vm = SubscriptionsTabViewModel(projectId: projectId, store: store, reminderScheduler: nil)
         await vm.importCSV("Name,Price\n")
-        #expect(vm.csvImportResult?.contains("没有") == true)
+        #expect(vm.csvImportResult == String(localized: "CSV 中没有可识别的订阅行。"))
         #expect(vm.subscriptions.isEmpty)
     }
 
@@ -157,7 +157,7 @@ struct SubscriptionsTabViewModelTests {
         let vm = SubscriptionsTabViewModel(projectId: projectId, store: store, reminderScheduler: nil)
         // 无标准列名，解析器跳过所有行 → 空
         await vm.importCSV("这根本不是CSV\n也还是不行")
-        #expect(vm.csvImportResult?.contains("没有") == true)
+        #expect(vm.csvImportResult == String(localized: "CSV 中没有可识别的订阅行。"))
         #expect(vm.subscriptions.isEmpty)
     }
 
@@ -219,6 +219,6 @@ struct SubscriptionsTabViewModelTests {
                 nextRenewal: Date()
             ))
         }
-        #expect(vm.operationError?.contains("无法添加") == true)
+        #expect(vm.operationError?.hasPrefix(String(localized: "无法添加订阅：")) == true)
     }
 }

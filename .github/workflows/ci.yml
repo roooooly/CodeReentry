@@ -38,12 +38,25 @@ jobs:
         run: xcodegen generate
       - name: Test DevHubCore
         run: swift test --package-path DevHubPackage
-      - name: Test the app without signing
+      - name: Test the app in English without signing
         run: >-
           xcodebuild
           -project DevHub.xcodeproj
           -scheme DevHub
           -destination 'platform=macOS'
+          -testLanguage en
+          -testRegion US
+          -skip-testing:DevHubTests/GallerySnapshotTests
+          -skip-testing:DevHubTests/ProjectDetailSnapshotTests
+          test CODE_SIGNING_ALLOWED=NO
+      - name: Test the app in Simplified Chinese without signing
+        run: >-
+          xcodebuild
+          -project DevHub.xcodeproj
+          -scheme DevHub
+          -destination 'platform=macOS'
+          -testLanguage zh-Hans
+          -testRegion CN
           -skip-testing:DevHubTests/GallerySnapshotTests
           -skip-testing:DevHubTests/ProjectDetailSnapshotTests
           test CODE_SIGNING_ALLOWED=NO
