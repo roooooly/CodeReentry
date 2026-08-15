@@ -112,7 +112,7 @@ final class AppDependencies {
         self.guiLauncher = GUIAppLauncher()
         self.subscriptionStore = SubscriptionStore(modelContainer: modelContainer)
         self.platformStore = PlatformStore(modelContainer: modelContainer)
-        self.reminderScheduler = ReminderScheduler(center: UNUserNotificationCenter.current())
+        self.reminderScheduler = ReminderScheduler(center: SystemNotificationCenter())
         self.pluginPermissionStore = ScriptPluginPermissionStore(file: ScriptPluginPermissionStore.defaultPermissionsFile)
         self.mcpSupervisor = MCPClientSupervisor()
         self.launchAtLoginManager = SystemLaunchAtLoginManager()
