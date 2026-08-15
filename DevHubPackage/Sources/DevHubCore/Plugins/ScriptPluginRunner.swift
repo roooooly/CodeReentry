@@ -4,6 +4,17 @@ import OSLog
 
 private let logger = Logger(subsystem: "io.github.roooooly.devhub", category: "script-plugin-runner")
 
+/// Process and pipe APIs block their calling thread. Wrapping the references as
+/// unchecked Sendable lets the blocking work live on a GCD worker instead of
+/// starving Swift's cooperative executor (and the timeout task running on it).
+private final class ScriptPluginBlockingReference<Value>: @unchecked Sendable {
+    let value: Value
+
+    init(_ value: Value) {
+        self.value = value
+    }
+}
+
 /// Rail C action 执行结果（§6.4）。
 public struct ScriptPluginResult: Sendable, Equatable {
     public let exitCode: Int
@@ -148,14 +159,13 @@ public struct ScriptPluginRunner: Sendable {
 
         // stdout/stderr 必须并行持续排空；顺序 readDataToEndOfFile 会在任一管道写满时死锁。
         let stdoutTask = Task.detached {
-            Self.captureOutput(from: stdoutPipe.fileHandleForReading, limit: maximumOutputBytes)
+            await Self.captureOutputAsync(from: stdoutPipe.fileHandleForReading, limit: maximumOutputBytes)
         }
         let stderrTask = Task.detached {
-            Self.captureOutput(from: stderrPipe.fileHandleForReading, limit: maximumOutputBytes)
+            await Self.captureOutputAsync(from: stderrPipe.fileHandleForReading, limit: maximumOutputBytes)
         }
         let waitTask = Task.detached { () -> Int in
-            process.waitUntilExit()
-            return Int(process.terminationStatus)
+            await Self.waitForExit(process)
         }
         let timeoutTask = Task<Bool, Never> {
             do {
@@ -254,6 +264,25 @@ public struct ScriptPluginRunner: Sendable {
             }
         }
         return CapturedOutput(data: captured, truncated: truncated)
+    }
+
+    private static func captureOutputAsync(from handle: FileHandle, limit: Int) async -> CapturedOutput {
+        let reference = ScriptPluginBlockingReference(handle)
+        return await withCheckedContinuation { continuation in
+            DispatchQueue.global(qos: .utility).async {
+                continuation.resume(returning: captureOutput(from: reference.value, limit: limit))
+            }
+        }
+    }
+
+    private static func waitForExit(_ process: Process) async -> Int {
+        let reference = ScriptPluginBlockingReference(process)
+        return await withCheckedContinuation { continuation in
+            DispatchQueue.global(qos: .utility).async {
+                reference.value.waitUntilExit()
+                continuation.resume(returning: Int(reference.value.terminationStatus))
+            }
+        }
     }
 }
 

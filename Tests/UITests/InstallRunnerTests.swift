@@ -9,16 +9,17 @@ struct InstallRunnerTests {
 
     @Test("manual 方式标记完成并记录下载页日志")
     func manualOpensDownloadPage() async {
+        let downloadURL = "https://chatgpt.com/download"
         let vm = InstallRunnerViewModel(
             toolName: "Codex",
             method: .manual,
             installCommand: nil,
-            downloadURL: "https://chatgpt.com/download"
+            downloadURL: downloadURL
         )
         await vm.start()
         // manual 不跑命令，立即完成（NSWorkspace.open 在测试进程里可能无窗口，但不影响日志断言）
         #expect(vm.finishedSuccessfully)
-        #expect(vm.log.contains { $0.text.contains("下载页") })
+        #expect(vm.log.contains { $0.stream == .system && $0.text.contains(downloadURL) })
     }
 
     @Test("brew 方式跑通即标记成功")

@@ -1,0 +1,134 @@
+<p align="center">
+  <img src="DevHub/Assets.xcassets/AppIcon.appiconset/icon_512x512.png" width="112" height="112" alt="DevHub 应用图标">
+</p>
+
+<h1 align="center">DevHub</h1>
+
+<p align="center"><strong>从项目继续，而不是从工具重新开始。</strong></p>
+
+<p align="center">
+  一个原生、本地优先的 macOS 项目恢复台：找回历史会话、保存项目记忆，
+  并用正确的上下文重新打开正确的开发工具。
+</p>
+
+<p align="center">
+  <a href="README.md">English</a> ·
+  <a href="#从源码构建">从源码构建</a> ·
+  <a href="PRIVACY.md">隐私边界</a> ·
+  <a href="ROADMAP.md">路线图</a> ·
+  <a href="CONTRIBUTING.md">参与贡献</a>
+</p>
+
+<p align="center">
+  <a href="https://github.com/roooooly/DevHub/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/roooooly/DevHub/ci.yml?branch=main&label=CI" alt="CI 状态"></a>
+  <img src="https://img.shields.io/badge/macOS-14%2B-111111?logo=apple" alt="macOS 14 或更高版本">
+  <img src="https://img.shields.io/badge/Swift-6-F05138?logo=swift&logoColor=white" alt="Swift 6">
+  <img src="https://img.shields.io/badge/data-local--first-1F7A67" alt="本地优先">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-7D1727" alt="MIT 许可证"></a>
+</p>
+
+> **源码 Beta：**DevHub 暂时没有经过 Developer ID 签名和 Apple 公证的公开安装包。
+> 当前请从源码构建体验，不要安装非官方镜像提供的二进制文件。只有满足
+> [RELEASE.md](RELEASE.md) 中的签名与公证条件后，才会提供公开下载。
+
+![使用合成测试数据渲染的 DevHub 项目总览](Tests/SnapshotTests/__Snapshots__/GallerySnapshotTests/projectsOverview.1.png)
+
+_截图中的项目、路径和数据均为合成测试数据。DevHub 内置简体中文与英文界面。_
+
+## DevHub 聚焦的问题
+
+同时维护多个本地项目、使用多个 AI 编程工具时，启动一个工具并不难；真正昂贵的是
+找回**正确的项目、会话和工作上下文**。DevHub 把项目作为稳定的工作单位：
+
+1. 注册本地项目，不把源代码复制进 DevHub。
+2. 由用户触发，轻量索引受支持工具的本地会话记录。
+3. 在受限范围内查看会话正文，或回到原工具继续工作。
+4. 经用户确认后，把会话总结写入项目记忆，为下一次交接保留上下文。
+
+DevHub 面向同时维护多个本地仓库、使用多个开发工具的独立开发者和小团队。它不是
+云端会话托管服务，也不宣称可以在不同工具之间无损迁移完整对话。
+
+## 当前能力
+
+- 项目总览、状态、标签、Git 状态、脚本识别和快速启动
+- 聚合 Claude Code、Codex、ZCode 的本地会话，以及 Kimi 状态元数据
+- 面向大型 JSONL 历史记录的流式、限量读取
+- 按需加载会话正文，并在工具支持时回到原会话
+- 经用户确认的会话总结和项目级记忆
+- 本地估算 Claude Code、Codex 用量，与固定订阅费用分开显示
+- 脚本插件与 MCP 服务器的显式权限检查
+- 原生设置、明暗主题、简体中文与英文
+- 不在后台遍历完整会话历史
+
+### 工具兼容情况
+
+| 工具 | 本地会话发现 | DevHub 内查看正文 | 继续或打开 | 项目记忆交接 |
+| --- | --- | --- | --- | --- |
+| Claude Code | 支持 | 按需、限量读取 | 恢复会话 | 追加系统提示文件 |
+| Codex | 支持 | 按需、限量读取 | 恢复会话 | 作为新用户消息发送 |
+| ZCode | 支持 | 支持已适配的本地记录 | 恢复会话 | 通过提示参数传递 |
+| Kimi | 仅状态元数据 | 不支持 | 打开应用，不能定位到该会话 | 不支持 |
+| OpenCode | 暂未索引 | 不支持 | 从项目启动 | 通过提示参数传递 |
+| VS Code | 不适用 | 不适用 | 打开项目 | 用户确认后通过剪贴板辅助 |
+
+表格描述的是当前源码已经实现的路径。第三方工具的存储格式和命令行行为可能变化，
+兼容性修改必须同时提供脱敏测试样本和版本说明。
+
+## 隐私边界
+
+DevHub 的设计目标是让项目与会话数据留在 Mac 上。
+
+- 不包含遥测或分析 SDK。
+- 会话发现以元数据为先；只有打开会话时才加载消息正文。
+- 原始会话文件按只读方式处理。
+- 工具凭据保存在 macOS 钥匙串中，备份不包含凭据值。
+- 诊断导出必须由用户主动触发，只包含 DevHub 日志，并遮罩常见凭据格式。
+- 仓库检查会拦截本地数据库、历史文件、私人路径、签名文件和常见密钥格式。
+
+完整说明见 [PRIVACY.md](PRIVACY.md)。安全问题请按照 [SECURITY.md](SECURITY.md)
+提供的私密渠道报告。
+
+## 从源码构建
+
+需要：
+
+- macOS 14 或更高版本
+- 支持 Swift 6 的 Xcode
+- [XcodeGen](https://github.com/yonaskolb/XcodeGen)
+
+```bash
+git clone https://github.com/roooooly/DevHub.git
+cd DevHub
+xcodegen generate
+open DevHub.xcodeproj
+```
+
+Xcode 工程由 `project.yml` 生成。修改工程设置或资源时，应先更新该文件，再重新生成。
+
+## 验证检出内容
+
+```bash
+./scripts/privacy-audit.sh
+swift test --package-path DevHubPackage
+xcodebuild \
+  -project DevHub.xcodeproj \
+  -scheme DevHub \
+  -destination 'platform=macOS' \
+  test CODE_SIGNING_ALLOWED=NO
+```
+
+如果只需要制作本机临时签名的评估包，请阅读 [RELEASE.md](RELEASE.md)。这个流程与公开
+分发严格分开。
+
+## 参与贡献
+
+请先阅读 [CONTRIBUTING.md](CONTRIBUTING.md)、公开[路线图](ROADMAP.md)，或选择一个
+范围清楚的 Issue。测试和文档只能使用合成的项目名、路径、会话、截图和凭据。
+
+使用问题和设计提案请进入
+[Discussions](https://github.com/roooooly/DevHub/discussions)；可以复现的缺陷和已确认工作
+请使用 Issues。
+
+## 许可证
+
+DevHub 使用 [MIT License](LICENSE)。

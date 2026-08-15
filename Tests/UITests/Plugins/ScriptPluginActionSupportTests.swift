@@ -59,15 +59,17 @@ struct ScriptPluginActionSupportTests {
 
     @Test("非零退出结果同时保留错误和标准输出")
     func formatsFailureResult() {
+        let actionTitle = "Deploy"
         let result = ScriptPluginResult(
             exitCode: 7,
             stdout: "fallback",
             stderr: String(repeating: "x", count: 3_000)
         )
-        let message = ScriptPluginActionFeedback.resultMessage(actionTitle: "Deploy", result: result)
-        #expect(message.contains("退出码 7"))
-        #expect(message.contains("标准错误："))
-        #expect(message.contains("标准输出："))
+        let message = ScriptPluginActionFeedback.resultMessage(actionTitle: actionTitle, result: result)
+        let headline = String(localized: "“\(actionTitle)”执行失败（退出码 \(result.exitCode)）。")
+        #expect(message.contains(headline))
+        #expect(message.contains("\(String(localized: "标准错误"))："))
+        #expect(message.contains("\(String(localized: "标准输出"))："))
         #expect(message.contains("fallback"))
         #expect(message.contains("…"))
         #expect(message.count < 2_100)
@@ -75,8 +77,9 @@ struct ScriptPluginActionSupportTests {
 
     @Test("成功结果在有界弹窗消息中显示 stdout")
     func formatsSuccessfulStandardOutput() {
+        let actionTitle = "Build"
         let message = ScriptPluginActionFeedback.resultMessage(
-            actionTitle: "Build",
+            actionTitle: actionTitle,
             result: ScriptPluginResult(
                 exitCode: 0,
                 stdout: "artifact: " + String(repeating: "a", count: 3_000),
@@ -84,8 +87,8 @@ struct ScriptPluginActionSupportTests {
             )
         )
 
-        #expect(message.contains("执行成功"))
-        #expect(message.contains("标准输出："))
+        #expect(message.contains(String(localized: "“\(actionTitle)”执行成功。")))
+        #expect(message.contains("\(String(localized: "标准输出"))："))
         #expect(message.contains("artifact:"))
         #expect(message.contains("…"))
         #expect(message.count < 2_100)
@@ -93,12 +96,13 @@ struct ScriptPluginActionSupportTests {
 
     @Test("无输出的成功结果仍给出明确反馈")
     func formatsSuccessfulEmptyResult() {
+        let actionTitle = "Refresh"
         let message = ScriptPluginActionFeedback.resultMessage(
-            actionTitle: "Refresh",
+            actionTitle: actionTitle,
             result: ScriptPluginResult(exitCode: 0, stdout: " \n", stderr: "")
         )
 
-        #expect(message == "“Refresh”执行成功。")
+        #expect(message == String(localized: "“\(actionTitle)”执行成功。"))
     }
 
     @Test("插件失败审计日志只含字节数，不含输出正文")
@@ -212,7 +216,7 @@ struct ScriptPluginActionSupportTests {
         await viewModel.disable(pluginId: "sample")
 
         #expect(viewModel.enabledIds.contains("sample"))
-        #expect(viewModel.loadError?.contains("无法撤销插件权限") == true)
+        #expect(viewModel.loadError?.hasPrefix(String(localized: "无法撤销插件权限：")) == true)
         #expect(notificationCount.value == 2)
         #expect(await store.isConfirmed(pluginId: "sample"))
     }

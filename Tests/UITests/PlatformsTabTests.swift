@@ -37,7 +37,7 @@ struct PlatformsTabViewModelTests {
     @Test("新账号表单用平台 preset 初始化，切换平台更新未修改字段")
     func accountDraftUsesPresetDefaults() {
         var draft = PlatformAccountFormDraft(platform: .xiaohongshu)
-        #expect(draft.displayName == "小红书")
+        #expect(draft.displayName == String(localized: "小红书"))
         #expect(draft.loginUrl == "https://creator.xiaohongshu.com/")
 
         draft.applyPresetChange(from: .xiaohongshu, to: .twitter)
@@ -47,7 +47,7 @@ struct PlatformsTabViewModelTests {
 
         draft.loginUrl = "https://x.com/custom"
         draft.applyPresetChange(from: .twitter, to: .wechatOA)
-        #expect(draft.displayName == "微信公众号")
+        #expect(draft.displayName == String(localized: "微信公众号"))
         #expect(draft.loginUrl == "https://x.com/custom")
     }
 
@@ -150,13 +150,13 @@ struct PlatformsTabViewModelTests {
         let account = try #require(viewModel.accounts.first)
         await viewModel.bind(accountId: account.id)
         await viewModel.bind(accountId: account.id)
-        #expect(viewModel.saveError?.contains("绑定失败") == true)
+        #expect(viewModel.saveError?.hasPrefix(String(localized: "账号绑定失败：")) == true)
 
         var invalid = PlatformAccountFormDraft(account: account)
         invalid.loginUrl = "not-a-url"
         await #expect(throws: PlatformStoreError.self) {
             try await viewModel.updateAccount(id: account.id, draft: invalid)
         }
-        #expect(viewModel.saveError?.contains("更新失败") == true)
+        #expect(viewModel.saveError?.hasPrefix(String(localized: "账号更新失败：")) == true)
     }
 }

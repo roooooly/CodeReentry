@@ -35,6 +35,17 @@ private final class ProcessLineAccumulator: @unchecked Sendable {
     }
 }
 
+/// Foundation's process and pipe waits are synchronous. Keep those waits off
+/// Swift's cooperative executor so timeout tasks can still make progress when
+/// several commands are running at once.
+private final class LocalProcessBlockingReference<Value>: @unchecked Sendable {
+    let value: Value
+
+    init(_ value: Value) {
+        self.value = value
+    }
+}
+
 /// 本地进程 spawn + 日志流（§5.6 运维面板）。
 /// 与 §5.2 不同：这是 DevHub 自己 spawn 的后台进程（运维脚本），可 terminate；
 /// §5.2 不追踪 PID 是针对终端里的交互式 CLI 工具。
@@ -99,13 +110,13 @@ public actor LocalProcessRunner {
         // 必须并行排空两个 pipe。顺序 readDataToEndOfFile 会在子进程先写满
         // 另一条 pipe 时互相等待，最终把正常命令误判成超时。
         let stdoutTask = Task.detached(priority: .utility) {
-            Self.readPipe(stdoutPipe.fileHandleForReading, limit: Self.outputCaptureLimit)
+            await Self.readPipeAsync(stdoutPipe.fileHandleForReading, limit: Self.outputCaptureLimit)
         }
         let stderrTask = Task.detached(priority: .utility) {
-            Self.readPipe(stderrPipe.fileHandleForReading, limit: Self.outputCaptureLimit)
+            await Self.readPipeAsync(stderrPipe.fileHandleForReading, limit: Self.outputCaptureLimit)
         }
         let waitTask = Task.detached(priority: .utility) {
-            process.waitUntilExit()
+            await Self.waitForExit(process)
         }
         let timeoutTask = Task.detached(priority: .utility) { () -> Bool in
             guard cfg.timeout.isFinite else { return false }
@@ -128,7 +139,7 @@ public actor LocalProcessRunner {
             return true
         }
 
-        await waitTask.value
+        _ = await waitTask.value
         timeoutTask.cancel()
         let timedOut = await timeoutTask.value
         let stdout = await stdoutTask.value
@@ -276,6 +287,28 @@ public actor LocalProcessRunner {
             }
         }
         return CapturedProcessOutput(data: captured, totalBytes: totalBytes)
+    }
+
+    private nonisolated static func readPipeAsync(
+        _ handle: FileHandle,
+        limit: Int
+    ) async -> CapturedProcessOutput {
+        let reference = LocalProcessBlockingReference(handle)
+        return await withCheckedContinuation { continuation in
+            DispatchQueue.global(qos: .utility).async {
+                continuation.resume(returning: readPipe(reference.value, limit: limit))
+            }
+        }
+    }
+
+    private nonisolated static func waitForExit(_ process: Process) async -> Int32 {
+        let reference = LocalProcessBlockingReference(process)
+        return await withCheckedContinuation { continuation in
+            DispatchQueue.global(qos: .utility).async {
+                reference.value.waitUntilExit()
+                continuation.resume(returning: reference.value.terminationStatus)
+            }
+        }
     }
 
     private nonisolated static func logLines(from data: Data, stream: LogStream) -> [LogLine] {

@@ -10,9 +10,26 @@ protocol NotificationCenterProtocol: Sendable {
     func removePendingNotificationRequests(withIdentifiers identifiers: [String])
 }
 
-extension UNUserNotificationCenter: NotificationCenterProtocol {
+/// Avoid a retroactive Sendable conformance on Apple's notification-center
+/// class. Older Swift 6 compilers reject that conformance outside the framework
+/// that defines the class; this adapter keeps the concurrency boundary explicit.
+final class SystemNotificationCenter: NotificationCenterProtocol, @unchecked Sendable {
+    private let center: UNUserNotificationCenter
+
+    init(center: UNUserNotificationCenter = .current()) {
+        self.center = center
+    }
+
     func requestAuthorization() async throws -> Bool {
-        try await requestAuthorization(options: [.alert, .badge, .sound])
+        try await center.requestAuthorization(options: [.alert, .badge, .sound])
+    }
+
+    func add(_ request: UNNotificationRequest) async throws {
+        try await center.add(request)
+    }
+
+    func removePendingNotificationRequests(withIdentifiers identifiers: [String]) {
+        center.removePendingNotificationRequests(withIdentifiers: identifiers)
     }
 }
 

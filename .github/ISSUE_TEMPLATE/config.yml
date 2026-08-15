@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Questions and design discussion
+    url: https://github.com/roooooly/DevHub/discussions
+    about: Ask for help or discuss an idea before turning it into accepted work.
+  - name: Private security or privacy report
+    url: https://github.com/roooooly/DevHub/security/advisories/new
+    about: Report vulnerabilities or private-data exposure without publishing details.

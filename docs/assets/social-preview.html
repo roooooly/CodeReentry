@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=1280, initial-scale=1">
+  <link rel="icon" href="data:,">
+  <title>DevHub social preview</title>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
+      background: #f5f1eb;
+      color: #191716;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      width: 1280px;
+      height: 640px;
+      margin: 0;
+      overflow: hidden;
+    }
+
+    body {
+      background:
+        radial-gradient(circle at 12% 14%, rgba(125, 23, 39, 0.11), transparent 27%),
+        linear-gradient(115deg, #fbf8f3 0%, #f5f1eb 55%, #ece7e0 100%);
+    }
+
+    .canvas {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      padding: 58px 60px;
+      isolation: isolate;
+    }
+
+    .grid {
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      opacity: 0.2;
+      background-image:
+        linear-gradient(rgba(79, 68, 61, 0.12) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(79, 68, 61, 0.12) 1px, transparent 1px);
+      background-size: 32px 32px;
+      mask-image: linear-gradient(to right, black, transparent 74%);
+    }
+
+    .copy {
+      width: 540px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 46px;
+    }
+
+    .brand img {
+      width: 72px;
+      height: 72px;
+      border-radius: 18px;
+      box-shadow: 0 10px 28px rgba(64, 31, 32, 0.16);
+    }
+
+    .brand-name {
+      font-size: 25px;
+      font-weight: 760;
+      letter-spacing: 0.02em;
+    }
+
+    .brand-label {
+      margin-top: 5px;
+      color: #7d1727;
+      font-size: 13px;
+      font-weight: 760;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      max-width: 520px;
+      font-size: 57px;
+      line-height: 1.04;
+      letter-spacing: -0.045em;
+    }
+
+    .lead {
+      margin: 24px 0 0;
+      width: 500px;
+      color: #635d58;
+      font-size: 22px;
+      line-height: 1.42;
+    }
+
+    .pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 9px;
+      margin-top: 30px;
+    }
+
+    .pill {
+      padding: 9px 13px;
+      border: 1px solid rgba(125, 23, 39, 0.18);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.66);
+      color: #4b423d;
+      font-size: 13px;
+      font-weight: 650;
+    }
+
+    .window {
+      position: absolute;
+      top: 62px;
+      right: -82px;
+      width: 710px;
+      height: 516px;
+      overflow: hidden;
+      border: 1px solid rgba(76, 59, 50, 0.13);
+      border-radius: 24px;
+      background: white;
+      box-shadow: 0 30px 70px rgba(51, 38, 32, 0.19);
+      transform: rotate(-1deg);
+    }
+
+    .titlebar {
+      height: 35px;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 0 14px;
+      border-bottom: 1px solid #e9e5e0;
+      background: #f8f6f3;
+    }
+
+    .dot { width: 10px; height: 10px; border-radius: 50%; }
+    .red { background: #ff5f57; }
+    .yellow { background: #febc2e; }
+    .green { background: #28c840; }
+
+    .window img {
+      display: block;
+      width: 736px;
+      height: auto;
+      transform: translate(-2px, 0);
+    }
+
+    .local {
+      position: absolute;
+      right: 34px;
+      bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: #1f7a67;
+      color: white;
+      font-size: 13px;
+      font-weight: 720;
+      box-shadow: 0 10px 24px rgba(31, 122, 103, 0.22);
+    }
+  </style>
+</head>
+<body>
+  <main class="canvas" aria-label="DevHub social preview">
+    <div class="grid" aria-hidden="true"></div>
+    <section class="copy">
+      <div class="brand">
+        <img src="../../DevHub/Assets.xcassets/AppIcon.appiconset/icon_512x512.png" alt="">
+        <div>
+          <div class="brand-name">DevHub</div>
+          <div class="brand-label">Local workspace for macOS</div>
+        </div>
+      </div>
+      <h1>Resume work from the project.</h1>
+      <p class="lead">Find local AI sessions, keep project memory, and reopen the right tool with the right context.</p>
+      <div class="pills" aria-label="Project qualities">
+        <span class="pill">Native SwiftUI</span>
+        <span class="pill">Local-first</span>
+        <span class="pill">No telemetry</span>
+      </div>
+    </section>
+    <section class="window" aria-label="Synthetic DevHub project overview">
+      <div class="titlebar" aria-hidden="true">
+        <span class="dot red"></span>
+        <span class="dot yellow"></span>
+        <span class="dot green"></span>
+      </div>
+      <img src="../../Tests/SnapshotTests/__Snapshots__/GallerySnapshotTests/projectsOverview.1.png" alt="">
+    </section>
+    <div class="local">● Data stays on your Mac</div>
+  </main>
+</body>
+</html>

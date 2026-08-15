@@ -28,7 +28,10 @@ if test -n "$devhub_private_paths"; then
 fi
 
 devhub_local_user=$(id -un)
-if test "$devhub_local_user" != "example"; then
+# CI accounts use generic names such as "runner", which occur legitimately in source
+# identifiers. The local identity check is useful on a developer Mac; the path,
+# legacy-identity, and credential checks below remain active everywhere.
+if test "${CI:-}" != "true" && test "$devhub_local_user" != "example"; then
   devhub_identity_hits=$(git grep -n -I -i -F "$devhub_local_user" -- . ':!scripts/privacy-audit.sh' 2>/dev/null || true)
   if test -n "$devhub_identity_hits"; then
     echo "privacy-audit: current macOS username appears in tracked content:" >&2
