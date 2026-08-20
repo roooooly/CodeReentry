@@ -5,6 +5,7 @@ published a signed public binary.
 
 ## Unreleased
 
+- Require Sparkle 2.9.6 or newer for upstream security fixes.
 - Clarify the project-recovery focus and current compatibility boundaries.
 - Add separate English and Simplified Chinese repository documentation.
 - Add GitHub community templates, continuous integration, and privacy checks.
