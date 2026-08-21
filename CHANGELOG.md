@@ -5,10 +5,16 @@ published a signed public binary.
 
 ## Unreleased
 
+## 0.6.1 - 2026-08-21
+
 - Freeze recovery duration before opening the result form so form-entry time cannot
   inflate real-use evidence.
 - Let users permanently clear the local evidence CSV and unfinished in-memory timer from
   Recovery Evidence, while retaining unrelated application-support files.
+- Keep deletion available for malformed evidence, reject symbolic links and non-regular
+  targets, and never recursively remove a same-named directory.
+- Make the built app version derive from the project version and verify that the source
+  placeholders, bundle metadata, and release filename cannot silently drift apart.
 
 ## 0.6.0 - 2026-08-21
 
