@@ -25,6 +25,7 @@ final class AppDependencies {
     // MARK: - Core 服务
 
     let modelContainer: ModelContainer
+    let runtimeMode: AppRuntimeMode
     let gitStatusProvider: GitStatusProvider
     private(set) var keychain: any KeychainStoring
     private let preferences: UserDefaults
@@ -94,9 +95,12 @@ final class AppDependencies {
 
     /// 按固定 UI 顺序返回当前启用模块；持久化数据异常时至少包含 Tools。
     var enabledDetailTabs: [DetailTab] {
+        if isDemoMode { return [.sessions, .memory] }
         let enabled = DetailTab.allCases.filter { !disabledDetailTabs.contains($0) }
         return enabled.isEmpty ? [.tools] : enabled
     }
+
+    var isDemoMode: Bool { runtimeMode == .demo }
 
     // MARK: - 测试注入 seam（生产 nil = 用真实 Core）
 
@@ -108,8 +112,14 @@ final class AppDependencies {
     /// 已注册的会话 reader（§5.3A 聚合用）。P1 加 ZcodeReader。
     let sessionReaders: [any SessionReader]
 
-    init(modelContainer: ModelContainer, preferences: UserDefaults = .standard) {
+    init(
+        modelContainer: ModelContainer,
+        preferences: UserDefaults = .standard,
+        runtimeMode: AppRuntimeMode = .standard,
+        sessionReaders injectedSessionReaders: [any SessionReader]? = nil
+    ) {
         self.modelContainer = modelContainer
+        self.runtimeMode = runtimeMode
         self.gitStatusProvider = GitStatusProvider()
         self.keychain = KeychainStore()
         self.preferences = preferences
@@ -123,22 +133,33 @@ final class AppDependencies {
         self.launchAtLoginManager = SystemLaunchAtLoginManager()
         self.logExporter = DevHubLogExporter()
         self.pasteboardHelper = PasteboardHelper()
-        self.usageScanner = UsageScanner(projectPathsProvider: { [modelContainer] in
-            // 只读快照：取出当前注册项目的根路径，供用量按 cwd 归桶到 perProject。
-            let ctx = ModelContext(modelContainer)
-            let projects = (try? ctx.fetch(FetchDescriptor<Project>())) ?? []
-            return projects.map(\.path).filter { !$0.isEmpty }
-        })
+        self.usageScanner = UsageScanner(
+            isEnabled: runtimeMode == .standard,
+            projectPathsProvider: { [modelContainer] in
+                // 只读快照：取出当前注册项目的根路径，供用量按 cwd 归桶到 perProject。
+                let ctx = ModelContext(modelContainer)
+                let projects = (try? ctx.fetch(FetchDescriptor<Project>())) ?? []
+                return projects.map(\.path).filter { !$0.isEmpty }
+            }
+        )
         // OpenCode 仅发现 SQLite 元数据；Gemini/Copilot 使用有界 JSONL reader。
         // 聚合只由用户显式刷新触发。
-        let home = FileManager.default.homeDirectoryForCurrentUser
-        let kimiPaths = KimiPathDiscovery.discover(
-            candidates: KimiPathDiscovery.standardCandidates(home: home), home: home)
-        self.sessionReaders = [
-            ClaudeReader(), CodexReader(), ZcodeReader(), KimiReader(paths: kimiPaths),
-            OpenCodeReader(homeURL: home), GeminiReader(homeURL: home),
-            GitHubCopilotReader(homeURL: home)
-        ]
+        if let injectedSessionReaders {
+            self.sessionReaders = injectedSessionReaders
+        } else if runtimeMode == .demo {
+            // A demo without an injected synthetic reader must stay empty; it
+            // must never fall back to the user's real home-directory readers.
+            self.sessionReaders = []
+        } else {
+            let home = FileManager.default.homeDirectoryForCurrentUser
+            let kimiPaths = KimiPathDiscovery.discover(
+                candidates: KimiPathDiscovery.standardCandidates(home: home), home: home)
+            self.sessionReaders = [
+                ClaudeReader(), CodexReader(), ZcodeReader(), KimiReader(paths: kimiPaths),
+                OpenCodeReader(homeURL: home), GeminiReader(homeURL: home),
+                GitHubCopilotReader(homeURL: home)
+            ]
+        }
         // A resource manager should open on a useful operating surface, not an
         // empty detail pane that asks the user to make a redundant choice.
         self.selectedGlobalDestination = .projects
@@ -273,6 +294,7 @@ final class AppDependencies {
         configuredToolId: UUID? = nil,
         project: Project? = nil
     ) async throws {
+        guard !isDemoMode else { throw SessionLaunchError.demoMode }
         let workingDirectory = try Self.validWorkingDirectory(projectPath)
         guard let adapter = adapter(for: toolId) else {
             throw SessionLaunchError.adapterUnavailable(toolId)
@@ -423,6 +445,7 @@ final class AppDependencies {
 }
 
 enum SessionLaunchError: LocalizedError, Equatable {
+    case demoMode
     case workingDirectoryMissing(String)
     case adapterUnavailable(String)
     case resumeUnsupported(String)
@@ -432,6 +455,8 @@ enum SessionLaunchError: LocalizedError, Equatable {
 
     var errorDescription: String? {
         switch self {
+        case .demoMode:
+            return String(localized: "演示模式不会启动外部工具。退出后不带 --demo 重新运行，才能恢复真实会话。")
         case .workingDirectoryMissing(let path):
             return String(localized: "无法继续：工作目录不存在：\(path)")
         case .adapterUnavailable(let tool):

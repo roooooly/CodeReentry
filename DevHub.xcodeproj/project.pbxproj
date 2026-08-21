@@ -64,6 +64,7 @@
 		A8B4E2F0AD0D5830A339D6CA /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9E56362FB86F65AF519D3AA9 /* Assets.xcassets */; };
 		ACA716B124D90066A1220B92 /* SessionDetailViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AACF9987DEF984CC084A5E9E /* SessionDetailViewModelTests.swift */; };
 		B1D6EA0052D61D412208C2F0 /* SidebarViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE811807777BD35E869BC326 /* SidebarViewModel.swift */; };
+		B7ABA508FA50326F2B1C1262 /* DemoWorkspaceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF302CC3729AB7300B4DC0CD /* DemoWorkspaceTests.swift */; };
 		B882E3ED940B10FF01C20CD6 /* ToolsTabViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD515D334E95758AFBD54C3F /* ToolsTabViewModel.swift */; };
 		BB548A069833304786175EAE /* MenuBarViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37066F15A915F32A1AA5A33D /* MenuBarViewModelTests.swift */; };
 		BBDE01464E3A1E4C43543AA8 /* ReminderSchedulerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 309A2EB5729BA6978CC79B07 /* ReminderSchedulerTests.swift */; };
@@ -90,6 +91,7 @@
 		E32D7915974C2FB2714BEC91 /* MCPSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C0FEEFD82E3277D06BEF77B /* MCPSettingsView.swift */; };
 		E3758358D99374C082726E81 /* InstallRunnerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B3CEF7F06B50EE41373DB83 /* InstallRunnerView.swift */; };
 		E5566BAAFB841D6E5B19A052 /* ProjectsOverviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A95CCE4991904DCB6CC08E37 /* ProjectsOverviewView.swift */; };
+		E704700A59078C7F7B8F5EB6 /* DemoWorkspace.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38B2F8A2FAB656AC11DDF042 /* DemoWorkspace.swift */; };
 		ED462FE9A8781ACC210FEBA3 /* ToolCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED1D0622ACA0734F47BF821B /* ToolCard.swift */; };
 		ED63C5FC340EA1A9DCEA88B3 /* SubscriptionFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A58F4DFB822F4F58497E1757 /* SubscriptionFormView.swift */; };
 		EDF3602876903A1C6569E005 /* AppDependencies.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8FA54451B0410EEBA1092DB /* AppDependencies.swift */; };
@@ -129,6 +131,7 @@
 		309A2EB5729BA6978CC79B07 /* ReminderSchedulerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReminderSchedulerTests.swift; sourceTree = "<group>"; };
 		35C1301B139E8292EB44527F /* DevHubApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DevHubApp.swift; sourceTree = "<group>"; };
 		37066F15A915F32A1AA5A33D /* MenuBarViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarViewModelTests.swift; sourceTree = "<group>"; };
+		38B2F8A2FAB656AC11DDF042 /* DemoWorkspace.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoWorkspace.swift; sourceTree = "<group>"; };
 		447EEA17DD91DBD1274EF798 /* OnboardingFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingFlow.swift; sourceTree = "<group>"; };
 		4657768382DF6CD91CC771F6 /* GlobalDestinationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalDestinationView.swift; sourceTree = "<group>"; };
 		4C406872548D9519845A6E3F /* AppDependenciesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDependenciesTests.swift; sourceTree = "<group>"; };
@@ -203,6 +206,7 @@
 		F75081905417D353FF6FCA5B /* UsageScannerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageScannerTests.swift; sourceTree = "<group>"; };
 		FB80D313EB616C658462795E /* MenuBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarController.swift; sourceTree = "<group>"; };
 		FC85A75321F2D873608DDD29 /* SessionsTabViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionsTabViewModel.swift; sourceTree = "<group>"; };
+		FF302CC3729AB7300B4DC0CD /* DemoWorkspaceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoWorkspaceTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -373,6 +377,7 @@
 				63E23CB89FC7849DAABD767A /* Subscriptions */,
 				D7C1471B69E8676548543122 /* Usage */,
 				D8FA54451B0410EEBA1092DB /* AppDependencies.swift */,
+				38B2F8A2FAB656AC11DDF042 /* DemoWorkspace.swift */,
 				35C1301B139E8292EB44527F /* DevHubApp.swift */,
 				B6CF00315BD22BC83BE92A20 /* PerformanceScenarioRunner.swift */,
 			);
@@ -422,6 +427,7 @@
 				663165960DBBAB3FF07B9F8F /* AccessibilityTests.swift */,
 				6AAAD2FBF1B7A3B5F0B76FB9 /* AllSessionsViewModelTests.swift */,
 				4C406872548D9519845A6E3F /* AppDependenciesTests.swift */,
+				FF302CC3729AB7300B4DC0CD /* DemoWorkspaceTests.swift */,
 				E5069267A0112311ED7F07D0 /* InstallRunnerTests.swift */,
 				51C8DAF2653D87E77A0BDE97 /* LauncherIntegrationTests.swift */,
 				E08550F0EFDE36678BC28C44 /* MemoryTabTests.swift */,
@@ -660,6 +666,7 @@
 				FE31666BF84011C796DE9CF2 /* AllSessionsViewModelTests.swift in Sources */,
 				FEADA31CD8AA78EB52D4451B /* AppDependenciesTests.swift in Sources */,
 				9D9CBF2081A97A1DAC32B56F /* CommandPaletteViewModelTests.swift in Sources */,
+				B7ABA508FA50326F2B1C1262 /* DemoWorkspaceTests.swift in Sources */,
 				D6FA59DB12501C4936D67D83 /* GallerySnapshotTests.swift in Sources */,
 				159F78E72CA5E9D16497230C /* GlobalSubscriptionsViewModelTests.swift in Sources */,
 				F23EF0D0C621E02E31365A21 /* InstallRunnerTests.swift in Sources */,
@@ -700,6 +707,7 @@
 				9C158EDFFF6B4CC9F6FACFF2 /* BackupImportView.swift in Sources */,
 				7E37B5146F534A6D4AA33BB4 /* CommandPaletteView.swift in Sources */,
 				61FD01EEE06C84EC8B26999F /* CommandPaletteViewModel.swift in Sources */,
+				E704700A59078C7F7B8F5EB6 /* DemoWorkspace.swift in Sources */,
 				2E675C2ECBA44FA487DC7112 /* DetailTab.swift in Sources */,
 				7B4C337AB31961DE876D8E42 /* DevHubApp.swift in Sources */,
 				74418333D066FCC49890613D /* DevHubLogExporter.swift in Sources */,

@@ -147,10 +147,12 @@ struct ProjectDetailView: View {
                     .textSelection(.enabled)
             }
         } actions: {
-            Button(String(localized: "重新定位…")) {
-                chooseRelocationFolder(for: project)
+            if !deps.isDemoMode {
+                Button(String(localized: "重新定位…")) {
+                    chooseRelocationFolder(for: project)
+                }
+                .buttonStyle(.borderedProminent)
             }
-            .buttonStyle(.borderedProminent)
         }
     }
 
@@ -229,7 +231,9 @@ struct ProjectDetailView: View {
         let availability = ProjectPathAvailability.evaluate(path: fetched.path)
         pathAvailability = availability
         gitStatus = nil
-        guard availability == .available else { return }
+        // Demo mode must remain self-contained: even Git status is skipped so
+        // opening a synthetic project never starts an external process.
+        guard availability == .available, !deps.isDemoMode else { return }
         gitStatus = try? await deps.gitStatusProvider.status(
             at: URL(fileURLWithPath: fetched.path, isDirectory: true)
         )
