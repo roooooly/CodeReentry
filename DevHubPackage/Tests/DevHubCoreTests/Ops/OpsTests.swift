@@ -215,14 +215,20 @@ struct LocalProcessRunnerTests {
     @Test("stream 逐行 yield stdout")
     func streamYieldsStdoutLines() async throws {
         let runner = LocalProcessRunner()
-        let cfg = LocalProcessRunner.LaunchConfig(
-            workingDir: try makeTempDir(),
-            command: "/bin/sh -c 'echo line1; echo line2'", timeout: 5)
-        var lines: [LocalProcessRunner.LogLine] = []
-        for await line in await runner.stream(cfg: cfg) { lines.append(line) }
-        let stdoutTexts = lines.filter { $0.stream == .stdout }.map(\.text)
-        #expect(stdoutTexts.contains("line1"))
-        #expect(stdoutTexts.contains("line2"))
+        let workingDir = try makeTempDir()
+
+        // Short-lived processes expose the race between the readability callback
+        // and Process.terminationHandler. Repeat enough times to keep it covered.
+        for _ in 0..<25 {
+            let cfg = LocalProcessRunner.LaunchConfig(
+                workingDir: workingDir,
+                command: "/bin/sh -c 'echo line1; echo line2'", timeout: 5)
+            var lines: [LocalProcessRunner.LogLine] = []
+            for await line in await runner.stream(cfg: cfg) { lines.append(line) }
+            let stdoutTexts = lines.filter { $0.stream == .stdout }.map(\.text)
+            #expect(stdoutTexts.contains("line1"))
+            #expect(stdoutTexts.contains("line2"))
+        }
     }
 
     @Test("stream 完成后不再持有进程（currentProcessIsRunning=false）")
