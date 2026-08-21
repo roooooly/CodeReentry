@@ -5,6 +5,11 @@ published a signed public binary.
 
 ## Unreleased
 
+- Add an explicitly triggered, fully local recovery timer and evidence dashboard that
+  measures real project/session/context recovery against the published gate.
+- Persist only a strict owner-only anonymous CSV without project identifiers, names,
+  paths, session IDs, prompts, messages, or notes; unfinished timers remain memory-only.
+- Extend the shared native/CLI evidence schema to Gemini CLI and GitHub Copilot CLI.
 - Preserve an owner-only, one-time launcher when macOS blocks Terminal Automation and
   offer a shell-quoted path command that users can paste into Terminal without putting
   session IDs, project memory, or environment values on the clipboard.

@@ -106,6 +106,7 @@ final class SessionDetailViewModel {
 struct SessionDetailView: View {
     @Environment(\.dismiss) private var dismiss
     @State var viewModel: SessionDetailViewModel
+    var onMeasureRecovery: (() -> Void)?
     var onOpenOriginal: (() -> Void)?
 
     var body: some View {
@@ -144,6 +145,14 @@ struct SessionDetailView: View {
                 .foregroundStyle(.secondary)
             }
             Spacer()
+            if let onMeasureRecovery {
+                Button(action: onMeasureRecovery) {
+                    Label(String(localized: "测量这次恢复"), systemImage: "stopwatch")
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.small)
+                .help(String(localized: "启动本地计时，并在恢复后记录匿名结果"))
+            }
             if let onOpenOriginal {
                 Button(action: onOpenOriginal) {
                     Label(String(localized: "在原工具中继续"), systemImage: "arrow.uturn.forward")

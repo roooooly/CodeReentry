@@ -15,6 +15,7 @@ struct AppDependenciesTests {
         // 无参 Core 服务为值类型，非空即可
         _ = deps.gitStatusProvider
         _ = deps.keychain
+        _ = deps.reentryTrials
         // adapter 工厂与会话 reader 覆盖所有可恢复的内置工具。
         #expect(deps.adapter(for: "codex") != nil)
         #expect(deps.adapter(for: "claude-code") != nil)

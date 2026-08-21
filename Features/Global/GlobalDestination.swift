@@ -5,6 +5,7 @@ enum GlobalDestination: String, CaseIterable, Hashable, Sendable {
     case usage
     case subscriptions
     case sessions
+    case evidence
     case platforms
 
     var selectionTag: String { "__global__:\(rawValue)" }
@@ -20,6 +21,7 @@ enum GlobalDestination: String, CaseIterable, Hashable, Sendable {
         case .usage: return String(localized: "用量与成本")
         case .subscriptions: return String(localized: "订阅总览")
         case .sessions: return String(localized: "全部会话")
+        case .evidence: return String(localized: "恢复证据")
         case .platforms: return String(localized: "平台账号")
         }
     }
@@ -30,6 +32,7 @@ enum GlobalDestination: String, CaseIterable, Hashable, Sendable {
         case .usage: return "chart.bar.fill"
         case .subscriptions: return "creditcard.fill"
         case .sessions: return "bubble.left.and.bubble.right"
+        case .evidence: return "stopwatch.fill"
         case .platforms: return "globe"
         }
     }
