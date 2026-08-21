@@ -170,6 +170,18 @@ sessions, launch the isolated demo instead:
 ./scripts/run-source.sh --demo
 ```
 
+For repeat use, install the verified build for the current user and launch it:
+
+```bash
+./scripts/run-source.sh --install
+```
+
+This writes only to `~/Applications/CodeReentry.app`, requires no administrator access,
+and replaces an existing item only when it is a real directory with CodeReentry's exact
+bundle identifier. The new copy is staged and verified before replacement; a failed move
+restores the previous copy. This remains a build made locally from your checkout, not an
+unsigned binary downloaded from a Release.
+
 Demo mode uses an in-memory database plus synthetic projects, conversations, memory, and
 subscriptions under a disposable temporary directory. It does not read local sessions,
 start MCP servers, scan usage files, launch developer tools, or write to the normal
@@ -180,8 +192,8 @@ CodeReentry database. The temporary workspace is removed when the app exits.
 The script uses the committed Xcode project, writes build products only under the
 ignored `build/` directory, verifies the resulting bundle, and does not scan projects
 or sessions before you explicitly request it in the app. Pass `--build-only` to build
-without launching. The first build can take several minutes while Swift packages are
-resolved and compiled.
+without launching. Combine it with `--install` to install without launching. The first
+build can take several minutes while Swift packages are resolved and compiled.
 
 On first launch, choose **Find projects from sessions** for the shortest path to value.
 CodeReentry performs one explicit metadata-only scan, proposes at most 20 recent project

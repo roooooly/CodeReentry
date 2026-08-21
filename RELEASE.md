@@ -5,7 +5,9 @@ evaluation. This path does not require an Apple Developer ID or notarization cre
 
 For the shortest source-evaluation path, run `./scripts/run-source.sh`. It builds,
 verifies, and launches the app without creating distributable archives or requiring
-XcodeGen. The packaging flow below is intended for maintainers who need a local DMG.
+XcodeGen. Pass `--install` to stage and verify the local build before placing it in the
+current user's `~/Applications` directory. The packaging flow below is intended for
+maintainers who need a local DMG.
 
 ## Build and package
 
@@ -59,6 +61,15 @@ samples stay under ignored `local-data/` and must not be attached to a release. 
 failed controls remain in the baseline so performance improvements can be audited.
 
 ## Install
+
+For a durable user-level install built from the current checkout:
+
+```bash
+./scripts/run-source.sh --install
+```
+
+The installer does not use `sudo`, refuses symbolic links and foreign bundle identifiers,
+and restores the previous matching app if placement or final verification fails.
 
 Open the DMG and drag CodeReentry to Applications. Because this personal build is not
 notarized, macOS may require the first launch through Finder's **Open** context-menu

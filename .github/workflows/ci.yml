@@ -36,6 +36,8 @@ jobs:
       - uses: actions/checkout@v7
       - name: Verify the one-command source build from the committed project
         run: ./scripts/run-source.sh --build-only
+      - name: Verify safe user-level source installation
+        run: ./scripts/test-source-install.sh
       - name: Install XcodeGen
         run: brew install xcodegen
       - name: Generate the Xcode project

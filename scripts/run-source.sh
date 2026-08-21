@@ -6,19 +6,22 @@ devhub_derived_data=${DEVHUB_DERIVED_DATA_PATH:-"$devhub_repo_root/build/SourceD
 devhub_configuration=Release
 devhub_build_only=false
 devhub_demo=false
+devhub_install=false
 
 usage() {
   cat <<'EOF'
-Usage: ./scripts/run-source.sh [--build-only] [--demo]
+Usage: ./scripts/run-source.sh [--build-only] [--demo] [--install]
 
 Build a verified, ad-hoc-signed copy of CodeReentry directly from this checkout.
 By default the script launches the resulting app. Use --build-only in CI or
 when you only want to verify the source-build path. Use --demo to launch an
 isolated, in-memory workspace containing synthetic projects and sessions; demo
-mode does not read local sessions or launch external developer tools.
+mode does not read local sessions or launch external developer tools. Use
+--install to place the verified local build in ~/Applications before launch.
 
 Environment:
   DEVHUB_DERIVED_DATA_PATH  Override the ignored build directory.
+  CODEREENTRY_INSTALL_DIRECTORY  Override the user-level install directory.
 EOF
 }
 
@@ -26,6 +29,7 @@ for devhub_arg in "$@"; do
   case "$devhub_arg" in
     --build-only) devhub_build_only=true ;;
     --demo) devhub_demo=true ;;
+    --install) devhub_install=true ;;
     -h|--help)
       usage
       exit 0
@@ -78,6 +82,12 @@ test -d "$devhub_app"
 "$devhub_repo_root/scripts/verify-release.sh" "$devhub_app" "$devhub_arch"
 
 echo "Source build ready: $devhub_app"
+if [ "$devhub_install" = true ]; then
+  devhub_install_directory=${CODEREENTRY_INSTALL_DIRECTORY:-"${HOME:?}/Applications"}
+  "$devhub_repo_root/scripts/install-source-app.sh" \
+    "$devhub_app" "$devhub_install_directory"
+  devhub_app="$devhub_install_directory/CodeReentry.app"
+fi
 if [ "$devhub_build_only" = true ]; then
   exit 0
 fi
