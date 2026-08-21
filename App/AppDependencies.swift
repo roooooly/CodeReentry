@@ -214,6 +214,91 @@ final class AppDependencies {
         }
     }
 
+    /// Resolve the enabled Tool record that owns a session. The record carries
+    /// the user's executable override and launch environment; bypassing it makes
+    /// resume behave differently from launching the same tool in the Tools tab.
+    func configuredTool(forSessionToolId toolId: String, project: Project? = nil) -> Tool? {
+        let candidates: [Tool]
+        if let project {
+            candidates = project.tools
+        } else {
+            candidates = (try? modelContainer.mainContext.fetch(FetchDescriptor<Tool>())) ?? []
+        }
+        return candidates
+            .filter(\.enabled)
+            .sorted { $0.sortOrder < $1.sortOrder }
+            .first { ToolIdentifierResolver.matches($0, sessionToolIdentifier: toolId) }
+    }
+
+    /// Resume a CLI session through one guarded path shared by every session UI.
+    /// This validates the cwd and executable before opening Terminal, and carries
+    /// the persisted Tool configuration into the adapter.
+    func resumeSession(
+        toolId: String,
+        sessionId: String,
+        projectPath: String,
+        configuredToolId: UUID? = nil,
+        project: Project? = nil
+    ) async throws {
+        let workingDirectory = try Self.validWorkingDirectory(projectPath)
+        guard let adapter = adapter(for: toolId) else {
+            throw SessionLaunchError.adapterUnavailable(toolId)
+        }
+        guard adapter.capabilities.contains(.canResume) else {
+            throw SessionLaunchError.resumeUnsupported(toolId)
+        }
+        let configuredById = configuredToolId.flatMap { id in
+            ((try? modelContainer.mainContext.fetch(FetchDescriptor<Tool>())) ?? [])
+                .first {
+                    $0.id == id && $0.enabled
+                        && ToolIdentifierResolver.matches($0, sessionToolIdentifier: toolId)
+                }
+        }
+        guard let tool = configuredById ?? configuredTool(forSessionToolId: toolId, project: project) else {
+            throw SessionLaunchError.toolNotConfigured(toolId)
+        }
+        guard case .found = ToolDetector().probe(
+            executableHint: adapter.executablePath,
+            detectPath: tool.detectPath,
+            launchCommand: tool.launchCommand
+        ) else {
+            throw SessionLaunchError.toolNotInstalled(tool.name)
+        }
+
+        var environment = tool.envVars
+        for key in tool.secretEnvKeys {
+            guard let value = try keychain.get(toolId: tool.id.uuidString, envKey: key) else {
+                throw SessionLaunchError.missingSecret(key)
+            }
+            environment[key] = value
+        }
+        let context = LaunchContext(
+            projectPath: workingDirectory,
+            renderedMemoryFile: nil,
+            sessionId: sessionId,
+            tool: tool,
+            environment: environment
+        )
+        let instance = try await adapter.resume(sessionId: sessionId, ctx: context)
+        switch instance {
+        case .cli(let launcherPath):
+            _ = try await terminalController.execute(terminal: .terminal, launcherPath: launcherPath)
+        case .gui(let bundleId):
+            try await guiLauncher.launchApp(bundleId: bundleId, projectPath: workingDirectory)
+        }
+    }
+
+    private static func validWorkingDirectory(_ path: String) throws -> String {
+        let expanded = (path as NSString).expandingTildeInPath
+        var isDirectory: ObjCBool = false
+        guard !expanded.isEmpty,
+              FileManager.default.fileExists(atPath: expanded, isDirectory: &isDirectory),
+              isDirectory.boolValue else {
+            throw SessionLaunchError.workingDirectoryMissing(path)
+        }
+        return (expanded as NSString).standardizingPath
+    }
+
     /// 按会话工具 id 查 reader（SessionsTab 用：resume 需 reader.load 解析 detail）。
     func sessionReader(forToolId toolId: String) -> (any SessionReader)? {
         sessionReaders.first { $0.toolId == toolId }
@@ -302,4 +387,30 @@ final class AppDependencies {
 
     private static let onboardingKey = "devhub.onboarding.completed"
     static let disabledDetailTabsKey = "devhub.projectDetail.disabledTabs"
+}
+
+enum SessionLaunchError: LocalizedError, Equatable {
+    case workingDirectoryMissing(String)
+    case adapterUnavailable(String)
+    case resumeUnsupported(String)
+    case toolNotConfigured(String)
+    case toolNotInstalled(String)
+    case missingSecret(String)
+
+    var errorDescription: String? {
+        switch self {
+        case .workingDirectoryMissing(let path):
+            return String(localized: "无法继续：工作目录不存在：\(path)")
+        case .adapterUnavailable(let tool):
+            return String(localized: "无法继续：未找到 \(tool) 的启动适配器。")
+        case .resumeUnsupported(let tool):
+            return String(localized: "无法继续：\(tool) 不支持恢复指定会话。")
+        case .toolNotConfigured(let tool):
+            return String(localized: "无法继续：请先在工具设置中启用 \(tool)。")
+        case .toolNotInstalled(let tool):
+            return String(localized: "无法继续：未检测到 \(tool)，请先安装或修正启动命令。")
+        case .missingSecret(let key):
+            return String(localized: "无法继续：Keychain 中未找到 \(key) 的值。")
+        }
+    }
 }

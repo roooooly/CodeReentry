@@ -132,24 +132,16 @@ struct SessionsTab: View {
     /// 注入生产实现：resume 走 adapter（同 ToolsTab 路径）；summary 走 reader.load → SummaryExtractor → MemoryStore。
     private func wireHandlers() {
         viewModel.resumeHandler = { session in
-            // 解析 adapter id（session.tool 如 "claude-code" / "codex"）→ adapter.resume
-            guard let adapter = deps.adapter(for: session.tool) else {
-                throw SessionsSummaryError.adapterUnavailable(session.tool)
-            }
-            let cwd = session.projectCwd.isEmpty ? project.path : session.projectCwd
-            let ctx = LaunchContext(
-                projectPath: cwd,
-                renderedMemoryFile: nil,
+            let sessionPath = session.projectCwd.trimmingCharacters(in: .whitespacesAndNewlines)
+            let cwd = ProjectPathAvailability.evaluate(path: sessionPath) == .available
+                ? sessionPath
+                : project.path
+            try await deps.resumeSession(
+                toolId: session.tool,
                 sessionId: session.toolSessionId,
-                tool: nil
+                projectPath: cwd,
+                project: project
             )
-            let instance = try await adapter.resume(sessionId: session.toolSessionId, ctx: ctx)
-            switch instance {
-            case .cli(let launcherPath):
-                _ = try await deps.terminalController.execute(terminal: .terminal, launcherPath: launcherPath)
-            case .gui(let bundleId):
-                try await deps.guiLauncher.launchApp(bundleId: bundleId, projectPath: nil)
-            }
         }
         viewModel.generateSummaryHandler = { session in
             // 完整路径：reader.load(detail) → SummaryExtractor.extractSummary(detail) → MemoryStore.write

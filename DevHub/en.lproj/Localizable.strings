@@ -837,3 +837,12 @@
 "项目与已有会话已经关联，可以直接从首页继续最近的工作。" = "Your projects are linked to existing sessions. Continue the latest work directly from the home screen.";
 "开始使用（已关联 %lld 条会话）" = "Get started (%lld sessions linked)";
 "正在关联会话…" = "Linking sessions…";
+"先重新定位项目" = "Relocate project first";
+"请先启用 %@" = "Enable %@ first";
+"未检测到 %@" = "%@ not detected";
+"无法继续：工作目录不存在：%@" = "Cannot continue: the working directory does not exist: %@";
+"无法继续：未找到 %@ 的启动适配器。" = "Cannot continue: no launcher adapter was found for %@.";
+"无法继续：%@ 不支持恢复指定会话。" = "Cannot continue: %@ cannot resume a specific session.";
+"无法继续：请先在工具设置中启用 %@。" = "Cannot continue: enable %@ in Tool settings first.";
+"无法继续：未检测到 %@，请先安装或修正启动命令。" = "Cannot continue: %@ was not detected. Install it or correct its launch command first.";
+"无法继续：Keychain 中未找到 %@ 的值。" = "Cannot continue: no value for %@ was found in Keychain.";

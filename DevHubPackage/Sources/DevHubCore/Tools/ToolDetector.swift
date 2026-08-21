@@ -16,9 +16,9 @@ public enum PathProbeResult: Sendable, Equatable {
 /// 工具安装检测器（§工具管理）。
 ///
 /// 探测顺序：
-/// 1. `Tool.detectPath`（用户显式覆盖路径）；
-/// 2. adapter 的 `executablePath`（绝对路径直接 FileManager 探测；裸名走 PATH 搜索）；
-/// 3. `Tool.launchCommand` 首段（兜底）。
+/// 1. `Tool.detectPath`（用户显式覆盖路径，存在即命中，不存在即失败）；
+/// 2. `Tool.launchCommand` 中解析出的可执行文件（用户配置，存在即命中，不存在即失败）；
+/// 3. adapter 的 `executablePath`（仅在没有用户配置时兜底）。
 ///
 /// PATH 搜索范围与 `LocalProcessRunner` 的注入一致（homebrew / local / npm-global），
 /// 这样 UI 上"已安装"判断与真正执行命令时的 PATH 解析保持同源。
@@ -27,23 +27,35 @@ public struct ToolDetector: Sendable {
 
     public func probe(executableHint: String?, detectPath: String?, launchCommand: String?) -> PathProbeResult {
         let fileManager = FileManager.default
-        // 1. 显式覆盖
+        // 1. 显式覆盖具有决定性：不能在它失效时悄悄改用另一个命令，
+        // 否则“已安装”状态会与 adapter 真正执行的配置不一致。
         if let explicit = detectPath?.trimmingCharacters(in: .whitespacesAndNewlines), !explicit.isEmpty {
             let expanded = (explicit as NSString).expandingTildeInPath
             if fileManager.fileExists(atPath: expanded) {
                 return .found(absolutePath: expanded)
             }
+            return .notFound
         }
-        // 2. adapter executablePath
-        let candidates = [executableHint, firstSegment(of: launchCommand)].compactMap { $0 }
-        for candidate in candidates {
-            let resolved = resolve(candidate)
-            if fileManager.fileExists(atPath: resolved.path) {
-                return .found(absolutePath: resolved.path)
-            }
-            if resolved.viaPathLookup, let hit = Self.searchPATH(name: candidate) {
-                return .found(absolutePath: hit)
-            }
+
+        // 2. Persisted launchCommand is also authoritative when present.
+        if let configured = launchCommand?.trimmingCharacters(in: .whitespacesAndNewlines),
+           !configured.isEmpty {
+            guard let candidate = executable(in: configured) else { return .notFound }
+            return probe(candidate, fileManager: fileManager)
+        }
+
+        // 3. Adapter fallback only applies when the user has no persisted command.
+        guard let executableHint else { return .notFound }
+        return probe(executableHint, fileManager: fileManager)
+    }
+
+    private func probe(_ candidate: String, fileManager: FileManager) -> PathProbeResult {
+        let resolved = resolve(candidate)
+        if fileManager.fileExists(atPath: resolved.path) {
+            return .found(absolutePath: resolved.path)
+        }
+        if resolved.viaPathLookup, let hit = Self.searchPATH(name: candidate, fileManager: fileManager) {
+            return .found(absolutePath: hit)
         }
         return .notFound
     }
@@ -57,10 +69,11 @@ public struct ToolDetector: Sendable {
         return (expanded, true)
     }
 
-    private func firstSegment(of launchCommand: String?) -> String? {
-        guard let raw = launchCommand?.trimmingCharacters(in: .whitespacesAndNewlines),
-              let first = raw.split(separator: " ").first else { return nil }
-        return String(first)
+    private func executable(in launchCommand: String?) -> String? {
+        try? ConfiguredCommand.parse(
+            launchCommand,
+            fallbackExecutable: ""
+        ).executable
     }
 
     /// 在常见 PATH 目录里查找可执行名（与 LocalProcessRunner 的 PATH 注入同源）。

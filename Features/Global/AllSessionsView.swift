@@ -425,30 +425,29 @@ struct AllSessionsView: View {
     @MainActor
     private func open(_ session: GlobalSessionItem) async {
         do {
-            guard let adapter = deps.adapter(for: session.tool) else {
-                throw GlobalSessionError.adapterUnavailable(session.tool)
-            }
             let cwd = session.projectCwd.isEmpty
                 ? FileManager.default.homeDirectoryForCurrentUser.path
                 : session.projectCwd
-            let context = LaunchContext(
-                projectPath: cwd,
-                renderedMemoryFile: nil,
-                sessionId: session.toolSessionId,
-                tool: nil
-            )
-            let instance: ToolInstance
             if session.tool == "kimi" {
                 // Kimi 只支持打开 GUI，不声称恢复到指定元数据记录。
-                instance = try await adapter.launchNew(ctx: context)
+                guard let adapter = deps.adapter(for: session.tool) else {
+                    throw GlobalSessionError.adapterUnavailable(session.tool)
+                }
+                let instance = try await adapter.launchNew(ctx: LaunchContext(
+                    projectPath: cwd,
+                    renderedMemoryFile: nil,
+                    sessionId: nil,
+                    tool: deps.configuredTool(forSessionToolId: session.tool)
+                ))
+                if case .gui(let bundleId) = instance {
+                    try await deps.guiLauncher.launchApp(bundleId: bundleId, projectPath: nil)
+                }
             } else {
-                instance = try await adapter.resume(sessionId: session.toolSessionId, ctx: context)
-            }
-            switch instance {
-            case .cli(let launcherPath):
-                _ = try await deps.terminalController.execute(terminal: .terminal, launcherPath: launcherPath)
-            case .gui(let bundleId):
-                try await deps.guiLauncher.launchApp(bundleId: bundleId, projectPath: nil)
+                try await deps.resumeSession(
+                    toolId: session.tool,
+                    sessionId: session.toolSessionId,
+                    projectPath: cwd
+                )
             }
             statusMessage = session.tool == "kimi"
                 ? String(localized: "已打开 Kimi（未恢复指定会话）")

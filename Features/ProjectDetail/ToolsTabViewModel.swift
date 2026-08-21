@@ -204,25 +204,7 @@ final class ToolsTabViewModel {
     }
 
     private func toolId(for tool: Tool) -> String {
-        let name = tool.name
-        switch name.lowercased() {
-        case "codex":                 return "codex"
-        case "claude", "claude code": return "claude-code"
-        case "vs code", "vscode":     return "vscode"
-        case "zcode", "z code":       return "zcode"
-        case "kimi", "kimi chat":     return "kimi"
-        case "opencode", "open code": return "opencode"
-        default:
-            // 用户可以改显示名；仍用可执行路径识别内置 adapter，避免工具卡因此失效。
-            let command = tool.launchCommand.lowercased()
-            if command.contains("zcode.cjs") || command.contains("zcode.app") { return "zcode" }
-            if command.contains("chatgpt.app") || command.hasSuffix("/codex") { return "codex" }
-            if command.contains("claude") { return "claude-code" }
-            if command == "opencode" || command.hasSuffix("/opencode") { return "opencode" }
-            if command.contains("visual studio code.app") || command.hasSuffix("/code") { return "vscode" }
-            if command.contains("kimi.app") { return "kimi" }
-            return name.lowercased()
-        }
+        ToolIdentifierResolver.identifier(for: tool)
     }
 
     private func capabilityBadges(_ caps: ToolCapabilities) -> [String] {

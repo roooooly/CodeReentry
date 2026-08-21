@@ -39,6 +39,102 @@ struct AppDependenciesTests {
         #expect(kimi.capabilities == .canOpenGUI)
     }
 
+    @Test("session resume uses persisted executable, environment and configured Tool")
+    func sessionResumeUsesPersistedToolConfiguration() async throws {
+        let container = try Self.inMemoryContainer()
+        let deps = AppDependencies(modelContainer: container)
+        let root = FileManager.default.temporaryDirectory
+            .appendingPathComponent("code-reentry-launch-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+
+        let configured = try #require(
+            try container.mainContext.fetch(FetchDescriptor<Tool>())
+                .first { ToolIdentifierResolver.matches($0, sessionToolIdentifier: "claude-code") }
+        )
+        configured.launchCommand = "/bin/sh --noprofile"
+        configured.detectPath = "/bin/sh"
+        configured.envVars = ["CODE_REENTRY_TEST": "configured"]
+        try container.mainContext.save()
+
+        let adapter = MockToolAdapter(
+            toolId: "claude-code", executablePath: "/missing/default/claude",
+            requiresPTY: true, capabilities: [.canResume]
+        )
+        let terminal = TerminalController()
+        terminal.executor = { _ in [:] }
+        deps.overrideServices(adapters: ["claude-code": adapter], terminalController: terminal)
+
+        try await deps.resumeSession(
+            toolId: "claude-code",
+            sessionId: "session-1",
+            projectPath: root.path,
+            configuredToolId: configured.id
+        )
+
+        #expect(adapter.resumeCount == 1)
+        #expect(adapter.lastResumeSessionId == "session-1")
+        #expect(adapter.lastResumeCtx?.tool?.id == configured.id)
+        #expect(adapter.lastResumeCtx?.tool?.launchCommand == "/bin/sh --noprofile")
+        #expect(adapter.lastResumeCtx?.environment["CODE_REENTRY_TEST"] == "configured")
+        #expect(adapter.lastResumeCtx?.projectPath == root.path)
+        #expect(terminal.lastLauncherPath == adapter.stubbedLauncherPath)
+    }
+
+    @Test("session resume rejects a missing working directory before opening Terminal")
+    func sessionResumeRejectsMissingDirectory() async throws {
+        let deps = try AppDependencies(modelContainer: Self.inMemoryContainer())
+        let adapter = MockToolAdapter(
+            toolId: "claude-code", executablePath: "/bin/sh",
+            requiresPTY: true, capabilities: [.canResume]
+        )
+        deps.overrideServices(adapters: ["claude-code": adapter])
+
+        await #expect(throws: SessionLaunchError.workingDirectoryMissing("/missing/code-reentry")) {
+            try await deps.resumeSession(
+                toolId: "claude-code",
+                sessionId: "session-1",
+                projectPath: "/missing/code-reentry"
+            )
+        }
+        #expect(adapter.resumeCount == 0)
+        #expect(deps.terminalController.lastLauncherPath == nil)
+    }
+
+    @Test("session resume rejects a missing configured executable before opening Terminal")
+    func sessionResumeRejectsMissingExecutable() async throws {
+        let container = try Self.inMemoryContainer()
+        let deps = AppDependencies(modelContainer: container)
+        let root = FileManager.default.temporaryDirectory
+            .appendingPathComponent("code-reentry-missing-tool-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+
+        let configured = try #require(
+            try container.mainContext.fetch(FetchDescriptor<Tool>())
+                .first { ToolIdentifierResolver.matches($0, sessionToolIdentifier: "claude-code") }
+        )
+        configured.launchCommand = "/missing/code-reentry/claude"
+        configured.detectPath = nil
+        try container.mainContext.save()
+        let adapter = MockToolAdapter(
+            toolId: "claude-code", executablePath: "/missing/default/claude",
+            requiresPTY: true, capabilities: [.canResume]
+        )
+        deps.overrideServices(adapters: ["claude-code": adapter])
+
+        await #expect(throws: SessionLaunchError.toolNotInstalled("Claude Code")) {
+            try await deps.resumeSession(
+                toolId: "claude-code",
+                sessionId: "session-1",
+                projectPath: root.path,
+                configuredToolId: configured.id
+            )
+        }
+        #expect(adapter.resumeCount == 0)
+        #expect(deps.terminalController.lastLauncherPath == nil)
+    }
+
     @Test("AppSettings 单例在空数据库时自动创建，字段为默认值")
     @MainActor
     func appSettingsSingletonAutoCreated() throws {

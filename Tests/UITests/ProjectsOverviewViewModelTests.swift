@@ -189,6 +189,82 @@ struct ProjectsOverviewViewModelTests {
         #expect(data.latestSession?.title == "Fix checkout flow")
     }
 
+    @Test("one-click resume chooses newest session whose path and tool are usable")
+    func latestUsableSessionWins() throws {
+        let container = try makeContainer()
+        let ctx = container.mainContext
+        let root = FileManager.default.temporaryDirectory
+            .appendingPathComponent("code-reentry-resume-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+
+        let project = ProjectFixtures.makeProject(name: "ExampleApp", path: root.path)
+        let claude = Tool(
+            name: "Claude Code", kind: .cli, launchCommand: "/bin/sh",
+            workingDirMode: .projectRoot, injectionMode: .cliFlag, sortOrder: 0
+        )
+        claude.projects = [project]
+        ctx.insert(project)
+        ctx.insert(claude)
+
+        let ready = SessionIndex(
+            tool: "claude-code", toolSessionId: "ready",
+            sourcePath: "/tmp/ready.jsonl", projectCwd: root.path,
+            startedAt: Date(timeIntervalSince1970: 100),
+            updatedAt: Date(timeIntervalSince1970: 200), messageCount: 2,
+            title: "Resume me", preview: "Resume me", project: project
+        )
+        let newerButUnavailable = SessionIndex(
+            tool: "opencode", toolSessionId: "unavailable",
+            sourcePath: "/tmp/unavailable.db", projectCwd: root.path,
+            startedAt: Date(timeIntervalSince1970: 300),
+            updatedAt: Date(timeIntervalSince1970: 400), messageCount: 1,
+            title: "Unavailable", preview: "Unavailable", project: project
+        )
+        ctx.insert(ready)
+        ctx.insert(newerButUnavailable)
+        try ctx.save()
+
+        let data = ProjectsOverviewViewModel.cardData(for: project)
+
+        #expect(data.latestSession?.sessionId == "ready")
+        #expect(data.latestSession?.cwd == root.path)
+        #expect(data.latestSession?.configuredToolId == claude.id)
+        #expect(data.latestSession?.readiness == .ready)
+    }
+
+    @Test("missing session cwd falls back to registered project root")
+    func missingSessionDirectoryFallsBackToProjectRoot() throws {
+        let container = try makeContainer()
+        let ctx = container.mainContext
+        let root = FileManager.default.temporaryDirectory
+            .appendingPathComponent("code-reentry-root-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+
+        let project = ProjectFixtures.makeProject(name: "ExampleApp", path: root.path)
+        let tool = Tool(
+            name: "Claude Code", kind: .cli, launchCommand: "/bin/sh",
+            workingDirMode: .projectRoot, injectionMode: .cliFlag, sortOrder: 0
+        )
+        tool.projects = [project]
+        let session = SessionIndex(
+            tool: "claude", toolSessionId: "moved-subdirectory",
+            sourcePath: "/tmp/moved.jsonl", projectCwd: root.appendingPathComponent("gone").path,
+            startedAt: Date(), updatedAt: Date(), messageCount: 2,
+            title: "Moved", preview: "Moved", project: project
+        )
+        ctx.insert(project)
+        ctx.insert(tool)
+        ctx.insert(session)
+        try ctx.save()
+
+        let target = ProjectsOverviewViewModel.cardData(for: project).latestSession
+
+        #expect(target?.cwd == root.path)
+        #expect(target?.readiness == .ready)
+    }
+
     @Test("首页用户主动扫描后立即显示可恢复会话")
     func explicitSessionScanRefreshesCards() async throws {
         let container = try makeContainer()
