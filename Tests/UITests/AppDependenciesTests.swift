@@ -26,10 +26,12 @@ struct AppDependenciesTests {
         #expect(deps.adapter(for: "gemini-cli") != nil)
         #expect(deps.adapter(for: "github-copilot") != nil)
         #expect(deps.adapter(for: "aider") != nil)
+        #expect(deps.adapter(for: "cline") != nil)
         #expect(deps.sessionReader(forToolId: "opencode")?.toolId == "opencode")
         #expect(deps.sessionReader(forToolId: "gemini-cli")?.toolId == "gemini-cli")
         #expect(deps.sessionReader(forToolId: "github-copilot")?.toolId == "github-copilot")
         #expect(deps.sessionReader(forToolId: "aider")?.toolId == "aider")
+        #expect(deps.sessionReader(forToolId: "cline")?.toolId == "cline")
     }
 
     @Test("Aider reader follows current registered roots but preserves test injection")
@@ -85,14 +87,19 @@ struct AppDependenciesTests {
         let migratedAider = try #require(
             try context.fetch(FetchDescriptor<Tool>()).first { $0.name == "Aider" }
         )
+        let migratedCline = try #require(
+            try context.fetch(FetchDescriptor<Tool>()).first { $0.name == "Cline" }
+        )
         #expect(migrated.projects.map(\.stableId) == ["stable"])
         #expect(migratedCopilot.projects.map(\.stableId) == ["stable"])
         #expect(migratedAider.projects.map(\.stableId) == ["stable"])
-        #expect(try context.fetchCount(FetchDescriptor<Tool>()) == 4)
+        #expect(migratedCline.projects.map(\.stableId) == ["stable"])
+        #expect(try context.fetchCount(FetchDescriptor<Tool>()) == 5)
 
         context.delete(migrated)
         context.delete(migratedCopilot)
         context.delete(migratedAider)
+        context.delete(migratedCline)
         try context.save()
         _ = AppDependencies(modelContainer: container, preferences: preferences)
 

@@ -10,7 +10,7 @@ public enum DefaultToolCatalog {
 
     public static let defaultNames = [
         "Claude Code", "Codex", "ZCode", "Kimi", "OpenCode", "Gemini CLI",
-        "GitHub Copilot CLI", "Aider", "VS Code"
+        "GitHub Copilot CLI", "Aider", "Cline", "VS Code"
     ]
 
     /// 仅当数据库没有任何工具时创建内置工具，并绑定到已有项目。
@@ -151,10 +151,18 @@ public enum DefaultToolCatalog {
                 downloadURL: "https://aider.chat/docs/install.html"
             ),
             Tool(
+                name: "Cline", kind: .cli, launchCommand: "cline",
+                workingDirMode: .projectRoot, injectMemory: false,
+                injectionMode: .cliFlag, enabled: true, sortOrder: 8,
+                installCommand: "install -g cline",
+                installMethod: .npm,
+                downloadURL: "https://docs.cline.bot/getting-started/installing-cline"
+            ),
+            Tool(
                 name: "VS Code", kind: .app,
                 launchCommand: "/Applications/Visual Studio Code.app",
                 workingDirMode: .projectRoot, injectMemory: false,
-                injectionMode: .clipboard, enabled: true, sortOrder: 8,
+                injectionMode: .clipboard, enabled: true, sortOrder: 9,
                 installCommand: "install --cask visual-studio-code",
                 installMethod: .brew,
                 downloadURL: "https://code.visualstudio.com/Download"

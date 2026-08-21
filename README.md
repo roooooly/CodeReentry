@@ -80,7 +80,7 @@ Release performance is tracked separately with a
 - Project overview, status, tags, Git state, detected scripts, and quick launchers
 - Session-first onboarding that proposes project roots from local cwd metadata before registration
 - Local session aggregation for Claude Code, Codex, ZCode, Gemini CLI, GitHub Copilot
-  CLI, OpenCode, Aider project histories, and Kimi metadata
+  CLI, OpenCode, Cline, Aider project histories, and Kimi metadata
 - Bounded streaming readers for large JSONL and Markdown histories
 - On-demand conversation loading and original-tool resume where supported
 - Explicit, local recovery measurement from session detail, with a privacy-safe evidence
@@ -109,6 +109,7 @@ Release performance is tracked separately with a
 | Gemini CLI | Yes (project-scoped JSONL) | Bounded, on demand | Exact-session resume (`--resume`) | No |
 | GitHub Copilot CLI | Yes (`session-state` events) | Bounded, on demand | Exact-ID resume (`--resume`) | No |
 | Aider | One continuing history per registered project | Bounded, on demand | Restore project history (`--restore-chat-history`) | No |
+| Cline | Yes (v3.0.56 SQLite + manifests) | Bounded, on demand | Exact-ID resume (`--id`) | No |
 | VS Code | Not applicable | Not applicable | Open project | Clipboard-assisted when requested |
 
 This table describes the paths implemented in the current source. Third-party storage
@@ -146,6 +147,15 @@ reads; opening a conversation keeps the newest bounded context and excludes Aide
 tool/status blockquotes, matching its restore parser. Aider has no durable per-chat ID in
 this path, so the record represents one continuing project history rather than an exact
 historical session. Custom `--chat-history-file` paths are not inferred.
+
+Cline compatibility is verified against the pinned v4.1.11 repository and v3.0.56 CLI
+sources in the [compatibility note](docs/cline-compatibility.md). CodeReentry opens
+`~/.cline/data/db/sessions.db` read-only, honors Cline's documented storage-directory
+overrides, indexes root sessions without hydrating messages, and falls back to bounded
+per-session manifests if the database is absent. Opening a conversation reads only the
+selected message document under the configured session root, rejects symbolic links and
+path escapes, keeps only bounded user/assistant text, and resumes the complete ID with
+`cline --id`. Synthetic fixtures do not count as a real recovery trial.
 
 ## Privacy boundary
 

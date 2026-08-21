@@ -23,6 +23,8 @@ final class AppDependencies {
         "DefaultToolCatalog.didMigrateGitHubCopilotCLI.v1"
     private static let aiderCatalogMigrationKey =
         "DefaultToolCatalog.didMigrateAider.v1"
+    private static let clineCatalogMigrationKey =
+        "DefaultToolCatalog.didMigrateCline.v1"
 
     // MARK: - Core 服务
 
@@ -170,7 +172,8 @@ final class AppDependencies {
             self.sessionReaders = [
                 ClaudeReader(), CodexReader(), ZcodeReader(), KimiReader(paths: kimiPaths),
                 OpenCodeReader(homeURL: home), GeminiReader(homeURL: home),
-                GitHubCopilotReader(homeURL: home), AiderReader(projectRoots: [])
+                GitHubCopilotReader(homeURL: home), AiderReader(projectRoots: []),
+                ClineReader(homeURL: home)
             ]
         }
         // A resource manager should open on a useful operating surface, not an
@@ -220,6 +223,17 @@ final class AppDependencies {
                     )
                 }
                 preferences.set(true, forKey: Self.aiderCatalogMigrationKey)
+            }
+            if !preferences.bool(forKey: Self.clineCatalogMigrationKey) {
+                let existing = try modelContainer.mainContext.fetch(FetchDescriptor<Tool>())
+                if !existing.contains(where: {
+                    ToolIdentifierResolver.matches($0, sessionToolIdentifier: "cline")
+                }) {
+                    _ = try DefaultToolCatalog.restoreDefault(
+                        named: "Cline", in: modelContainer.mainContext
+                    )
+                }
+                preferences.set(true, forKey: Self.clineCatalogMigrationKey)
             }
         } catch {
             logger.error("初始化内置工具失败: \(error.localizedDescription, privacy: .public)")
@@ -289,6 +303,7 @@ final class AppDependencies {
         case "github-copilot": return GitHubCopilotAdapter()
         case "copilot":        return GitHubCopilotAdapter()
         case "aider":          return AiderAdapter()
+        case "cline":          return ClineAdapter()
         default:            return nil
         }
     }
