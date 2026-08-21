@@ -5,6 +5,8 @@ published a signed public binary.
 
 ## Unreleased
 
+## 0.6.0 - 2026-08-21
+
 - Add an explicitly triggered, fully local recovery timer and evidence dashboard that
   measures real project/session/context recovery against the published gate.
 - Persist only a strict owner-only anonymous CSV without project identifiers, names,
