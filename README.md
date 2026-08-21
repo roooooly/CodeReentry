@@ -29,7 +29,7 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-7D1727" alt="MIT license"></a>
 </p>
 
-> **Source beta:** The current source release is v0.3.1. CodeReentry does not have a signed
+> **Source beta:** The current source release is v0.3.2. CodeReentry does not have a signed
 > and notarized public binary yet.
 > Build it from source for evaluation, and do not install binaries from unofficial
 > mirrors. Public distribution remains blocked until the Apple signing and
@@ -69,6 +69,8 @@ Release performance is tracked separately with a
 - Local session aggregation for Claude Code, Codex, ZCode, and Kimi metadata
 - Bounded streaming readers for large JSONL histories
 - On-demand conversation loading and original-tool resume where supported
+- Guarded one-click resume that selects the latest usable session, falls back from a moved
+  session subdirectory to the registered project root, and honors the saved tool command
 - Project-scoped stable context plus session summaries with provenance and stale-summary protection
 - Local Claude Code and Codex usage estimates, kept separate from fixed subscriptions
 - Explicit permission checks for script plugins and MCP servers

@@ -3,11 +3,20 @@ import DevHubCore
 
 /// 单个项目卡片的纯展示数据。解耦自 SwiftData @Model，便于快照测试与列表渲染。
 struct ProjectCardData: Identifiable, Equatable {
+    enum ResumeReadiness: Equatable {
+        case ready
+        case missingProjectPath
+        case toolNotConfigured(String)
+        case toolNotInstalled(String)
+    }
+
     struct ResumeTarget: Equatable {
         let tool: String
         let sessionId: String
         let cwd: String
         let title: String
+        let configuredToolId: UUID?
+        let readiness: ResumeReadiness
     }
 
     let id: UUID
@@ -176,14 +185,25 @@ struct ProjectCardView: View {
 
     private var footerRow: some View {
         HStack {
-            if let latest = data.latestSession, let onContinueLatest {
-                Button(action: onContinueLatest) {
-                    Label(String(localized: "继续最近会话"), systemImage: "arrow.uturn.forward")
+            if let latest = data.latestSession {
+                switch latest.readiness {
+                case .ready:
+                    if let onContinueLatest {
+                        Button(action: onContinueLatest) {
+                            Label(String(localized: "继续最近会话"), systemImage: "arrow.uturn.forward")
+                        }
+                        .buttonStyle(.plain)
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(DevHubTheme.accent)
+                        .help(String(localized: "用 \(latest.tool) 继续“\(latest.title)”"))
+                    }
+                case .missingProjectPath:
+                    resumeWarning(String(localized: "先重新定位项目"), icon: "folder.badge.questionmark")
+                case .toolNotConfigured(let tool):
+                    resumeWarning(String(localized: "请先启用 \(tool)"), icon: "wrench.and.screwdriver")
+                case .toolNotInstalled(let tool):
+                    resumeWarning(String(localized: "未检测到 \(tool)"), icon: "exclamationmark.triangle")
                 }
-                .buttonStyle(.plain)
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(DevHubTheme.accent)
-                .help(String(localized: "用 \(latest.tool) 继续“\(latest.title)”"))
             }
             Spacer()
             Button(action: onTap) {
@@ -193,6 +213,13 @@ struct ProjectCardView: View {
             .controlSize(.small)
             .font(.caption.weight(.medium))
         }
+    }
+
+    private func resumeWarning(_ text: String, icon: String) -> some View {
+        Label(text, systemImage: icon)
+            .font(.caption.weight(.medium))
+            .foregroundStyle(.orange)
+            .lineLimit(1)
     }
 
     private func stat(value: String, label: String, systemImage: String) -> some View {

@@ -5,6 +5,15 @@ published a signed public binary.
 
 ## Unreleased
 
+## 0.3.2 - 2026-08-21
+
+- Make project cards choose the latest session that can actually resume instead of the
+  latest metadata row regardless of local readiness.
+- Fall back to the registered project root when a historical session subdirectory moved,
+  and explain missing project or tool prerequisites without opening a doomed Terminal command.
+- Use the persisted tool executable, environment, and Keychain-backed values consistently
+  when resuming from the project overview, project Sessions tab, or global session index.
+
 ## 0.3.1 - 2026-08-21
 
 - Add a session-first onboarding path that infers recent project roots from bounded local

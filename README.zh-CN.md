@@ -29,7 +29,7 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-7D1727" alt="MIT 许可证"></a>
 </p>
 
-> **源码 Beta：**当前源码版本为 v0.3.1。CodeReentry 暂时没有经过 Developer ID 签名和
+> **源码 Beta：**当前源码版本为 v0.3.2。CodeReentry 暂时没有经过 Developer ID 签名和
 > Apple 公证的公开安装包。
 > 当前请从源码构建体验，不要安装非官方镜像提供的二进制文件。只有满足
 > [RELEASE.md](RELEASE.md) 中的签名与公证条件后，才会提供公开下载。
@@ -63,6 +63,8 @@ Release 性能另用[可复现的合成基线](docs/performance-baseline.md)跟�
 - 聚合 Claude Code、Codex、ZCode 的本地会话，以及 Kimi 状态元数据
 - 面向大型 JSONL 历史记录的流式、限量读取
 - 按需加载会话正文，并在工具支持时回到原会话
+- 受保护的一键恢复：选择最近一条真正可用的会话，在会话子目录移动后安全回退到项目根目录，
+  并严格使用用户保存的工具启动命令
 - 项目级稳定上下文，以及带来源记录和过期保护的会话总结
 - 本地估算 Claude Code、Codex 用量，与固定订阅费用分开显示
 - 脚本插件与 MCP 服务器的显式权限检查

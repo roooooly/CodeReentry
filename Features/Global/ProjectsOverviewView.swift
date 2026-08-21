@@ -99,7 +99,7 @@ final class ProjectsOverviewViewModel {
         let activeSubs = project.subscriptions.filter(\.active).map(SubscriptionSnapshot.init)
         let monthly = SubscriptionCalculator.monthlyTotalsByCurrency(activeSubs)
         let lastActivity = project.sessions.map(\.updatedAt).max()
-        let latestSession = project.sessions
+        let resumeTargets = project.sessions
             .filter {
                 $0.tool != "kimi"
                     && (SessionDisplayText.hasReadableConversation(
@@ -113,18 +113,44 @@ final class ProjectsOverviewViewModel {
                                 preview: $0.preview
                             ) != nil))
             }
-            .max { $0.updatedAt < $1.updatedAt }
-            .map { session in
-                ProjectCardData.ResumeTarget(
+            .sorted { $0.updatedAt > $1.updatedAt }
+            .map { session -> ProjectCardData.ResumeTarget in
+                let sessionPath = session.projectCwd.trimmingCharacters(in: .whitespacesAndNewlines)
+                let cwd = Self.existingDirectory(sessionPath) ?? Self.existingDirectory(project.path)
+                let configuredTool = project.tools
+                    .filter(\.enabled)
+                    .sorted { $0.sortOrder < $1.sortOrder }
+                    .first { ToolIdentifierResolver.matches($0, sessionToolIdentifier: session.tool) }
+                let readiness: ProjectCardData.ResumeReadiness
+                if cwd == nil {
+                    readiness = .missingProjectPath
+                } else if let configuredTool {
+                    let probe = ToolDetector().probe(
+                        executableHint: nil,
+                        detectPath: configuredTool.detectPath,
+                        launchCommand: configuredTool.launchCommand
+                    )
+                    readiness = probe == .notFound
+                        ? .toolNotInstalled(configuredTool.name)
+                        : .ready
+                } else {
+                    readiness = .toolNotConfigured(session.tool)
+                }
+                return ProjectCardData.ResumeTarget(
                     tool: session.tool,
                     sessionId: session.toolSessionId,
-                    cwd: session.projectCwd.isEmpty ? project.path : session.projectCwd,
+                    cwd: cwd ?? (sessionPath.isEmpty ? project.path : sessionPath),
                     title: SessionDisplayText.displayTitle(
                         title: session.title,
                         preview: session.preview
-                    ) ?? String(localized: "最近会话")
+                    ) ?? String(localized: "最近会话"),
+                    configuredToolId: configuredTool?.id,
+                    readiness: readiness
                 )
             }
+        // "Latest" means the latest session that can actually be resumed. If
+        // none is ready, retain the newest candidate so the card can explain why.
+        let latestSession = resumeTargets.first { $0.readiness == .ready } ?? resumeTargets.first
         return ProjectCardData(
             id: project.id,
             stableId: project.stableId,
@@ -140,6 +166,15 @@ final class ProjectsOverviewViewModel {
             lastActivityAt: lastActivity,
             latestSession: latestSession
         )
+    }
+
+    private static func existingDirectory(_ path: String) -> String? {
+        let expanded = (path as NSString).expandingTildeInPath
+        var isDirectory: ObjCBool = false
+        guard !expanded.isEmpty,
+              FileManager.default.fileExists(atPath: expanded, isDirectory: &isDirectory),
+              isDirectory.boolValue else { return nil }
+        return (expanded as NSString).standardizingPath
     }
 }
 
@@ -394,27 +429,13 @@ struct ProjectsOverviewView: View {
     @MainActor
     private func continueLatest(in card: ProjectCardData) async {
         guard let session = card.latestSession else { return }
-        guard let adapter = deps.adapter(for: session.tool) else {
-            launchError = String(localized: "未找到 \(session.tool) 的启动适配器。")
-            return
-        }
         do {
-            let context = LaunchContext(
-                projectPath: session.cwd,
-                renderedMemoryFile: nil,
+            try await deps.resumeSession(
+                toolId: session.tool,
                 sessionId: session.sessionId,
-                tool: nil
+                projectPath: session.cwd,
+                configuredToolId: session.configuredToolId
             )
-            let instance = try await adapter.resume(sessionId: session.sessionId, ctx: context)
-            switch instance {
-            case .cli(let launcherPath):
-                _ = try await deps.terminalController.execute(
-                    terminal: .terminal,
-                    launcherPath: launcherPath
-                )
-            case .gui(let bundleId):
-                try await deps.guiLauncher.launchApp(bundleId: bundleId, projectPath: session.cwd)
-            }
         } catch {
             launchError = error.localizedDescription
         }

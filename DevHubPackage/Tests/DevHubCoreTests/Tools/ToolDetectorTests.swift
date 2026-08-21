@@ -25,6 +25,17 @@ struct ToolDetectorTests {
         #expect(abs == tmp.path)
     }
 
+    @Test("missing explicit detectPath does not fall back to another executable")
+    func missingExplicitPathIsAuthoritative() {
+        let result = detector.probe(
+            executableHint: "/bin/ls",
+            detectPath: "/missing/code-reentry/tool",
+            launchCommand: "/bin/ls"
+        )
+
+        #expect(result == .notFound)
+    }
+
     @Test("absolute executablePath found via FileManager")
     func absoluteExecutableFound() throws {
         // /bin/ls 一定存在
@@ -77,6 +88,35 @@ struct ToolDetectorTests {
         } else {
             Issue.record("expected fallback to launchCommand first segment")
         }
+    }
+
+    @Test("missing configured launchCommand does not fall back to adapter default")
+    func missingLaunchCommandIsAuthoritative() {
+        let result = detector.probe(
+            executableHint: "/bin/ls",
+            detectPath: nil,
+            launchCommand: "/missing/code-reentry/tool"
+        )
+
+        #expect(result == .notFound)
+    }
+
+    @Test("quoted launchCommand path with spaces is parsed as one executable")
+    func quotedLaunchCommandPath() throws {
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent("code reentry detector \(UUID().uuidString)")
+        let executable = directory.appendingPathComponent("tool")
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        FileManager.default.createFile(atPath: executable.path, contents: nil)
+        defer { try? FileManager.default.removeItem(at: directory) }
+
+        let result = detector.probe(
+            executableHint: nil,
+            detectPath: nil,
+            launchCommand: "\"\(executable.path)\" --resume"
+        )
+
+        #expect(result == .found(absolutePath: executable.path))
     }
 
     @Test("searchPATH returns nil for unknown name")
