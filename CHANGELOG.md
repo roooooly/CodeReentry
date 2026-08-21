@@ -5,6 +5,8 @@ published a signed public binary.
 
 ## Unreleased
 
+- Add bounded, read-only Goose v1.46.0 user-session discovery and on-demand text-only
+  conversation inspection, plus exact `goose session --resume --session-id <id>` recovery.
 - Add bounded, read-only Cline CLI v3.0.56 root-session discovery from its SQLite
   metadata store with manifest fallback, on-demand text-only conversation inspection,
   storage-override support, and exact `cline --id <session-id>` resume.

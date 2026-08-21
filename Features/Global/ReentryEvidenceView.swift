@@ -444,6 +444,7 @@ private extension ReentryTrialTool {
         case .githubCopilot: "GitHub Copilot CLI"
         case .aider: "Aider"
         case .cline: "Cline"
+        case .goose: "Goose"
         }
     }
 }

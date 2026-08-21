@@ -73,7 +73,7 @@ Release 性能另用[可复现的合成基线](docs/performance-baseline.md)跟�
 - 项目总览、状态、标签、Git 状态、脚本识别和快速启动
 - 会话优先引导：先从本地 cwd 元数据提出项目根目录，确认后才注册
 - 聚合 Claude Code、Codex、ZCode、Gemini CLI、GitHub Copilot CLI、OpenCode 的
-  本地会话、Cline、Aider 项目历史，以及 Kimi 状态元数据
+  本地会话、Cline、Goose、Aider 项目历史，以及 Kimi 状态元数据
 - 面向大型 JSONL 与 Markdown 历史记录的流式、限量读取
 - 按需加载会话正文，并在工具支持时回到原会话
 - 从会话详情显式启动本地恢复测量，用隐私安全的证据页汇总结果；不记录项目名、路径、
@@ -101,6 +101,7 @@ Release 性能另用[可复现的合成基线](docs/performance-baseline.md)跟�
 | GitHub Copilot CLI | 支持（`session-state` 事件） | 按需、限量读取 | 按完整 ID 恢复（`--resume`） | 不支持 |
 | Aider | 每个已注册项目一条持续历史 | 按需、限量读取 | 恢复项目历史（`--restore-chat-history`） | 不支持 |
 | Cline | 支持（v3.0.56 SQLite + 清单） | 按需、限量读取 | 按完整 ID 恢复（`--id`） | 不支持 |
+| Goose | 支持（v1.46.0 共享 SQLite） | 按需、限量文本 | 按完整 ID 恢复（`--session-id`） | 不支持 |
 | VS Code | 不适用 | 不适用 | 打开项目 | 用户确认后通过剪贴板辅助 |
 
 表格描述的是当前源码已经实现的路径。第三方工具的存储格式和命令行行为可能变化，
@@ -137,6 +138,12 @@ v3.0.56 CLI 源码为验证基准。CodeReentry 以只读方式打开
 元数据；数据库不存在时才回退到有上限的会话清单。打开正文时只读取配置会话根目录内的
 目标消息文件，拒绝符号链接和路径逃逸，只保留有界的 user/assistant 文本，并通过
 `cline --id` 传递完整 ID 恢复。合成测试不作为真实恢复试验的证据。
+
+Goose 兼容性以[兼容性说明](docs/goose-compatibility.md)中固定的 v1.46.0 上游源码为
+验证基准。CodeReentry 以只读方式打开 macOS 共享的 `sessions.db`，支持绝对路径形式的
+`GOOSE_PATH_ROOT`，且发现阶段只索引用户会话元数据。打开正文时只保留有界的用户可见文本，
+排除图片、工具交互、思考、通知与错误；恢复时把完整 ID 传给
+`goose session --resume --session-id`。合成测试不作为真实恢复试验的证据。
 
 ## 隐私边界
 
