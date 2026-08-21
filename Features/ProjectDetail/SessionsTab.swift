@@ -277,9 +277,7 @@ struct SessionRow: View {
                 .lineLimit(2)
             if isMetadataOnly {
                 Label(
-                    session.tool == "kimi"
-                        ? String(localized: "仅显示 Kimi 本地状态元数据；当前无法读取消息内容或恢复指定会话。")
-                        : String(localized: "OpenCode 会话仅索引元数据；请在 OpenCode 中继续查看。"),
+                    String(localized: "仅显示 Kimi 本地状态元数据；当前无法读取消息内容或恢复指定会话。"),
                     systemImage: "info.circle"
                 )
                 .font(.caption2)
@@ -397,9 +395,14 @@ struct SessionRow: View {
             title: session.title,
             preview: session.preview
         )
+            || (session.tool == "opencode"
+                && SessionDisplayText.displayTitle(
+                    title: session.title,
+                    preview: session.preview
+                ) != nil)
     }
 
     private var isMetadataOnly: Bool {
-        session.tool == "kimi" || session.tool == "opencode"
+        session.tool == "kimi"
     }
 }

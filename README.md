@@ -105,7 +105,7 @@ Release performance is tracked separately with a
 | Codex | Yes | Bounded, on demand | Resume session | New user prompt |
 | ZCode | Yes | Supported local records | Resume session | Prompt argument |
 | Kimi | Metadata only | No | Open app, not an exact session | No |
-| OpenCode | Metadata (v1.18.19 SQLite) | No | Exact-session resume (`--session`) | Prompt argument |
+| OpenCode | Yes (v1.18.19 SQLite) | Bounded, on demand | Exact-session resume (`--session`) | Prompt argument |
 | Gemini CLI | Yes (project-scoped JSONL) | Bounded, on demand | Exact-session resume (`--resume`) | No |
 | GitHub Copilot CLI | Yes (`session-state` events) | Bounded, on demand | Exact-ID resume (`--resume`) | No |
 | VS Code | Not applicable | Not applicable | Open project | Clipboard-assisted when requested |
@@ -114,11 +114,13 @@ This table describes the paths implemented in the current source. Third-party st
 formats and command-line behavior can change, so every compatibility change needs
 sanitized fixtures and version notes.
 
-OpenCode compatibility is verified against v1.18.19. CodeReentry discovers session metadata
-from the default `~/.local/share/opencode/opencode.db`, an `OPENCODE_DB` override, and
-bounded `opencode-<channel>.db` siblings. It validates the `session` table before use,
-opens each database read-only, indexes at most 1,000 recent active sessions per database,
-and does not read message bodies.
+OpenCode compatibility is verified against the pinned upstream sources in the
+[compatibility note](docs/opencode-compatibility.md). CodeReentry discovers metadata from
+the default `~/.local/share/opencode/opencode.db`, an `OPENCODE_DB` override, and bounded
+`opencode-<channel>.db` siblings. It validates the schema, opens each database read-only,
+and indexes at most 1,000 recent active sessions per database without reading message
+bodies. Opening a conversation then reads only that session with hard message, part, JSON,
+and character budgets; reasoning and non-conversation bookkeeping remain excluded.
 
 Gemini CLI compatibility is verified against an upstream source snapshot recorded in
 [the compatibility note](docs/gemini-cli-compatibility.md). CodeReentry resolves project

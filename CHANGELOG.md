@@ -5,6 +5,8 @@ published a signed public binary.
 
 ## Unreleased
 
+- Add bounded, read-only OpenCode conversation inspection for the selected session,
+  including text and tool calls while excluding reasoning and execution bookkeeping.
 - Show project-card tool counts only for enabled tools that are actually available on
   the current Mac, instead of presenting every bound catalog entry as usable.
 - Cross-compile and verify an `x86_64` source bundle in CI while keeping Intel-hardware
