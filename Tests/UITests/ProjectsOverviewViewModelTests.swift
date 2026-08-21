@@ -132,10 +132,17 @@ struct ProjectsOverviewViewModelTests {
         project.icon = "hammer.fill"
         ctx.insert(project)
 
-        let tool = Tool(name: "claude", kind: .cli, launchCommand: "claude",
+        let tool = Tool(name: "claude", kind: .cli, launchCommand: "/bin/sh",
                         workingDirMode: .projectRoot, injectionMode: .cliFlag, sortOrder: 0)
         tool.projects = [project]
         ctx.insert(tool)
+        let missingTool = Tool(
+            name: "Missing Tool", kind: .cli,
+            launchCommand: "/definitely/missing/code-reentry-tool",
+            workingDirMode: .projectRoot, injectionMode: .cliFlag, sortOrder: 1
+        )
+        missingTool.projects = [project]
+        ctx.insert(missingTool)
 
         let session = SessionIndex(tool: "claude", toolSessionId: "s1",
                                    sourcePath: "/tmp/s1.jsonl",
@@ -156,6 +163,9 @@ struct ProjectsOverviewViewModelTests {
         try ctx.save()
 
         let data = ProjectsOverviewViewModel.cardData(for: project)
+        // The overview reports tools that can run on this Mac, not every enabled
+        // catalog entry bound to the project.
+        #expect(project.tools.filter(\.enabled).count == 2)
         #expect(data.toolCount == 1)
         #expect(data.sessionCount == 2)
         #expect(data.colorHex == "#FF8800")
