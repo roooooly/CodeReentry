@@ -21,6 +21,8 @@ final class AppDependencies {
         "DefaultToolCatalog.didMigrateGeminiCLI.v1"
     private static let copilotCatalogMigrationKey =
         "DefaultToolCatalog.didMigrateGitHubCopilotCLI.v1"
+    private static let aiderCatalogMigrationKey =
+        "DefaultToolCatalog.didMigrateAider.v1"
 
     // MARK: - Core 服务
 
@@ -113,6 +115,7 @@ final class AppDependencies {
 
     /// 已注册的会话 reader（§5.3A 聚合用）。P1 加 ZcodeReader。
     let sessionReaders: [any SessionReader]
+    private let usesInjectedSessionReaders: Bool
 
     init(
         modelContainer: ModelContainer,
@@ -122,6 +125,7 @@ final class AppDependencies {
     ) {
         self.modelContainer = modelContainer
         self.runtimeMode = runtimeMode
+        self.usesInjectedSessionReaders = injectedSessionReaders != nil
         self.gitStatusProvider = GitStatusProvider()
         self.keychain = KeychainStore()
         self.preferences = preferences
@@ -149,7 +153,9 @@ final class AppDependencies {
                 fileURL: runtimeMode == .demo ? nil : ReentryTrialStore.defaultFileURL
             )
         )
-        // OpenCode 仅发现 SQLite 元数据；Gemini/Copilot 使用有界 JSONL reader。
+        // OpenCode uses bounded SQLite reads; Gemini/Copilot use bounded JSONL.
+        // Aider is replaced with a reader for the current registered projects
+        // immediately before discovery or detail loading.
         // 聚合只由用户显式刷新触发。
         if let injectedSessionReaders {
             self.sessionReaders = injectedSessionReaders
@@ -164,7 +170,7 @@ final class AppDependencies {
             self.sessionReaders = [
                 ClaudeReader(), CodexReader(), ZcodeReader(), KimiReader(paths: kimiPaths),
                 OpenCodeReader(homeURL: home), GeminiReader(homeURL: home),
-                GitHubCopilotReader(homeURL: home)
+                GitHubCopilotReader(homeURL: home), AiderReader(projectRoots: [])
             ]
         }
         // A resource manager should open on a useful operating surface, not an
@@ -203,6 +209,17 @@ final class AppDependencies {
                     )
                 }
                 preferences.set(true, forKey: Self.copilotCatalogMigrationKey)
+            }
+            if !preferences.bool(forKey: Self.aiderCatalogMigrationKey) {
+                let existing = try modelContainer.mainContext.fetch(FetchDescriptor<Tool>())
+                if !existing.contains(where: {
+                    ToolIdentifierResolver.matches($0, sessionToolIdentifier: "aider")
+                }) {
+                    _ = try DefaultToolCatalog.restoreDefault(
+                        named: "Aider", in: modelContainer.mainContext
+                    )
+                }
+                preferences.set(true, forKey: Self.aiderCatalogMigrationKey)
             }
         } catch {
             logger.error("初始化内置工具失败: \(error.localizedDescription, privacy: .public)")
@@ -271,6 +288,7 @@ final class AppDependencies {
         case "gemini":      return GeminiAdapter()
         case "github-copilot": return GitHubCopilotAdapter()
         case "copilot":        return GitHubCopilotAdapter()
+        case "aider":          return AiderAdapter()
         default:            return nil
         }
     }
@@ -400,14 +418,14 @@ final class AppDependencies {
 
     /// 按会话工具 id 查 reader（SessionsTab 用：resume 需 reader.load 解析 detail）。
     func sessionReader(forToolId toolId: String) -> (any SessionReader)? {
-        sessionReaders.first { $0.toolId == toolId }
+        currentSessionReaders().first { $0.toolId == toolId }
     }
 
     /// 跑一轮会话聚合扫描（会话页面手动刷新调用）。
     /// 各 reader discover → 按 cwd 归到 Project → 写 SessionIndex。
     func runAggregation() async throws {
         let writer = SessionIndexWriter(modelContainer: modelContainer)
-        let aggregator = SessionAggregator(readers: sessionReaders)
+        let aggregator = SessionAggregator(readers: currentSessionReaders())
         var aggregationError: (any Error)?
         do {
             try await aggregator.aggregate(writer: writer, modelContext: modelContainer.mainContext)
@@ -415,6 +433,25 @@ final class AppDependencies {
             aggregationError = error
         }
         if let aggregationError { throw aggregationError }
+    }
+
+    /// Aider's default history is project-local. Rebuild only that reader from
+    /// the current registry so projects added after app launch participate in
+    /// the next explicit refresh, without crawling unrelated home directories.
+    private func currentSessionReaders() -> [any SessionReader] {
+        guard runtimeMode == .standard,
+              !usesInjectedSessionReaders,
+              sessionReaders.contains(where: { $0.toolId == "aider" }) else {
+            return sessionReaders
+        }
+        let projects = (try? modelContainer.mainContext.fetch(FetchDescriptor<Project>())) ?? []
+        let roots = projects
+            .map(\.path)
+            .filter { !$0.isEmpty && ($0 as NSString).isAbsolutePath }
+            .map { URL(fileURLWithPath: $0, isDirectory: true) }
+        return sessionReaders.map { reader in
+            reader.toolId == "aider" ? AiderReader(projectRoots: roots) : reader
+        }
     }
 
     /// 写渲染后的注入内容到临时文件，返回路径。

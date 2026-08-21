@@ -442,6 +442,7 @@ private extension ReentryTrialTool {
         case .kimi: "Kimi"
         case .geminiCLI: "Gemini CLI"
         case .githubCopilot: "GitHub Copilot CLI"
+        case .aider: "Aider"
         }
     }
 }

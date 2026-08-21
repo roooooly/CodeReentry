@@ -73,8 +73,8 @@ Release 性能另用[可复现的合成基线](docs/performance-baseline.md)跟�
 - 项目总览、状态、标签、Git 状态、脚本识别和快速启动
 - 会话优先引导：先从本地 cwd 元数据提出项目根目录，确认后才注册
 - 聚合 Claude Code、Codex、ZCode、Gemini CLI、GitHub Copilot CLI、OpenCode 的
-  本地会话，以及 Kimi 状态元数据
-- 面向大型 JSONL 历史记录的流式、限量读取
+  本地会话、Aider 项目历史，以及 Kimi 状态元数据
+- 面向大型 JSONL 与 Markdown 历史记录的流式、限量读取
 - 按需加载会话正文，并在工具支持时回到原会话
 - 从会话详情显式启动本地恢复测量，用隐私安全的证据页汇总结果；不记录项目名、路径、
   会话 ID、提示词或正文；结果表单不计入耗时，且用户可随时清空本地证据
@@ -99,6 +99,7 @@ Release 性能另用[可复现的合成基线](docs/performance-baseline.md)跟�
 | OpenCode | 支持（v1.18.19 SQLite） | 按需、限量读取 | 精确恢复会话（`--session`） | 通过提示参数传递 |
 | Gemini CLI | 支持（项目级 JSONL） | 按需、限量读取 | 精确恢复会话（`--resume`） | 不支持 |
 | GitHub Copilot CLI | 支持（`session-state` 事件） | 按需、限量读取 | 按完整 ID 恢复（`--resume`） | 不支持 |
+| Aider | 每个已注册项目一条持续历史 | 按需、限量读取 | 恢复项目历史（`--restore-chat-history`） | 不支持 |
 | VS Code | 不适用 | 不适用 | 打开项目 | 用户确认后通过剪贴板辅助 |
 
 表格描述的是当前源码已经实现的路径。第三方工具的存储格式和命令行行为可能变化，
@@ -121,6 +122,13 @@ GitHub Copilot CLI 兼容性以[兼容性说明](docs/github-copilot-cli-compati
 官方文档与 CLI 快照为验证基准。CodeReentry 只读取官方记录的主代理消息与项目上下文事件，
 排除推理、系统提示、流式增量、子代理事件和符号链接，并使用发现到的完整会话 ID 恢复。
 开发测试使用合成记录，不作为真实用户恢复试验的证据。
+
+Aider 兼容性以[兼容性说明](docs/aider-compatibility.md)中固定的 v0.86.2 上游源码为
+验证基准。CodeReentry 只检查每个已注册项目根目录中的默认
+`.aider.chat.history.md`，拒绝符号链接，不会在主目录里搜索历史。发现阶段使用有界的
+尾部读取；打开正文时保留最新的限量上下文，并像 Aider 自己的恢复解析器一样排除
+工具与状态引用块。这个路径没有持久的独立会话 ID，因此记录代表一条持续的项目历史，
+不是任意历史会话的精确快照；自定义 `--chat-history-file` 路径不会被猜测。
 
 ## 隐私边界
 

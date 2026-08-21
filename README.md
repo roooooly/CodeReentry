@@ -80,8 +80,8 @@ Release performance is tracked separately with a
 - Project overview, status, tags, Git state, detected scripts, and quick launchers
 - Session-first onboarding that proposes project roots from local cwd metadata before registration
 - Local session aggregation for Claude Code, Codex, ZCode, Gemini CLI, GitHub Copilot
-  CLI, OpenCode, and Kimi metadata
-- Bounded streaming readers for large JSONL histories
+  CLI, OpenCode, Aider project histories, and Kimi metadata
+- Bounded streaming readers for large JSONL and Markdown histories
 - On-demand conversation loading and original-tool resume where supported
 - Explicit, local recovery measurement from session detail, with a privacy-safe evidence
   dashboard, form-time-free duration capture, user-controlled deletion, and no project
@@ -108,6 +108,7 @@ Release performance is tracked separately with a
 | OpenCode | Yes (v1.18.19 SQLite) | Bounded, on demand | Exact-session resume (`--session`) | Prompt argument |
 | Gemini CLI | Yes (project-scoped JSONL) | Bounded, on demand | Exact-session resume (`--resume`) | No |
 | GitHub Copilot CLI | Yes (`session-state` events) | Bounded, on demand | Exact-ID resume (`--resume`) | No |
+| Aider | One continuing history per registered project | Bounded, on demand | Restore project history (`--restore-chat-history`) | No |
 | VS Code | Not applicable | Not applicable | Open project | Clipboard-assisted when requested |
 
 This table describes the paths implemented in the current source. Third-party storage
@@ -136,6 +137,15 @@ CodeReentry reads only documented persisted root-agent messages and project-cont
 events, excludes reasoning, system prompts, streaming deltas, subagent events, and
 symbolic links, and resumes with the complete discovered session ID. The development
 fixture is synthetic; it does not count as a real-user recovery trial.
+
+Aider compatibility is verified against the pinned v0.86.2 source in the
+[compatibility note](docs/aider-compatibility.md). CodeReentry checks only the default
+`.aider.chat.history.md` at each exact registered project root, rejects symbolic links,
+and never searches the home directory for histories. Discovery uses bounded tail
+reads; opening a conversation keeps the newest bounded context and excludes Aider's
+tool/status blockquotes, matching its restore parser. Aider has no durable per-chat ID in
+this path, so the record represents one continuing project history rather than an exact
+historical session. Custom `--chat-history-file` paths are not inferred.
 
 ## Privacy boundary
 
