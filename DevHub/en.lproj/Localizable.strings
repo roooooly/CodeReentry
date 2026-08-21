@@ -939,3 +939,12 @@
 "会话总结过期" = "Session summary stale";
 "工具启动失败" = "Tool launch failed";
 "其他" = "Other";
+"请先停止计时，再保存恢复结果。" = "Stop the timer before saving the recovery result.";
+"恢复耗时已冻结" = "Recovery Time Frozen";
+"填写结果表单的时间不会计入恢复耗时。" = "Time spent completing the result form is not included in recovery time.";
+"删除全部本地恢复记录？" = "Delete All Local Recovery Records?";
+"永久删除全部记录" = "Permanently Delete All Records";
+"这会删除已记录的 CSV 和未完成的计时，无法撤销；项目、会话和源文件不会受到影响。" = "This permanently deletes the recorded CSV and unfinished timer. Projects, sessions, and source files are not affected.";
+"删除全部本地记录…" = "Delete All Local Records…";
+"删除恢复证据 CSV 和未完成的计时" = "Delete the recovery evidence CSV and unfinished timer";
+"已冻结恢复耗时：%lld 秒" = "Frozen recovery time: %lld seconds";

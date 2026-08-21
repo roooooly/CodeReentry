@@ -5,6 +5,8 @@ struct ReentryEvidenceView: View {
     @Environment(AppDependencies.self) private var deps
     @State private var showingCompletion = false
     @State private var showingCancelConfirmation = false
+    @State private var showingDeleteConfirmation = false
+    @State private var localErrorMessage: String?
 
     private let columns = [
         GridItem(.adaptive(minimum: 150, maximum: 260), spacing: 12)
@@ -14,7 +16,7 @@ struct ReentryEvidenceView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
                 heading
-                if let error = deps.reentryTrials.errorMessage {
+                if let error = localErrorMessage ?? deps.reentryTrials.errorMessage {
                     errorCard(error)
                 }
                 activeMeasurement
@@ -48,6 +50,17 @@ struct ReentryEvidenceView: View {
         } message: {
             Text(String(localized: "未完成的计时只存在于内存中，放弃后不会写入任何记录。"))
         }
+        .confirmationDialog(
+            String(localized: "删除全部本地恢复记录？"),
+            isPresented: $showingDeleteConfirmation
+        ) {
+            Button(String(localized: "永久删除全部记录"), role: .destructive) {
+                Task { await deleteAllEvidence() }
+            }
+            Button(String(localized: "取消"), role: .cancel) {}
+        } message: {
+            Text(String(localized: "这会删除已记录的 CSV 和未完成的计时，无法撤销；项目、会话和源文件不会受到影响。"))
+        }
     }
 
     private var heading: some View {
@@ -70,10 +83,19 @@ struct ReentryEvidenceView: View {
             VStack(alignment: .leading, spacing: 14) {
                 HStack(alignment: .top) {
                     VStack(alignment: .leading, spacing: 5) {
-                        Label(String(localized: "正在测量恢复"), systemImage: "stopwatch.fill")
+                        Label(
+                            deps.reentryTrials.capturedElapsedSeconds == nil
+                                ? String(localized: "正在测量恢复")
+                                : String(localized: "恢复耗时已冻结"),
+                            systemImage: "stopwatch.fill"
+                        )
                             .font(.headline)
                             .foregroundStyle(DevHubTheme.accent)
-                        Text(String(localized: "在原工具确认项目、会话和上下文后，回到这里记录结果。"))
+                        Text(
+                            deps.reentryTrials.capturedElapsedSeconds == nil
+                                ? String(localized: "在原工具确认项目、会话和上下文后，回到这里记录结果。")
+                                : String(localized: "填写结果表单的时间不会计入恢复耗时。")
+                        )
                             .font(.callout)
                             .foregroundStyle(.secondary)
                     }
@@ -93,7 +115,13 @@ struct ReentryEvidenceView: View {
                 .foregroundStyle(.secondary)
                 HStack {
                     Button {
-                        showingCompletion = true
+                        do {
+                            try deps.reentryTrials.captureElapsed()
+                            localErrorMessage = nil
+                            showingCompletion = true
+                        } catch {
+                            localErrorMessage = error.localizedDescription
+                        }
                     } label: {
                         Label(String(localized: "记录恢复结果"), systemImage: "checkmark.circle.fill")
                     }
@@ -239,6 +267,15 @@ struct ReentryEvidenceView: View {
                 .font(.caption.monospaced())
                 .foregroundStyle(.tertiary)
                 .textSelection(.enabled)
+            if deps.reentryTrials.hasStoredEvidence
+                || deps.reentryTrials.activeTrial != nil {
+                Divider().padding(.vertical, 2)
+                Button(String(localized: "删除全部本地记录…"), role: .destructive) {
+                    showingDeleteConfirmation = true
+                }
+                .buttonStyle(.borderless)
+                .help(String(localized: "删除恢复证据 CSV 和未完成的计时"))
+            }
         }
         .padding(16)
         .background(Color.green.opacity(0.08), in: RoundedRectangle(cornerRadius: 12))
@@ -280,6 +317,16 @@ struct ReentryEvidenceView: View {
 
     private func percentValue(_ value: Int?) -> String {
         value.map { "\($0)%" } ?? "—"
+    }
+
+    @MainActor
+    private func deleteAllEvidence() async {
+        do {
+            try await deps.reentryTrials.deleteAllEvidence()
+            localErrorMessage = nil
+        } catch {
+            localErrorMessage = error.localizedDescription
+        }
     }
 }
 
@@ -338,7 +385,7 @@ private struct ReentryTrialCompletionView: View {
             }
 
             HStack {
-                Text(String(localized: "当前计时：\(coordinator.elapsedSeconds()) 秒"))
+                Text(String(localized: "已冻结恢复耗时：\(coordinator.elapsedSeconds()) 秒"))
                     .font(.caption.monospacedDigit())
                     .foregroundStyle(.secondary)
                 Spacer()

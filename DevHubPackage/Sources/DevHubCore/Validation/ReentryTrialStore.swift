@@ -145,6 +145,7 @@ public enum ReentryTrialError: Error, LocalizedError, Equatable {
     case invalidDuration
     case inconsistentOutcome
     case symbolicLink
+    case unexpectedFileType
     case unexpectedSchema
     case invalidRow(Int)
 
@@ -158,6 +159,8 @@ public enum ReentryTrialError: Error, LocalizedError, Equatable {
             "Outcome, failure category, and cross-project context are inconsistent."
         case .symbolicLink:
             "Refusing to read or write re-entry evidence through a symbolic link."
+        case .unexpectedFileType:
+            "Refusing to manage re-entry evidence at a path that is not a regular file."
         case .unexpectedSchema:
             "The local re-entry evidence file has an unexpected schema."
         case .invalidRow(let row):
@@ -203,6 +206,14 @@ public actor ReentryTrialStore {
         return try readRecords(from: fileURL)
     }
 
+    /// Reports whether there is evidence to manage without requiring the CSV
+    /// to parse successfully. This keeps the delete control available when a
+    /// regular evidence file is malformed or from an incompatible version.
+    public func hasStoredEvidence() -> Bool {
+        guard let fileURL else { return !inMemoryRecords.isEmpty }
+        return FileManager.default.fileExists(atPath: fileURL.path)
+    }
+
     @discardableResult
     public func record(_ input: ReentryTrialInput, at date: Date = Date()) throws -> ReentryTrialRecord {
         try Self.validate(input)
@@ -223,6 +234,27 @@ public actor ReentryTrialStore {
 
     public func summary() throws -> ReentryTrialSummary {
         Self.summarize(try records())
+    }
+
+    /// Removes only this store's evidence file. The containing application-
+    /// support directory is retained because it may hold other owned data.
+    public func deleteAllRecords() throws {
+        guard let fileURL else {
+            inMemoryRecords = []
+            return
+        }
+        let fileManager = FileManager.default
+        let directory = fileURL.deletingLastPathComponent()
+        if fileManager.fileExists(atPath: directory.path), isSymbolicLink(directory) {
+            throw ReentryTrialError.symbolicLink
+        }
+        guard fileManager.fileExists(atPath: fileURL.path) else { return }
+        guard !isSymbolicLink(fileURL) else { throw ReentryTrialError.symbolicLink }
+        let values = try fileURL.resourceValues(forKeys: [.isRegularFileKey])
+        guard values.isRegularFile == true else {
+            throw ReentryTrialError.unexpectedFileType
+        }
+        try fileManager.removeItem(at: fileURL)
     }
 
     public nonisolated static func summarize(_ records: [ReentryTrialRecord]) -> ReentryTrialSummary {

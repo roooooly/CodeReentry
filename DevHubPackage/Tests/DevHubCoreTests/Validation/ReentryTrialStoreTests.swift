@@ -34,8 +34,10 @@ struct ReentryTrialStoreTests {
         let permissions = try #require(
             FileManager.default.attributesOfItem(atPath: file.path)[.posixPermissions] as? NSNumber
         )
+        let hasEvidence = await store.hasStoredEvidence()
 
         #expect(recorded.attemptID == 1)
+        #expect(hasEvidence)
         #expect(loaded == [recorded])
         #expect(permissions.intValue & 0o777 == 0o600)
         #expect(text.hasPrefix(ReentryTrialStore.csvHeader + "\n"))
@@ -74,13 +76,38 @@ struct ReentryTrialStoreTests {
         #expect(summary.correctPercent == 90)
         #expect(summary.medianBaselineSeconds == 120)
         #expect(summary.medianReentrySeconds == 45)
-        // Keep this byte-for-byte compatible with scripts/reentry-trial.sh,
-        // whose evidence report truncates 62.5% to 62%.
+        // Keep this byte-for-byte compatible with scripts/reentry-trial.sh;
+        // half-even rounding maps 62.5% to 62%.
         #expect(summary.relativeImprovementPercent == 62)
         #expect(summary.medianReductionPercent == 85)
         #expect(summary.failureCounts[.sessionNotFound] == 1)
         #expect(summary.coverageMet)
         #expect(summary.targetsMet)
+    }
+
+    @Test("deletes only the evidence file and supports in-memory clearing")
+    func deleteAllRecords() async throws {
+        let root = FileManager.default.temporaryDirectory
+            .appendingPathComponent("reentry-store-delete-\(UUID().uuidString)")
+        defer { try? FileManager.default.removeItem(at: root) }
+        let file = root.appendingPathComponent("reentry-trials.csv")
+        let sibling = root.appendingPathComponent("keep.txt")
+        let store = ReentryTrialStore(fileURL: file)
+        try await store.record(makeInput())
+        try "keep".write(to: sibling, atomically: true, encoding: .utf8)
+
+        try await store.deleteAllRecords()
+
+        #expect(!FileManager.default.fileExists(atPath: file.path))
+        #expect(!(await store.hasStoredEvidence()))
+        #expect(FileManager.default.fileExists(atPath: sibling.path))
+        #expect(try await store.records().isEmpty)
+        try await store.deleteAllRecords() // idempotent when already absent
+
+        let memory = ReentryTrialStore(fileURL: nil)
+        try await memory.record(makeInput())
+        try await memory.deleteAllRecords()
+        #expect(try await memory.records().isEmpty)
     }
 
     @Test("rejects inconsistent, tampered, and symbolic-link evidence")
@@ -111,6 +138,21 @@ struct ReentryTrialStoreTests {
         await #expect(throws: ReentryTrialError.symbolicLink) {
             _ = try await linkedStore.records()
         }
+        await #expect(throws: ReentryTrialError.symbolicLink) {
+            try await linkedStore.deleteAllRecords()
+        }
+
+        let directoryAtFilePath = root.appendingPathComponent("directory.csv")
+        try FileManager.default.createDirectory(
+            at: directoryAtFilePath, withIntermediateDirectories: true
+        )
+        let directoryChild = directoryAtFilePath.appendingPathComponent("keep.txt")
+        try "keep".write(to: directoryChild, atomically: true, encoding: .utf8)
+        let directoryStore = ReentryTrialStore(fileURL: directoryAtFilePath)
+        await #expect(throws: ReentryTrialError.unexpectedFileType) {
+            try await directoryStore.deleteAllRecords()
+        }
+        #expect(FileManager.default.fileExists(atPath: directoryChild.path))
 
         let linkedDirectory = root.appendingPathComponent("linked-directory")
         let directoryTarget = root.appendingPathComponent("directory-target")

@@ -5,6 +5,11 @@ published a signed public binary.
 
 ## Unreleased
 
+- Freeze recovery duration before opening the result form so form-entry time cannot
+  inflate real-use evidence.
+- Let users permanently clear the local evidence CSV and unfinished in-memory timer from
+  Recovery Evidence, while retaining unrelated application-support files.
+
 ## 0.6.0 - 2026-08-21
 
 - Add an explicitly triggered, fully local recovery timer and evidence dashboard that
