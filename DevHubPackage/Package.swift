@@ -6,11 +6,17 @@ let package = Package(
     platforms: [.macOS(.v14)],
     products: [
         .library(name: "DevHubCore", targets: ["DevHubCore"]),
+        .executable(name: "DevHubFixtureTool", targets: ["DevHubFixtureTool"]),
     ],
     targets: [
         .target(
             name: "DevHubCore",
-            dependencies: []
+            dependencies: [],
+            linkerSettings: [.linkedLibrary("sqlite3")]
+        ),
+        .executableTarget(
+            name: "DevHubFixtureTool",
+            dependencies: ["DevHubCore"]
         ),
         .testTarget(
             name: "DevHubCoreTests",

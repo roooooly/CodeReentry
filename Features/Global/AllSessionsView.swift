@@ -62,6 +62,10 @@ struct GlobalSessionItem: Identifiable, Equatable {
             preview: preview
         )
     }
+
+    var isMetadataOnly: Bool {
+        tool == "kimi" || tool == "opencode"
+    }
 }
 
 enum GlobalSessionScope: Hashable {
@@ -74,9 +78,13 @@ enum GlobalSessionScope: Hashable {
 @Observable
 final class AllSessionsViewModel {
     static let pageSize = 25
+    static let fetchBatchSize = 500
 
     private(set) var allSessions: [GlobalSessionItem] = []
     private(set) var projects: [GlobalSessionProject] = []
+    private(set) var totalSessionCount = 0
+    private(set) var unclassifiedSessionCount = 0
+    private var loadedSessionLimit = fetchBatchSize
     private(set) var visibleLimit = pageSize
     var searchText = "" {
         didSet {
@@ -95,18 +103,29 @@ final class AllSessionsViewModel {
     }
 
     func load(from container: ModelContainer) {
+        loadedSessionLimit = Self.fetchBatchSize
+        loadLoadedRange(from: container, resetVisibleLimit: true)
+    }
+
+    private func loadLoadedRange(from container: ModelContainer, resetVisibleLimit: Bool) {
         let context = ModelContext(container)
         context.autosaveEnabled = false
-        let rows = (try? context.fetch(FetchDescriptor<SessionIndex>(
+        totalSessionCount = (try? context.fetchCount(FetchDescriptor<SessionIndex>())) ?? 0
+        unclassifiedSessionCount = (try? context.fetchCount(FetchDescriptor<SessionIndex>(
+            predicate: #Predicate { $0.project == nil }
+        ))) ?? 0
+        var descriptor = FetchDescriptor<SessionIndex>(
             sortBy: [SortDescriptor(\.startedAt, order: .reverse)]
-        ))) ?? []
+        )
+        descriptor.fetchLimit = loadedSessionLimit
+        let rows = (try? context.fetch(descriptor)) ?? []
         allSessions = rows.map(GlobalSessionItem.init)
         projects = ((try? context.fetch(FetchDescriptor<Project>(
             sortBy: [SortDescriptor(\.name)]
         ))) ?? []).map {
             GlobalSessionProject(id: $0.id, stableId: $0.stableId, name: $0.name, path: $0.path)
         }
-        resetVisibleLimit()
+        if resetVisibleLimit { self.resetVisibleLimit() }
     }
 
     var filteredSessions: [GlobalSessionItem] {
@@ -136,11 +155,21 @@ final class AllSessionsViewModel {
     }
 
     var unclassifiedCount: Int {
-        allSessions.lazy.filter { $0.projectId == nil }.count
+        unclassifiedSessionCount
     }
+
+    var hasMoreIndexedSessions: Bool { allSessions.count < totalSessionCount }
 
     func loadMore(upTo totalCount: Int) {
         visibleLimit = min(totalCount, visibleLimit + Self.pageSize)
+    }
+
+    func loadNextIndexedBatch(from container: ModelContainer) {
+        guard hasMoreIndexedSessions else { return }
+        let previousVisibleLimit = visibleLimit
+        loadedSessionLimit = min(totalSessionCount, loadedSessionLimit + Self.fetchBatchSize)
+        loadLoadedRange(from: container, resetVisibleLimit: false)
+        visibleLimit = min(allSessions.count, previousVisibleLimit + Self.pageSize)
     }
 
     func project(for session: GlobalSessionItem) -> GlobalSessionProject? {
@@ -193,10 +222,15 @@ struct AllSessionsView: View {
                     ContentUnavailableView(
                         String(localized: "尚无会话索引"),
                         systemImage: "bubble.left.and.bubble.right",
-                        description: Text(String(localized: "点击刷新以扫描 Claude Code、Codex、ZCode 与可用的 Kimi 本地元数据。"))
+                        description: Text(String(localized: "点击刷新以扫描 Claude Code、Codex、ZCode、OpenCode 与可用的 Kimi 本地元数据。"))
                     )
                 } else if filteredSessions.isEmpty {
-                    ContentUnavailableView.search(text: viewModel.searchText)
+                    VStack(spacing: 12) {
+                        ContentUnavailableView.search(text: viewModel.searchText)
+                        if viewModel.hasMoreIndexedSessions {
+                            loadOlderSessionsButton
+                        }
+                    }
                 } else {
                     sessionList(filteredSessions)
                 }
@@ -237,7 +271,7 @@ struct AllSessionsView: View {
                 Spacer()
                 VStack(alignment: .trailing, spacing: 8) {
                     DevHubPill(
-                        text: statusMessage ?? String(localized: "\(viewModel.allSessions.count) 个本地会话"),
+                        text: statusMessage ?? String(localized: "\(viewModel.totalSessionCount) 个本地会话"),
                         color: isRefreshing ? DevHubTheme.gold : DevHubTheme.teal
                     )
                     Button {
@@ -332,11 +366,33 @@ struct AllSessionsView: View {
                 .listRowBackground(Color.clear)
                 .listRowSeparator(.hidden)
                 .accessibilityHint(String(localized: "按需载入下一批会话，不读取会话正文"))
+            } else if viewModel.hasMoreIndexedSessions {
+                loadOlderSessionsButton
+                    .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
             }
         }
         .listStyle(.inset)
         .scrollContentBackground(.hidden)
         .frame(maxWidth: 1180)
+    }
+
+    private var loadOlderSessionsButton: some View {
+        Button {
+            viewModel.loadNextIndexedBatch(from: deps.modelContainer)
+        } label: {
+            VStack(spacing: 4) {
+                Label(String(localized: "载入更早的索引会话"), systemImage: "arrow.down.circle")
+                    .font(.callout.weight(.semibold))
+                Text(String(localized: "已加载 \(viewModel.allSessions.count) / \(viewModel.totalSessionCount) 个索引会话"))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 10)
+        }
+        .buttonStyle(.plain)
+        .accessibilityHint(String(localized: "只加载下一批索引元数据，不读取会话正文"))
     }
 
     @MainActor
@@ -347,7 +403,7 @@ struct AllSessionsView: View {
         do {
             try await deps.runAggregation()
             viewModel.load(from: deps.modelContainer)
-            statusMessage = String(localized: "已更新 \(viewModel.allSessions.count) 个会话")
+            statusMessage = String(localized: "已更新 \(viewModel.totalSessionCount) 个会话")
         } catch {
             viewModel.load(from: deps.modelContainer)
             errorMessage = error.localizedDescription
@@ -451,9 +507,11 @@ private struct GlobalSessionRow: View {
                 .foregroundStyle(.secondary)
                 .lineLimit(2)
 
-            if session.tool == "kimi" {
+            if session.isMetadataOnly {
                 Label(
-                    String(localized: "仅索引本地状态元数据；不读取消息内容，也不能恢复指定会话。"),
+                    session.tool == "kimi"
+                        ? String(localized: "仅索引本地状态元数据；不读取消息内容，也不能恢复指定会话。")
+                        : String(localized: "OpenCode 会话仅索引元数据；请在 OpenCode 中继续查看。"),
                     systemImage: "info.circle"
                 )
                 .font(.caption2)
@@ -467,7 +525,7 @@ private struct GlobalSessionRow: View {
                 .font(.caption2)
                 .foregroundStyle(.secondary)
             }
-            if session.tool != "kimi" && !session.hasReadableConversation {
+            if !session.isMetadataOnly && !session.hasReadableConversation {
                 Label(String(localized: "内容格式暂时无法解析；请用“显示源文件”检查原始记录。"),
                       systemImage: "exclamationmark.triangle")
                     .font(.caption2)
@@ -481,7 +539,7 @@ private struct GlobalSessionRow: View {
                     .lineLimit(1)
                     .textSelection(.enabled)
                 Spacer()
-                if session.tool != "kimi" && session.hasReadableConversation {
+                if !session.isMetadataOnly && session.hasReadableConversation {
                     Button(action: onViewConversation) {
                         Label(String(localized: "查看对话"), systemImage: "doc.text")
                     }
@@ -549,6 +607,7 @@ private struct GlobalSessionRow: View {
         SessionDisplayText.displayPreview(session.preview)
             ?? String(localized: "刷新后可读取实际用户请求")
     }
+
 }
 
 enum GlobalSessionError: LocalizedError {

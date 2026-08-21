@@ -124,11 +124,14 @@ final class AppDependencies {
             let projects = (try? ctx.fetch(FetchDescriptor<Project>())) ?? []
             return projects.map(\.path).filter { !$0.isEmpty }
         })
-        // 会话 reader：Claude + Codex + Zcode + Kimi（P2 新增）。聚合时由调用方构造 SessionAggregator(readers:)。
+        // OpenCode 仅发现 v1.18.19 SQLite 元数据；聚合只由用户显式刷新触发。
         let home = FileManager.default.homeDirectoryForCurrentUser
         let kimiPaths = KimiPathDiscovery.discover(
             candidates: KimiPathDiscovery.standardCandidates(home: home), home: home)
-        self.sessionReaders = [ClaudeReader(), CodexReader(), ZcodeReader(), KimiReader(paths: kimiPaths)]
+        self.sessionReaders = [
+            ClaudeReader(), CodexReader(), ZcodeReader(), KimiReader(paths: kimiPaths),
+            OpenCodeReader(homeURL: home)
+        ]
         // A resource manager should open on a useful operating surface, not an
         // empty detail pane that asks the user to make a redundant choice.
         self.selectedGlobalDestination = .projects
@@ -221,8 +224,13 @@ final class AppDependencies {
     func runAggregation() async throws {
         let writer = SessionIndexWriter(modelContainer: modelContainer)
         let aggregator = SessionAggregator(readers: sessionReaders)
-        try await aggregator.aggregate(writer: writer, modelContext: modelContainer.mainContext)
-        _ = try await writer.removeStale()
+        var aggregationError: (any Error)?
+        do {
+            try await aggregator.aggregate(writer: writer, modelContext: modelContainer.mainContext)
+        } catch {
+            aggregationError = error
+        }
+        if let aggregationError { throw aggregationError }
     }
 
     /// 写渲染后的注入内容到临时文件，返回路径。

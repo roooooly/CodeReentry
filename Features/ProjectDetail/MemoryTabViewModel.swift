@@ -29,6 +29,7 @@ final class MemoryTabViewModel {
     var contextMd: String = ""
     var lastSummaryMd: String = ""
     var hasLastSummary: Bool = false
+    var summaryReviewStatus: SessionSummaryReviewStatus = .none
     var dirty: Bool = false
     var isPreview: Bool = false
     var loadError: String?
@@ -59,12 +60,19 @@ final class MemoryTabViewModel {
     var loadedProjectID: String? { documentTarget?.projectID }
     var loadedProjectPath: String? { documentTarget?.projectPath }
 
-    func load(projectID: String, projectPath: String, deps: AppDependencies) throws {
+    func load(
+        projectID: String,
+        projectPath: String,
+        latestSessionUpdatedAt: Date? = nil,
+        deps: AppDependencies
+    ) throws {
         cancelScheduledAutosave()
         do {
             let store = deps.memoryStore(forProjectPath: projectPath)
             let loadedContext = try store.readContext()
             let loadedSummary = try store.readLastSessionSummary()
+            // sidecar 损坏不能阻断稳定 context.md；降级为“来源未验证”即可。
+            let summaryMetadata = try? store.readLastSessionSummaryMetadata()
 
             // Only publish the new document after both reads succeed. A failed project
             // switch must not retarget the previous draft to the newly selected project.
@@ -73,6 +81,11 @@ final class MemoryTabViewModel {
             lastSavedContext = loadedContext
             lastSummaryMd = loadedSummary ?? ""
             hasLastSummary = !(loadedSummary ?? "").isEmpty
+            summaryReviewStatus = SessionSummaryReviewStatus.classify(
+                summary: loadedSummary,
+                metadata: summaryMetadata,
+                latestIndexedSessionAt: latestSessionUpdatedAt
+            )
             dirty = false
             loadError = nil
             saveError = nil
@@ -86,9 +99,21 @@ final class MemoryTabViewModel {
     /// Activates a project document. When SwiftUI reuses this ViewModel during a
     /// project switch, the previous draft is flushed to its own bound path first.
     /// If that write fails, activation stops and the draft remains available for retry.
-    func activate(projectID: String, projectPath: String, deps: AppDependencies) {
+    func activate(
+        projectID: String,
+        projectPath: String,
+        latestSessionUpdatedAt: Date? = nil,
+        deps: AppDependencies
+    ) {
         let requestedTarget = DocumentTarget(projectID: projectID, projectPath: projectPath)
-        guard documentTarget != requestedTarget || loadError != nil else { return }
+        if documentTarget == requestedTarget, loadError == nil {
+            refreshSummaryStatus(
+                projectPath: projectPath,
+                latestSessionUpdatedAt: latestSessionUpdatedAt,
+                deps: deps
+            )
+            return
+        }
 
         if documentTarget != nil, documentTarget != requestedTarget,
            !flushPendingSave(deps: deps) {
@@ -96,9 +121,36 @@ final class MemoryTabViewModel {
         }
 
         do {
-            try load(projectID: projectID, projectPath: projectPath, deps: deps)
+            try load(
+                projectID: projectID,
+                projectPath: projectPath,
+                latestSessionUpdatedAt: latestSessionUpdatedAt,
+                deps: deps
+            )
         } catch {
             // load(projectID:projectPath:deps:) owns the user-visible error state.
+        }
+    }
+
+    private func refreshSummaryStatus(
+        projectPath: String,
+        latestSessionUpdatedAt: Date?,
+        deps: AppDependencies
+    ) {
+        do {
+            let store = deps.memoryStore(forProjectPath: projectPath)
+            let loadedSummary = try store.readLastSessionSummary()
+            let metadata = try? store.readLastSessionSummaryMetadata()
+            lastSummaryMd = loadedSummary ?? ""
+            hasLastSummary = !(loadedSummary ?? "").isEmpty
+            summaryReviewStatus = SessionSummaryReviewStatus.classify(
+                summary: loadedSummary,
+                metadata: metadata,
+                latestIndexedSessionAt: latestSessionUpdatedAt
+            )
+        } catch {
+            logger.error("刷新会话总结状态失败: \(error.localizedDescription, privacy: .public)")
+            loadError = error.localizedDescription
         }
     }
 

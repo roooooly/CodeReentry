@@ -54,6 +54,28 @@ struct SessionAggregatorTests {
         #expect(all.count == 1)  // dedupe by identityKey
     }
 
+    @Test("a failed reader is reported after successful readers are written")
+    @MainActor
+    func readerFailureDoesNotBlockOthers() async throws {
+        let container = try ModelContainerFactory.makeContainer(inMemory: true)
+        let writer = SessionIndexWriter(modelContainer: container)
+        let ctx = ModelContext(container)
+        let successful = FixtureReader(sessions: [
+            DiscoveredSession(
+                tool: "codex", toolSessionId: "kept", sourcePath: "/tmp/kept.jsonl",
+                projectCwd: "/tmp", startedAt: Date(), updatedAt: Date(),
+                messageCount: 1, title: "Kept", preview: "Kept"
+            )
+        ])
+        let aggregator = SessionAggregator(readers: [FailingReader(), successful])
+
+        await #expect(throws: SessionAggregationError.self) {
+            try await aggregator.aggregate(writer: writer, modelContext: ctx)
+        }
+        let all = await writer.all()
+        #expect(all.map(\.toolSessionId) == ["kept"])
+    }
+
     @Test("cwd 位于项目子目录时归入最具体的项目")
     func matchesNestedProjectPath() {
         let matched = SessionAggregator.projectStableId(
@@ -84,4 +106,14 @@ struct FixtureReader: SessionReader {
     func load(_ id: String) async throws -> SessionDetail {
         SessionDetail(tool: "fixture", toolSessionId: id, cwd: "/", startedAt: Date(), messages: [])
     }
+}
+
+struct FailingReader: SessionReader {
+    let toolId = "broken"
+    func discover() async throws -> [DiscoveredSession] { throw FixtureReaderError.invalid }
+    func load(_ id: String) async throws -> SessionDetail { throw FixtureReaderError.invalid }
+}
+
+enum FixtureReaderError: Error {
+    case invalid
 }

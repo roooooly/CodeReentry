@@ -29,6 +29,7 @@ struct InjectionPlan: Sendable {
     let effectiveMode: InjectionMode
     let scanResult: SecretScanOutcome
     let lengthStatus: LengthStatus
+    let summaryReviewStatus: SessionSummaryReviewStatus
     let adapterWarning: AdapterSpecificWarning?
     /// scanResult == .blocked 时为 true → UI 弹「不注入打开 / 取消」
     let requiresUserChoice: Bool
@@ -79,6 +80,8 @@ final class ToolsTabViewModel {
     var cards: [ToolCardState] = []
     /// 当前项目路径（由 View 在 .task 中注入）
     var boundProjectPath: String?
+    /// 只用于判断波动性会话总结是否落后于最新索引，不影响稳定 context.md。
+    var latestProjectSessionAt: Date?
 
     /// adapter 解析 provider（由 View 注入 deps.adapter(for:)）。
     private var adapterProvider: (String) -> (any ToolAdapter)? = { _ in nil }
@@ -89,6 +92,7 @@ final class ToolsTabViewModel {
     // MARK: - 加载卡片
 
     func loadTools(from ctx: ModelContext, matching project: Project) {
+        latestProjectSessionAt = project.sessions.map(\.updatedAt).max()
         let targetId = project.id
         let descriptor = FetchDescriptor<Tool>(
             predicate: #Predicate { $0.enabled && $0.projects.contains(where: { $0.id == targetId }) },
@@ -232,12 +236,26 @@ final class ToolsTabViewModel {
 
     // MARK: - 注入计划（复用 Core InjectionManager 的 render→scan→fallback→cap 编排）
 
-    func planInject(for tool: Tool, deps: AppDependencies) async throws -> InjectionPlan {
+    func planInject(
+        for tool: Tool,
+        deps: AppDependencies,
+        includeLastSessionSummary: Bool = true
+    ) async throws -> InjectionPlan {
         let path = boundProjectPath ?? tool.projects.first?.path ?? ""
         let adapter = try requireAdapter(tool)
         let store = deps.memoryStore(forProjectPath: path)
         let context = (try? store.readContext()) ?? ""
-        let summary = (try? store.readLastSessionSummary()) ?? nil
+        let summary = includeLastSessionSummary
+            ? ((try? store.readLastSessionSummary()) ?? nil)
+            : nil
+        let summaryMetadata = includeLastSessionSummary
+            ? ((try? store.readLastSessionSummaryMetadata()) ?? nil)
+            : nil
+        let summaryReviewStatus = SessionSummaryReviewStatus.classify(
+            summary: summary,
+            metadata: summaryMetadata,
+            latestIndexedSessionAt: latestProjectSessionAt
+        )
         let gitStatus = try? await deps.gitStatusProvider.status(at: URL(fileURLWithPath: path))
 
         // 安全策略必须由 adapter 的真实能力决定，不能信任设置页中可编辑的
@@ -286,6 +304,7 @@ final class ToolsTabViewModel {
             effectiveMode: prep.mode,
             scanResult: scanResult,
             lengthStatus: prep.truncated ? .truncated : .withinLimit,
+            summaryReviewStatus: summaryReviewStatus,
             adapterWarning: adapterWarning,
             requiresUserChoice: scanResult == .blocked
         )

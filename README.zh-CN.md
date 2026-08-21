@@ -13,7 +13,7 @@
 
 <p align="center">
   <a href="README.md">English</a> ·
-  <a href="#从源码构建">从源码构建</a> ·
+  <a href="#从源码运行">从源码运行</a> ·
   <a href="PRIVACY.md">隐私边界</a> ·
   <a href="ROADMAP.md">路线图</a> ·
   <a href="CONTRIBUTING.md">参与贡献</a>
@@ -43,10 +43,15 @@ _截图中的项目、路径和数据均为合成测试数据。DevHub 内置简
 1. 注册本地项目，不把源代码复制进 DevHub。
 2. 由用户触发，轻量索引受支持工具的本地会话记录。
 3. 在受限范围内查看会话正文，或回到原工具继续工作。
-4. 经用户确认后，把会话总结写入项目记忆，为下一次交接保留上下文。
+4. 由用户主动把会话总结写入项目记忆，为下一次交接保留上下文。DevHub 会记录来源；
+   若存在更新会话，再次发送前会明确提醒。
 
 DevHub 面向同时维护多个本地仓库、使用多个开发工具的独立开发者和小团队。它不是
 云端会话托管服务，也不宣称可以在不同工具之间无损迁移完整对话。
+
+项目使用一套[隐私安全的真实复访协议](docs/reentry-validation.md)验证恢复假设。工程测试
+不能替代用户证据；在真实试验达标前，项目不会宣称恢复流程已经得到验证。
+Release 性能另用[可复现的合成基线](docs/performance-baseline.md)跟踪，未达标结果也会保留。
 
 ## 当前能力
 
@@ -54,7 +59,7 @@ DevHub 面向同时维护多个本地仓库、使用多个开发工具的独立�
 - 聚合 Claude Code、Codex、ZCode 的本地会话，以及 Kimi 状态元数据
 - 面向大型 JSONL 历史记录的流式、限量读取
 - 按需加载会话正文，并在工具支持时回到原会话
-- 经用户确认的会话总结和项目级记忆
+- 项目级稳定上下文，以及带来源记录和过期保护的会话总结
 - 本地估算 Claude Code、Codex 用量，与固定订阅费用分开显示
 - 脚本插件与 MCP 服务器的显式权限检查
 - 原生设置、明暗主题、简体中文与英文
@@ -68,11 +73,16 @@ DevHub 面向同时维护多个本地仓库、使用多个开发工具的独立�
 | Codex | 支持 | 按需、限量读取 | 恢复会话 | 作为新用户消息发送 |
 | ZCode | 支持 | 支持已适配的本地记录 | 恢复会话 | 通过提示参数传递 |
 | Kimi | 仅状态元数据 | 不支持 | 打开应用，不能定位到该会话 | 不支持 |
-| OpenCode | 暂未索引 | 不支持 | 从项目启动 | 通过提示参数传递 |
+| OpenCode | 元数据（v1.18.19 SQLite） | 不支持 | 精确恢复会话（`--session`） | 通过提示参数传递 |
 | VS Code | 不适用 | 不适用 | 打开项目 | 用户确认后通过剪贴板辅助 |
 
 表格描述的是当前源码已经实现的路径。第三方工具的存储格式和命令行行为可能变化，
 兼容性修改必须同时提供脱敏测试样本和版本说明。
+
+OpenCode 兼容性以 v1.18.19 为验证基准。DevHub 从默认的
+`~/.local/share/opencode/opencode.db`、`OPENCODE_DB` 自定义路径以及有上限的
+`opencode-<channel>.db` 同级数据库发现会话元数据。数据库会先校验 `session`
+表，再以只读方式打开；每个数据库最多索引最近 1,000 个未归档会话，不读取消息正文。
 
 ## 隐私边界
 
@@ -88,27 +98,35 @@ DevHub 的设计目标是让项目与会话数据留在 Mac 上。
 完整说明见 [PRIVACY.md](PRIVACY.md)。安全问题请按照 [SECURITY.md](SECURITY.md)
 提供的私密渠道报告。
 
-## 从源码构建
+## 从源码运行
 
 需要：
 
 - macOS 14 或更高版本
 - 支持 Swift 6 的 Xcode
-- [XcodeGen](https://github.com/yonaskolb/XcodeGen)
+
+克隆后用一个命令完成本机临时签名构建、校验并启动：
 
 ```bash
 git clone https://github.com/roooooly/DevHub.git
 cd DevHub
-xcodegen generate
-open DevHub.xcodeproj
+./scripts/run-source.sh
 ```
 
-Xcode 工程由 `project.yml` 生成。修改工程设置或资源时，应先更新该文件，再重新生成。
+脚本直接使用仓库已提交的 Xcode 工程，只把构建产物写入已忽略的 `build/` 目录，
+会先校验应用包；除非你在应用内主动操作，否则不会扫描项目或会话。传入
+`--build-only` 可以只构建、不启动。首次构建需要解析和编译 Swift 依赖，可能需要
+几分钟。
+
+如果要在 Xcode 中开发，请安装 [XcodeGen](https://github.com/yonaskolb/XcodeGen)，
+运行 `xcodegen generate` 后打开 `DevHub.xcodeproj`。工程由 `project.yml` 生成；修改
+工程设置或资源时，应先更新该文件，再重新生成。
 
 ## 验证检出内容
 
 ```bash
 ./scripts/privacy-audit.sh
+./scripts/test-performance-summary.sh
 swift test --package-path DevHubPackage
 xcodebuild \
   -project DevHub.xcodeproj \

@@ -6,7 +6,17 @@ struct OnboardingView: View {
     let dependencies: AppDependencies
     let onComplete: () -> Void
 
-    @State private var flow = OnboardingFlow()
+    @State private var flow: OnboardingFlow
+
+    init(
+        dependencies: AppDependencies,
+        onComplete: @escaping () -> Void,
+        flow: OnboardingFlow = OnboardingFlow()
+    ) {
+        self.dependencies = dependencies
+        self.onComplete = onComplete
+        _flow = State(initialValue: flow)
+    }
 
     var body: some View {
         ZStack {
@@ -296,31 +306,77 @@ struct OnboardingView: View {
         }
     }
 
-    // Step: 6 tab 介绍
+    // Step: 首次会话价值路径
     private var introStep: some View {
         VStack(spacing: 16) {
-            Text(String(localized: "项目详情 6 个 tab"))
+            Text(String(localized: "找回第一条会话"))
                 .font(.title2.bold())
+            Text(String(localized: "项目已就绪。最后由你主动触发一次只读增量扫描，DevHub 才能把本地会话关联到项目。"))
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
             VStack(alignment: .leading, spacing: 10) {
-                introRow(icon: "wrench.and.screwdriver", title: String(localized: "工具"),
-                         desc: String(localized: "一键启动 codex/Claude/VS Code，可注入项目记忆"))
-                introRow(icon: "bubble.left.and.bubble.right", title: String(localized: "会话"),
-                         desc: String(localized: "聚合各工具会话历史（只读）"))
-                introRow(icon: "brain.head.profile", title: String(localized: "记忆"),
-                         desc: String(localized: "编辑 context.md，跨工具共享上下文"))
-                introRow(icon: "creditcard", title: String(localized: "订阅"),
-                         desc: String(localized: "费用追踪、到期提醒、多币种汇总，支持 CSV 导入"))
-                introRow(icon: "globe", title: String(localized: "平台"),
-                         desc: String(localized: "集中管理平台账号，一键打开"))
-                introRow(icon: "server.rack", title: String(localized: "运维"),
-                         desc: String(localized: "识别项目脚本，本地运行，实时日志，可随时停止"))
+                introRow(
+                    icon: "tray.and.arrow.down",
+                    title: String(localized: "扫描本地会话"),
+                    desc: String(localized: "只读取受支持工具的有界元数据，不在后台运行")
+                )
+                introRow(
+                    icon: "arrow.uturn.forward.circle",
+                    title: String(localized: "从项目继续"),
+                    desc: String(localized: "首页显示最近可恢复会话，一步回到原工具")
+                )
+                introRow(
+                    icon: "brain.head.profile",
+                    title: String(localized: "保留项目记忆"),
+                    desc: String(localized: "需要时再把经确认的会话总结写入 context.md")
+                )
             }
             Spacer()
-            Button(String(localized: "开始使用")) {
-                flow.complete(deps: dependencies, onComplete: onComplete)
+            if let error = flow.sessionScanError {
+                Text(
+                    String(
+                        format: String(localized: "会话扫描未完成：%@"),
+                        locale: .current,
+                        error
+                    )
+                )
+                .font(.caption)
+                .foregroundStyle(.red)
+                .fixedSize(horizontal: false, vertical: true)
             }
-            .buttonStyle(.borderedProminent)
-            .controlSize(.large)
+            HStack {
+                Button(String(localized: "暂不扫描")) {
+                    flow.complete(deps: dependencies, onComplete: onComplete)
+                }
+                .disabled(flow.isScanningSessions)
+                Spacer()
+                Button {
+                    Task {
+                        await flow.scanSessionsAndComplete(
+                            deps: dependencies,
+                            operation: { try await dependencies.runAggregation() },
+                            onComplete: onComplete
+                        )
+                    }
+                } label: {
+                    HStack(spacing: 8) {
+                        if flow.isScanningSessions {
+                            ProgressView().controlSize(.small)
+                        }
+                        Text(
+                            flow.isScanningSessions
+                                ? String(localized: "正在扫描本地会话…")
+                                : String(localized: "扫描会话并开始")
+                        )
+                    }
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+                .disabled(flow.isScanningSessions)
+                .accessibilityHint(
+                    String(localized: "仅在点击后增量读取本机会话元数据，不在后台扫描")
+                )
+            }
         }
     }
 
@@ -338,7 +394,7 @@ struct OnboardingView: View {
     private func introRow(icon: String, title: String, desc: String) -> some View {
         HStack(spacing: 12) {
             Image(systemName: icon).frame(width: 24).foregroundStyle(.tint)
-            Text(title).font(.body.weight(.semibold)).frame(width: 60, alignment: .leading)
+            Text(title).font(.body.weight(.semibold)).frame(width: 150, alignment: .leading)
             Text(desc).foregroundStyle(.secondary)
         }
     }

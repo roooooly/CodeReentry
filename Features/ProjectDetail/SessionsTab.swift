@@ -165,7 +165,14 @@ struct SessionsTab: View {
                 registeredProjectPath: project.path,
                 sessionCwd: session.projectCwd
             ))
-            try store.writeLastSessionSummary(summary)
+            try store.writeLastSessionSummary(
+                summary,
+                metadata: SessionSummaryMetadata(
+                    tool: session.tool,
+                    toolSessionId: session.toolSessionId,
+                    sessionUpdatedAt: session.updatedAt
+                )
+            )
         }
     }
 
@@ -249,9 +256,11 @@ struct SessionRow: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .lineLimit(2)
-            if session.tool == "kimi" {
+            if isMetadataOnly {
                 Label(
-                    String(localized: "仅显示 Kimi 本地状态元数据；当前无法读取消息内容或恢复指定会话。"),
+                    session.tool == "kimi"
+                        ? String(localized: "仅显示 Kimi 本地状态元数据；当前无法读取消息内容或恢复指定会话。")
+                        : String(localized: "OpenCode 会话仅索引元数据；请在 OpenCode 中继续查看。"),
                     systemImage: "info.circle"
                 )
                 .font(.caption2)
@@ -265,7 +274,7 @@ struct SessionRow: View {
                 .font(.caption2)
                 .foregroundStyle(.secondary)
             }
-            if session.tool != "kimi" && !hasReadableConversation {
+            if !isMetadataOnly && !hasReadableConversation {
                 VStack(alignment: .leading, spacing: 3) {
                     Label(String(localized: "内容格式暂时无法解析，可直接检查原始文件。"),
                           systemImage: "exclamationmark.triangle")
@@ -290,7 +299,7 @@ struct SessionRow: View {
                     .font(.caption2)
                     .foregroundStyle(.tertiary)
                 Spacer()
-                if session.tool != "kimi" && hasReadableConversation {
+                if !isMetadataOnly && hasReadableConversation {
                     Button(action: onViewConversation) {
                         Label(String(localized: "查看对话"), systemImage: "doc.text")
                     }
@@ -311,7 +320,7 @@ struct SessionRow: View {
                         ? String(localized: "打开 Kimi 应用；不会恢复到此条元数据记录")
                         : String(localized: "用 \(session.tool) 打开此会话")
                 )
-                if session.tool != "kimi" && hasReadableConversation {
+                if !isMetadataOnly && hasReadableConversation {
                     Button(action: onSummarize) {
                         Label(String(localized: "生成本会话总结"), systemImage: "doc.text.magnifyingglass")
                     }
@@ -369,5 +378,9 @@ struct SessionRow: View {
             title: session.title,
             preview: session.preview
         )
+    }
+
+    private var isMetadataOnly: Bool {
+        session.tool == "kimi" || session.tool == "opencode"
     }
 }

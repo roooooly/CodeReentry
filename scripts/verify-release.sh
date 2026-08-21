@@ -2,10 +2,19 @@
 set -euo pipefail
 
 DEVHUB_APP="${1:-}"
+DEVHUB_EXPECTED_ARCH="${2:-arm64}"
 if [[ -z "$DEVHUB_APP" || ! -d "$DEVHUB_APP" ]]; then
-  echo "usage: $0 /path/to/DevHub.app" >&2
+  echo "usage: $0 /path/to/DevHub.app [arm64|x86_64]" >&2
   exit 64
 fi
+
+case "$DEVHUB_EXPECTED_ARCH" in
+  arm64|x86_64) ;;
+  *)
+    echo "error: unsupported expected architecture: $DEVHUB_EXPECTED_ARCH" >&2
+    exit 64
+    ;;
+esac
 
 DEVHUB_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 DEVHUB_SOURCE_PLIST="$DEVHUB_ROOT/DevHub/Info.plist"
@@ -46,7 +55,10 @@ if /usr/libexec/PlistBuddy -c 'Print :SUFeedURL' "$DEVHUB_BUNDLE_PLIST" >/dev/nu
 fi
 
 test -x "$DEVHUB_APP/Contents/MacOS/DevHub"
-codesign --verify --deep --strict=all --verbose=4 "$DEVHUB_APP"
+if ! codesign --verify --deep --strict=all "$DEVHUB_APP" >/dev/null 2>&1; then
+  codesign --verify --deep --strict=all --verbose=4 "$DEVHUB_APP"
+  exit 1
+fi
 
 DEVHUB_SIGNING_INFO="$(codesign -dv --verbose=4 "$DEVHUB_APP" 2>&1)"
 DEVHUB_CODE_DIRECTORY="$(printf '%s\n' "$DEVHUB_SIGNING_INFO" | sed -n '/^CodeDirectory /{p;q;}')"
@@ -70,8 +82,8 @@ if /usr/libexec/PlistBuddy -c 'Print :com.apple.security.get-task-allow' "$DEVHU
 fi
 
 DEVHUB_ARCHS="$(lipo -archs "$DEVHUB_APP/Contents/MacOS/DevHub")"
-[[ " $DEVHUB_ARCHS " == *" arm64 "* ]] || {
-  echo "error: arm64 slice missing ($DEVHUB_ARCHS)" >&2
+[[ " $DEVHUB_ARCHS " == *" $DEVHUB_EXPECTED_ARCH "* ]] || {
+  echo "error: $DEVHUB_EXPECTED_ARCH slice missing ($DEVHUB_ARCHS)" >&2
   exit 1
 }
 

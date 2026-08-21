@@ -18,9 +18,13 @@ final class ProjectsOverviewViewModel {
     private(set) var statusDistribution: [ProjectStatus: Int] = [:]
     /// 本月订阅总成本（按币种，跨所有项目+全局）。
     private(set) var monthlyCostByCurrency: [String: Decimal] = [:]
+    /// 首页会话扫描状态。扫描仍只由用户显式触发。
+    private(set) var isScanningSessions = false
+    private(set) var sessionScanStatus: String?
 
     var activeProjectCount: Int { statusDistribution[.active] ?? 0 }
     var attentionProjectCount: Int { cards.filter { !$0.pathAvailable }.count }
+    var projectSessionCount: Int { cards.reduce(0) { $0 + $1.sessionCount } }
 
     /// 从短生命周期读取上下文重新加载。
     ///
@@ -46,6 +50,30 @@ final class ProjectsOverviewViewModel {
         let allSubs = (try? ctx.fetch(FetchDescriptor<Subscription>())) ?? []
         let snapshots = allSubs.filter(\.active).map(SubscriptionSnapshot.init)
         monthlyCostByCurrency = SubscriptionCalculator.monthlyTotalsByCurrency(snapshots)
+    }
+
+    /// 从项目总览触发一次全局会话增量扫描。调用方注入真实聚合操作，测试可用
+    /// 合成闭包验证首次价值路径，不需要读取开发机上的任何会话。
+    func scanSessions(
+        from container: ModelContainer,
+        operation: @MainActor () async throws -> Void
+    ) async throws {
+        guard !isScanningSessions else { return }
+        isScanningSessions = true
+        sessionScanStatus = String(localized: "正在扫描本地会话…")
+        defer { isScanningSessions = false }
+
+        do {
+            try await operation()
+            load(from: container)
+            sessionScanStatus = String(localized: "已索引 \(projectSessionCount) 个项目会话")
+        } catch {
+            // SessionAggregator 会保留其他成功 reader 的结果；即使部分失败也必须
+            // 立即刷新卡片，再把明确错误交给界面展示。
+            load(from: container)
+            sessionScanStatus = String(localized: "部分会话来源已更新")
+            throw error
+        }
     }
 
     /// 过滤+搜索+排序后的卡片（搜索用 FuzzyMatcher）。
@@ -74,11 +102,16 @@ final class ProjectsOverviewViewModel {
         let latestSession = project.sessions
             .filter {
                 $0.tool != "kimi"
-                    && SessionDisplayText.hasReadableConversation(
-                        messageCount: $0.messageCount,
-                        title: $0.title,
-                        preview: $0.preview
-                    )
+                    && (SessionDisplayText.hasReadableConversation(
+                            messageCount: $0.messageCount,
+                            title: $0.title,
+                            preview: $0.preview
+                        )
+                        || ($0.tool == "opencode"
+                            && SessionDisplayText.displayTitle(
+                                title: $0.title,
+                                preview: $0.preview
+                            ) != nil))
             }
             .max { $0.updatedAt < $1.updatedAt }
             .map { session in
@@ -119,6 +152,7 @@ struct ProjectsOverviewView: View {
     /// 正在编辑状态/版本的项目 stableId（非 nil 时弹出编辑器 sheet）。
     @State private var editingStableId: String?
     @State private var launchError: String?
+    @State private var sessionScanError: String?
 
     private let columns = [GridItem(.adaptive(minimum: 330, maximum: 520), spacing: 16)]
 
@@ -179,6 +213,17 @@ struct ProjectsOverviewView: View {
         } message: {
             Text(launchError ?? "")
         }
+        .alert(
+            String(localized: "会话索引未完全更新"),
+            isPresented: Binding(
+                get: { sessionScanError != nil },
+                set: { if !$0 { sessionScanError = nil } }
+            )
+        ) {
+            Button(String(localized: "好")) { sessionScanError = nil }
+        } message: {
+            Text(sessionScanError ?? "")
+        }
     }
 
     /// 由 editingStableId 查询出的待编辑项目（nil 时 sheet 关闭）。
@@ -199,19 +244,48 @@ struct ProjectsOverviewView: View {
             VStack(alignment: .trailing, spacing: 9) {
                 DevHubPill(
                     text: String(localized: "本地索引 · 按需读取"),
-                    color: DevHubTheme.teal
+                    color: viewModel.isScanningSessions ? DevHubTheme.gold : DevHubTheme.teal
                 )
-                Button {
-                    NotificationCenter.default.post(
-                        name: Notification.Name("DevHubShowCommandPalette"),
-                        object: nil
+                HStack(spacing: 8) {
+                    Button {
+                        Task { await scanLocalSessions() }
+                    } label: {
+                        HStack(spacing: 6) {
+                            if viewModel.isScanningSessions {
+                                ProgressView().controlSize(.small)
+                            }
+                            Label(
+                                viewModel.isScanningSessions
+                                    ? String(localized: "正在扫描…")
+                                    : String(localized: "扫描本地会话"),
+                                systemImage: "tray.and.arrow.down"
+                            )
+                        }
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.small)
+                    .disabled(viewModel.isScanningSessions || viewModel.cards.isEmpty)
+                    .accessibilityHint(
+                        String(localized: "仅在点击后增量读取本机会话元数据，不在后台扫描")
                     )
-                } label: {
-                    Label(String(localized: "命令面板"), systemImage: "command")
+                    Button {
+                        NotificationCenter.default.post(
+                            name: Notification.Name("DevHubShowCommandPalette"),
+                            object: nil
+                        )
+                    } label: {
+                        Label(String(localized: "命令面板"), systemImage: "command")
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
+                    .keyboardShortcut("p", modifiers: .command)
                 }
-                .buttonStyle(.bordered)
-                .controlSize(.small)
-                .keyboardShortcut("p", modifiers: .command)
+                if let status = viewModel.sessionScanStatus {
+                    Text(status)
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
             }
         }
     }
@@ -343,6 +417,17 @@ struct ProjectsOverviewView: View {
             }
         } catch {
             launchError = error.localizedDescription
+        }
+    }
+
+    @MainActor
+    private func scanLocalSessions() async {
+        do {
+            try await viewModel.scanSessions(from: deps.modelContainer) {
+                try await deps.runAggregation()
+            }
+        } catch {
+            sessionScanError = error.localizedDescription
         }
     }
 

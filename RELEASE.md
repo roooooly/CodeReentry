@@ -3,6 +3,10 @@
 DevHub can be built as a local, ad-hoc-signed macOS application for development and
 evaluation. This path does not require an Apple Developer ID or notarization credentials.
 
+For the shortest source-evaluation path, run `./scripts/run-source.sh`. It builds,
+verifies, and launches the app without creating distributable archives or requiring
+XcodeGen. The packaging flow below is intended for maintainers who need a local DMG.
+
 ## Build and package
 
 Requirements: macOS 14 or newer, Xcode, and `xcodegen`.
@@ -26,6 +30,31 @@ have no Apple Team ID, so this local-only profile disables library validation in
 to load the embedded, separately signed Sparkle framework. Hardened runtime remains
 enabled, `get-task-allow` is rejected by the verification script, and the normal
 `DevHub.entitlements` profile keeps library validation enabled.
+
+## Recovery evidence gate
+
+Before describing project re-entry as validated, complete the privacy-safe protocol in
+[`docs/reentry-validation.md`](docs/reentry-validation.md). The release check requires
+at least ten real attempts across three anonymous project slots and two tools, including
+both recent and older sessions. Run `./scripts/reentry-trial.sh summary`; do not claim
+the workflow gate passed unless it reports coverage and outcome targets met with zero
+cross-project context incidents. Raw trial data stays in ignored `local-data/` and must
+never be attached to a release.
+
+## Performance evidence gate
+
+Run the deterministic Release scenario described in
+[`docs/performance-baseline.md`](docs/performance-baseline.md):
+
+```bash
+./scripts/performance-baseline.sh --scale medium --cycles 10 \
+  --idle-seconds 300 --recovery-seconds 10
+```
+
+The command must exit successfully against `scripts/performance-budget.json`. Run the
+large scale before claiming large-index readiness. Its latest full five-minute result
+still misses the initial-scan budget, so that claim and gate remain blocked. Generated
+samples stay under ignored `local-data/` and must not be attached to a release.
 
 ## Install
 

@@ -64,6 +64,31 @@ struct AllSessionsViewModelTests {
         #expect(viewModel.visibleLimit == AllSessionsViewModel.pageSize)
     }
 
+    @Test("数据库读取按五百条分批，用户请求后才载入更早索引")
+    func indexedRowsLoadInBoundedBatches() throws {
+        let env = try makeEnvironment()
+        for index in 0..<520 {
+            env.container.mainContext.insert(SessionIndex(
+                tool: "codex", toolSessionId: "bounded-\(index)",
+                sourcePath: "/tmp/bounded-\(index).jsonl", projectCwd: env.project.path,
+                startedAt: Date(timeIntervalSince1970: TimeInterval(10_000 + index)),
+                updatedAt: Date(timeIntervalSince1970: TimeInterval(10_000 + index)),
+                messageCount: 1, title: "bounded \(index)", preview: "preview", project: env.project
+            ))
+        }
+        try env.container.mainContext.save()
+
+        let viewModel = AllSessionsViewModel()
+        viewModel.load(from: env.container)
+        #expect(viewModel.totalSessionCount == 523)
+        #expect(viewModel.allSessions.count == AllSessionsViewModel.fetchBatchSize)
+        #expect(viewModel.hasMoreIndexedSessions)
+
+        viewModel.loadNextIndexedBatch(from: env.container)
+        #expect(viewModel.allSessions.count == 523)
+        #expect(!viewModel.hasMoreIndexedSessions)
+    }
+
     @Test("ZCode 归类后进入项目筛选且再次空 cwd upsert 不丢失")
     func zcodeAssignmentPersists() async throws {
         let env = try makeEnvironment()
@@ -85,6 +110,26 @@ struct AllSessionsViewModelTests {
         )
         #expect(try await writer.fetchProjectStableId(identityKey: "zcode:z-unclassified") == "project-a")
         #expect(try await writer.fetchCwd(identityKey: "zcode:z-unclassified") == "/tmp/project-a")
+    }
+
+    @Test("OpenCode 元数据会话不会冒充可读正文")
+    func openCodeMetadataCapabilityIsExplicit() throws {
+        let env = try makeEnvironment()
+        env.container.mainContext.insert(SessionIndex(
+            tool: "opencode", toolSessionId: "open-metadata",
+            sourcePath: "/tmp/opencode.db", projectCwd: env.project.path,
+            startedAt: Date(), updatedAt: Date(), messageCount: 0,
+            title: "OpenCode metadata", preview: "OpenCode metadata", project: env.project
+        ))
+        try env.container.mainContext.save()
+        let viewModel = AllSessionsViewModel()
+        viewModel.load(from: env.container)
+
+        let session = try #require(
+            viewModel.allSessions.first { $0.toolSessionId == "open-metadata" }
+        )
+        #expect(session.isMetadataOnly)
+        #expect(session.hasReadableConversation == false)
     }
 
     private func makeEnvironment() throws -> (container: ModelContainer, project: Project) {

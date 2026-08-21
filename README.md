@@ -13,7 +13,7 @@
 
 <p align="center">
   <a href="README.zh-CN.md">简体中文</a> ·
-  <a href="#build-from-source">Build from source</a> ·
+  <a href="#run-from-source">Run from source</a> ·
   <a href="PRIVACY.md">Privacy</a> ·
   <a href="ROADMAP.md">Roadmap</a> ·
   <a href="CONTRIBUTING.md">Contributing</a>
@@ -46,11 +46,18 @@ part. DevHub keeps the project as the stable unit of work:
 1. Register a local project without copying its source into DevHub.
 2. Refresh a lightweight index of supported local session records on demand.
 3. Inspect a bounded conversation view or continue in the original tool.
-4. Save a reviewed session summary into project memory for the next handoff.
+4. Save a deliberate session summary into project memory for the next handoff. DevHub
+   records its source and warns before sending it if a newer session exists.
 
 DevHub is aimed at independent developers and small teams who maintain multiple local
 repositories and use more than one coding tool. It is not a cloud session host or a
 claim of lossless cross-tool conversation migration.
+
+The recovery hypothesis is tracked with a
+[privacy-safe real-use protocol](docs/reentry-validation.md). Engineering tests do not
+count as user evidence, and the project does not claim the workflow gate has passed yet.
+Release performance is tracked separately with a
+[reproducible synthetic baseline](docs/performance-baseline.md), including failed gates.
 
 ## Current capabilities
 
@@ -58,7 +65,7 @@ claim of lossless cross-tool conversation migration.
 - Local session aggregation for Claude Code, Codex, ZCode, and Kimi metadata
 - Bounded streaming readers for large JSONL histories
 - On-demand conversation loading and original-tool resume where supported
-- Reviewed session summaries and project-scoped memory
+- Project-scoped stable context plus session summaries with provenance and stale-summary protection
 - Local Claude Code and Codex usage estimates, kept separate from fixed subscriptions
 - Explicit permission checks for script plugins and MCP servers
 - Native settings, light/dark appearance, English, and Simplified Chinese
@@ -72,12 +79,18 @@ claim of lossless cross-tool conversation migration.
 | Codex | Yes | Bounded, on demand | Resume session | New user prompt |
 | ZCode | Yes | Supported local records | Resume session | Prompt argument |
 | Kimi | Metadata only | No | Open app, not an exact session | No |
-| OpenCode | Not yet | No | Launch from project | Prompt argument |
+| OpenCode | Metadata (v1.18.19 SQLite) | No | Exact-session resume (`--session`) | Prompt argument |
 | VS Code | Not applicable | Not applicable | Open project | Clipboard-assisted when requested |
 
 This table describes the paths implemented in the current source. Third-party storage
 formats and command-line behavior can change, so every compatibility change needs
 sanitized fixtures and version notes.
+
+OpenCode compatibility is verified against v1.18.19. DevHub discovers session metadata
+from the default `~/.local/share/opencode/opencode.db`, an `OPENCODE_DB` override, and
+bounded `opencode-<channel>.db` siblings. It validates the `session` table before use,
+opens each database read-only, indexes at most 1,000 recent active sessions per database,
+and does not read message bodies.
 
 ## Privacy boundary
 
@@ -95,28 +108,36 @@ DevHub is designed to keep project and session data on the Mac.
 Read [PRIVACY.md](PRIVACY.md) for the complete boundary and [SECURITY.md](SECURITY.md)
 for private vulnerability reporting.
 
-## Build from source
+## Run from source
 
 Requirements:
 
 - macOS 14 or newer
 - Xcode with Swift 6 support
-- [XcodeGen](https://github.com/yonaskolb/XcodeGen)
+
+Clone, build, verify, and launch a local ad-hoc-signed copy with one command:
 
 ```bash
 git clone https://github.com/roooooly/DevHub.git
 cd DevHub
-xcodegen generate
-open DevHub.xcodeproj
+./scripts/run-source.sh
 ```
 
-The Xcode project is generated from `project.yml`. Update that file first when project
-settings or resources change, then regenerate the project.
+The script uses the committed Xcode project, writes build products only under the
+ignored `build/` directory, verifies the resulting bundle, and does not scan projects
+or sessions before you explicitly request it in the app. Pass `--build-only` to build
+without launching. The first build can take several minutes while Swift packages are
+resolved and compiled.
+
+To develop in Xcode, install [XcodeGen](https://github.com/yonaskolb/XcodeGen), run
+`xcodegen generate`, and open `DevHub.xcodeproj`. The project is generated from
+`project.yml`; update that file first when project settings or resources change.
 
 ## Verify a checkout
 
 ```bash
 ./scripts/privacy-audit.sh
+./scripts/test-performance-summary.sh
 swift test --package-path DevHubPackage
 xcodebuild \
   -project DevHub.xcodeproj \

@@ -1,6 +1,25 @@
 import Foundation
 import SwiftData
 
+public struct SessionIndexWriteMetrics: Sendable, Equatable {
+    public let preparationMilliseconds: Int
+    public let modelMutationMilliseconds: Int
+    public let saveMilliseconds: Int
+    public let cacheMilliseconds: Int
+
+    public init(
+        preparationMilliseconds: Int,
+        modelMutationMilliseconds: Int,
+        saveMilliseconds: Int,
+        cacheMilliseconds: Int
+    ) {
+        self.preparationMilliseconds = preparationMilliseconds
+        self.modelMutationMilliseconds = modelMutationMilliseconds
+        self.saveMilliseconds = saveMilliseconds
+        self.cacheMilliseconds = cacheMilliseconds
+    }
+}
+
 /// SessionIndex 的不可变快照（Sendable），用于跨 actor 传递读取结果（§9 Swift 6 严格并发）。
 /// @Model 实例本身非 Sendable，不能从 ModelActor 跨 isolation 返回。
 public struct SessionIndexSnapshot: Sendable, Equatable {
@@ -35,18 +54,80 @@ public struct SessionIndexSnapshot: Sendable, Equatable {
 /// 所有 reader 把发现的会话交给 writer；writer 用 ModelActor 串行化，保证 identityKey 唯一。
 @ModelActor
 public actor SessionIndexWriter {
+    private var knownFilesCache: [String: Date]?
+
+    /// Prepares one refresh with a single managed-object fetch: stale source
+    /// rows are removed and live source mtimes are collapsed to a tiny lookup.
+    /// Returning 20,000 immutable row snapshots only to derive five source
+    /// paths made large incremental refreshes several seconds slower.
+    public func prepareForRefresh() throws -> [String: Date] {
+        if let cached = knownFilesCache,
+           cached.keys.allSatisfy({ FileManager.default.fileExists(atPath: $0) }) {
+            return cached
+        }
+        let rows = try modelContext.fetch(FetchDescriptor<SessionIndex>())
+        let fileManager = FileManager.default
+        var pathExists: [String: Bool] = [:]
+        var knownFiles: [String: Date] = [:]
+        var removedAny = false
+
+        for session in rows {
+            guard !session.sourcePath.isEmpty else { continue }
+            let exists = pathExists[session.sourcePath]
+                ?? fileManager.fileExists(atPath: session.sourcePath)
+            pathExists[session.sourcePath] = exists
+            guard exists else {
+                modelContext.delete(session)
+                removedAny = true
+                continue
+            }
+            if SessionAggregator.shouldForceReindex(
+                tool: session.tool,
+                title: session.title,
+                preview: session.preview,
+                messageCount: session.messageCount
+            ) {
+                continue
+            }
+            knownFiles[session.sourcePath] = max(
+                knownFiles[session.sourcePath] ?? .distantPast,
+                session.indexedAt
+            )
+        }
+        if removedAny { try modelContext.save() }
+        knownFilesCache = knownFiles
+        return knownFiles
+    }
 
     /// Applies one incremental discovery pass with a single fetch and save.
     /// The previous per-row upsert/link/save sequence caused hundreds of
     /// SwiftData transactions and a large transient allocation spike.
+    @discardableResult
     public func upsertBatch(
         _ sessions: [DiscoveredSession],
         projectStableIdsByIdentity: [String: String]
-    ) throws {
-        guard !sessions.isEmpty else { return }
+    ) throws -> SessionIndexWriteMetrics {
+        guard !sessions.isEmpty else {
+            return SessionIndexWriteMetrics(
+                preparationMilliseconds: 0,
+                modelMutationMilliseconds: 0,
+                saveMilliseconds: 0,
+                cacheMilliseconds: 0
+            )
+        }
+        let preparationStart = ContinuousClock.now
+        modelContext.autosaveEnabled = false
 
         let existingRows = try modelContext.fetch(FetchDescriptor<SessionIndex>())
-        // Build these maps defensively. A pre-existing store created by an older
+        let projects = try modelContext.fetch(FetchDescriptor<Project>())
+        var projectsByStableId: [String: Project] = [:]
+        for project in projects where projectsByStableId[project.stableId] == nil {
+            projectsByStableId[project.stableId] = project
+        }
+        let indexedAt = Date()
+        let preparationMilliseconds = Self.milliseconds(since: preparationStart)
+
+        // Build this map defensively. A pre-existing store created by an older
         // build may contain duplicate logical keys; `Dictionary(uniqueKeysWithValues:)`
         // would turn that recoverable data issue into a process crash.
         var existingByKey: [String: SessionIndex] = [:]
@@ -56,16 +137,27 @@ public actor SessionIndexWriter {
             }
             existingByKey[row.identityKey] = row
         }
-        let projects = try modelContext.fetch(FetchDescriptor<Project>())
-        var projectsByStableId: [String: Project] = [:]
-        for project in projects where projectsByStableId[project.stableId] == nil {
-            projectsByStableId[project.stableId] = project
-        }
-        let indexedAt = Date()
 
+        var mutationStart = ContinuousClock.now
+        var modelMutationMilliseconds = 0
+        var saveMilliseconds = 0
+        let isFreshImport = existingRows.isEmpty
+        var insertedFreshKeys: Set<String> = []
+        var freshKnownFiles: [String: Date]? = existingRows.isEmpty ? [:] : nil
+        var nonCacheableSources: Set<String> = []
+        var unsavedFreshRows = 0
+        // SessionIndex is a rebuildable cache. On an empty-store import, bound
+        // SwiftData's pending graph instead of asking one transaction to retain
+        // every new model and relationship. Existing-index refreshes remain a
+        // single transaction so an update pass is never partially committed.
+        let freshImportSaveBatchSize = 5_000
         for discovered in sessions {
+            let identityKey = discovered.identityKey
+            if isFreshImport, !insertedFreshKeys.insert(identityKey).inserted {
+                continue
+            }
             let row: SessionIndex
-            if let existing = existingByKey[discovered.identityKey] {
+            if !isFreshImport, let existing = existingByKey[identityKey] {
                 row = existing
                 row.sourcePath = discovered.sourcePath
                 // Metadata-only readers may not know cwd. Preserve explicit
@@ -93,17 +185,63 @@ public actor SessionIndexWriter {
                     indexedAt: indexedAt
                 )
                 modelContext.insert(row)
-                existingByKey[discovered.identityKey] = row
+                if !isFreshImport { existingByKey[identityKey] = row }
+                unsavedFreshRows += 1
             }
 
-            if let stableId = projectStableIdsByIdentity[discovered.identityKey],
+            if let stableId = projectStableIdsByIdentity[identityKey],
                let project = projectsByStableId[stableId] {
                 row.project = project
             } else if !discovered.projectCwd.isEmpty {
                 row.project = nil
             }
+
+            if freshKnownFiles != nil, !discovered.sourcePath.isEmpty {
+                if SessionAggregator.shouldForceReindex(
+                    tool: discovered.tool,
+                    title: discovered.title,
+                    preview: discovered.preview,
+                    messageCount: discovered.messageCount
+                ) {
+                    nonCacheableSources.insert(discovered.sourcePath)
+                    freshKnownFiles?.removeValue(forKey: discovered.sourcePath)
+                } else if !nonCacheableSources.contains(discovered.sourcePath) {
+                    freshKnownFiles?[discovered.sourcePath] = indexedAt
+                }
+            }
+
+            if isFreshImport, unsavedFreshRows == freshImportSaveBatchSize {
+                modelMutationMilliseconds += Self.milliseconds(since: mutationStart)
+                let batchSaveStart = ContinuousClock.now
+                try modelContext.save()
+                saveMilliseconds += Self.milliseconds(since: batchSaveStart)
+                unsavedFreshRows = 0
+                mutationStart = ContinuousClock.now
+            }
         }
+        modelMutationMilliseconds += Self.milliseconds(since: mutationStart)
+        let saveStart = ContinuousClock.now
         try modelContext.save()
+        saveMilliseconds += Self.milliseconds(since: saveStart)
+        let cacheStart = ContinuousClock.now
+        if existingRows.isEmpty {
+            knownFilesCache = freshKnownFiles
+        } else {
+            knownFilesCache = nil
+        }
+        let cacheMilliseconds = Self.milliseconds(since: cacheStart)
+        return SessionIndexWriteMetrics(
+            preparationMilliseconds: preparationMilliseconds,
+            modelMutationMilliseconds: modelMutationMilliseconds,
+            saveMilliseconds: saveMilliseconds,
+            cacheMilliseconds: cacheMilliseconds
+        )
+    }
+
+    private static func milliseconds(since start: ContinuousClock.Instant) -> Int {
+        let duration = ContinuousClock.now - start
+        return Int(duration.components.seconds * 1_000)
+            + Int(duration.components.attoseconds / 1_000_000_000_000_000)
     }
 
     public func upsert(
@@ -118,6 +256,7 @@ public actor SessionIndexWriter {
         preview: String,
         project: Project? = nil
     ) throws {
+        knownFilesCache = nil
         let key = "\(tool):\(toolSessionId)"
         let descriptor = FetchDescriptor<SessionIndex>(
             predicate: #Predicate { $0.identityKey == key }
@@ -158,12 +297,19 @@ public actor SessionIndexWriter {
 
     @discardableResult
     public func removeStale() throws -> Int {
+        knownFilesCache = nil
         let all = try modelContext.fetch(FetchDescriptor<SessionIndex>())
         var count = 0
         let fm = FileManager.default
-        for s in all where !fm.fileExists(atPath: s.sourcePath) {
-            modelContext.delete(s)
-            count += 1
+        var pathExists: [String: Bool] = [:]
+        for session in all {
+            let exists = pathExists[session.sourcePath]
+                ?? fm.fileExists(atPath: session.sourcePath)
+            pathExists[session.sourcePath] = exists
+            if !exists {
+                modelContext.delete(session)
+                count += 1
+            }
         }
         try modelContext.save()
         return count

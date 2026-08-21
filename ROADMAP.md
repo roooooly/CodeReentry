@@ -8,8 +8,11 @@ work areas, not promised dates.
 - [ ] Choose a distinctive public product name before broad promotion.
 - [ ] Produce a Developer ID signed and Apple-notarized macOS build.
 - [ ] Publish a verifiable DMG, release notes, checksum, and update policy.
-- [ ] Complete repeated real-use checks of the project-to-session recovery flow.
+- [ ] Complete the [privacy-safe repeated real-use checks](docs/reentry-validation.md)
+      of the project-to-session recovery flow.
 - [ ] Document tested third-party tool versions and known format limits.
+- [ ] Clear every [Release performance budget](docs/performance-baseline.md); the large
+      post-idle initial scan is the remaining measured failure.
 
 ## Core recovery flow
 

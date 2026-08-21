@@ -15,12 +15,14 @@ struct AppDependenciesTests {
         // 无参 Core 服务为值类型，非空即可
         _ = deps.gitStatusProvider
         _ = deps.keychain
-        // adapter 工厂可用：5 个工具全覆盖（含 zcode/kimi）
+        // adapter 工厂与会话 reader 均覆盖 OpenCode 恢复路径。
         #expect(deps.adapter(for: "codex") != nil)
         #expect(deps.adapter(for: "claude-code") != nil)
         #expect(deps.adapter(for: "vscode") != nil)
         #expect(deps.adapter(for: "zcode") != nil)
         #expect(deps.adapter(for: "kimi") != nil)
+        #expect(deps.adapter(for: "opencode") != nil)
+        #expect(deps.sessionReader(forToolId: "opencode")?.toolId == "opencode")
     }
 
     @Test("adapter(for:) zcode/kimi 返回正确类型 + capabilities 符合预期")

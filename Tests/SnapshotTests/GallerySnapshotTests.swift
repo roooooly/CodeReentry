@@ -49,6 +49,20 @@ struct GallerySnapshotTests {
                        record: .missing, timeout: 30)
     }
 
+    @Test("Onboarding 首次会话扫描页")
+    func onboardingSessionScan() throws {
+        let container = try makeContainer()
+        let deps = makeDeps(container: container)
+        let flow = OnboardingFlow()
+        flow.goToIntro()
+        let view = OnboardingView(dependencies: deps, onComplete: {}, flow: flow)
+            .environment(deps)
+            .modelContainer(container)
+        let vc = NSHostingController(rootView: view)
+        assertSnapshot(of: vc, as: .image(size: CGSize(width: 720, height: 540)),
+                       record: .missing, timeout: 30)
+    }
+
     @Test("Sidebar 项目列表")
     func sidebarWithProjects() throws {
         let container = try makeContainer(withProjects: true)

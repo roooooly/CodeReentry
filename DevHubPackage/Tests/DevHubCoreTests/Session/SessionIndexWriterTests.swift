@@ -85,6 +85,65 @@ struct SessionIndexWriterTests {
         #expect(all.first { $0.toolSessionId == "batch-a" }?.messageCount == -1)
     }
 
+    @Test("batch assigns its project relationship")
+    @MainActor
+    func batchAssignsProject() async throws {
+        let container = try ModelContainerFactory.makeContainer(inMemory: true)
+        let context = container.mainContext
+        let project = Project(stableId: "fresh-project", name: "Fresh", path: "/tmp/fresh")
+        context.insert(project)
+        try context.save()
+        let writer = SessionIndexWriter(modelContainer: container)
+        let session = DiscoveredSession(
+            tool: "codex", toolSessionId: "fresh-session", sourcePath: "/tmp/fresh.jsonl",
+            projectCwd: project.path, startedAt: Date(), updatedAt: Date(),
+            messageCount: 1, title: "Fresh", preview: "Fresh"
+        )
+
+        try await writer.upsertBatch(
+            [session],
+            projectStableIdsByIdentity: [session.identityKey: project.stableId]
+        )
+
+        #expect(try await writer.fetchProjectStableId(identityKey: session.identityKey) == project.stableId)
+    }
+
+    @Test("fresh batch import persists every row across save boundaries")
+    @MainActor
+    func freshBatchPersistsAllRows() async throws {
+        let container = try ModelContainerFactory.makeContainer(inMemory: true)
+        let context = container.mainContext
+        let project = Project(stableId: "batch-project", name: "Batch", path: "/tmp/batch")
+        context.insert(project)
+        try context.save()
+        let writer = SessionIndexWriter(modelContainer: container)
+        let now = Date()
+        let sessions = (0..<5_001).map { index in
+            DiscoveredSession(
+                tool: "codex",
+                toolSessionId: "batch-\(index)",
+                sourcePath: "/tmp/batch.jsonl",
+                projectCwd: project.path,
+                startedAt: now,
+                updatedAt: now,
+                messageCount: 1,
+                title: "Batch \(index)",
+                preview: "Batch"
+            )
+        }
+        let matches = Dictionary(uniqueKeysWithValues: sessions.map {
+            ($0.identityKey, project.stableId)
+        })
+
+        try await writer.upsertBatch(sessions, projectStableIdsByIdentity: matches)
+
+        let rows = await writer.all()
+        #expect(rows.count == sessions.count)
+        #expect(try await writer.fetchProjectStableId(
+            identityKey: sessions.last!.identityKey
+        ) == project.stableId)
+    }
+
     @Test("bounded empty ZCode metadata is not reparsed forever")
     func boundedEmptyZcodeStopsReindexing() {
         #expect(SessionAggregator.shouldForceReindex(
@@ -125,5 +184,30 @@ struct SessionIndexWriterTests {
         let all = await writer.all()
         #expect(all.count == 1)
         #expect(all.first?.toolSessionId == "live")
+    }
+
+    @Test("refresh preparation caches live sources and invalidates when a source disappears")
+    @MainActor
+    func refreshPreparationInvalidatesMissingSource() async throws {
+        let writer = try makeWriter()
+        let fixtureDirectory = FileManager.default.temporaryDirectory
+            .appendingPathComponent("devhub-refresh-preparation-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: fixtureDirectory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: fixtureDirectory) }
+        let source = fixtureDirectory.appendingPathComponent("session.jsonl")
+        try Data().write(to: source)
+
+        try await writer.upsert(
+            tool: "codex", toolSessionId: "cached", sourcePath: source.path,
+            projectCwd: "/p", startedAt: Date(), updatedAt: Date(),
+            messageCount: 1, title: "Cached", preview: "Cached"
+        )
+        let live = try await writer.prepareForRefresh()
+        #expect(Set(live.keys) == Set([source.path]))
+
+        try FileManager.default.removeItem(at: source)
+        let afterRemoval = try await writer.prepareForRefresh()
+        #expect(afterRemoval.isEmpty)
+        #expect(await writer.all().isEmpty)
     }
 }

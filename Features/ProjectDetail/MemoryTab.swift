@@ -15,10 +15,11 @@ struct MemoryTab: View {
             lastSummarySection
         }
         .padding()
-        .task(id: project.path) {
+        .task(id: activationIdentity) {
             viewModel.activate(
                 projectID: project.stableId,
                 projectPath: project.path,
+                latestSessionUpdatedAt: latestSessionUpdatedAt,
                 deps: deps
             )
         }
@@ -40,6 +41,7 @@ struct MemoryTab: View {
                     viewModel.activate(
                         projectID: project.stableId,
                         projectPath: project.path,
+                        latestSessionUpdatedAt: latestSessionUpdatedAt,
                         deps: deps
                     )
                 }
@@ -114,6 +116,7 @@ struct MemoryTab: View {
                     viewModel.activate(
                         projectID: project.stableId,
                         projectPath: project.path,
+                        latestSessionUpdatedAt: latestSessionUpdatedAt,
                         deps: deps
                     )
                 }
@@ -168,6 +171,10 @@ struct MemoryTab: View {
                     .foregroundStyle(.secondary)
             }
             if viewModel.hasLastSummary {
+                summaryStatusLabel
+                    .font(.caption)
+            }
+            if viewModel.hasLastSummary {
                 ScrollView {
                     Text(viewModel.lastSummaryMd)
                         .font(.body)
@@ -189,5 +196,31 @@ struct MemoryTab: View {
             }
         }
         .padding(.top, 8)
+    }
+
+    private var latestSessionUpdatedAt: Date? {
+        project.sessions.map(\.updatedAt).max()
+    }
+
+    private var activationIdentity: String {
+        let timestamp = latestSessionUpdatedAt?.timeIntervalSince1970 ?? 0
+        return "\(project.path)|\(timestamp)"
+    }
+
+    @ViewBuilder
+    private var summaryStatusLabel: some View {
+        switch viewModel.summaryReviewStatus {
+        case .current:
+            Label(String(localized: "总结来源已记录"), systemImage: "checkmark.shield.fill")
+                .foregroundStyle(.green)
+        case .outdated:
+            Label(String(localized: "存在更新会话，发送前会确认"), systemImage: "exclamationmark.triangle.fill")
+                .foregroundStyle(.orange)
+        case .unverified:
+            Label(String(localized: "总结来源未记录，建议重新生成"), systemImage: "questionmark.diamond.fill")
+                .foregroundStyle(.orange)
+        case .none:
+            EmptyView()
+        }
     }
 }
