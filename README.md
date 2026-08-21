@@ -29,7 +29,7 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-7D1727" alt="MIT license"></a>
 </p>
 
-> **Source beta:** The current source release is v0.3.0. CodeReentry does not have a signed
+> **Source beta:** The current source release is v0.3.1. CodeReentry does not have a signed
 > and notarized public binary yet.
 > Build it from source for evaluation, and do not install binaries from unofficial
 > mirrors. Public distribution remains blocked until the Apple signing and
@@ -65,6 +65,7 @@ Release performance is tracked separately with a
 ## Current capabilities
 
 - Project overview, status, tags, Git state, detected scripts, and quick launchers
+- Session-first onboarding that proposes project roots from local cwd metadata before registration
 - Local session aggregation for Claude Code, Codex, ZCode, and Kimi metadata
 - Bounded streaming readers for large JSONL histories
 - On-demand conversation loading and original-tool resume where supported
@@ -131,6 +132,11 @@ ignored `build/` directory, verifies the resulting bundle, and does not scan pro
 or sessions before you explicitly request it in the app. Pass `--build-only` to build
 without launching. The first build can take several minutes while Swift packages are
 resolved and compiled.
+
+On first launch, choose **Find projects from sessions** for the shortest path to value.
+CodeReentry performs one explicit metadata-only scan, proposes at most 20 recent project
+roots, and waits for confirmation before registering anything. **Choose folders manually**
+keeps the directory-based setup available.
 
 To develop in Xcode, install [XcodeGen](https://github.com/yonaskolb/XcodeGen), run
 `xcodegen generate`, and open `DevHub.xcodeproj`. The project is generated from

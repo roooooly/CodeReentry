@@ -5,6 +5,12 @@ published a signed public binary.
 
 ## Unreleased
 
+## 0.3.1 - 2026-08-21
+
+- Add a session-first onboarding path that infers recent project roots from bounded local
+  cwd metadata, requires confirmation, and links cached unclassified sessions immediately.
+- Preserve manual folder setup and explicit, on-demand scanning as the privacy-safe fallback.
+
 ## 0.3.0 - 2026-08-21
 
 - Rename the public product and repository from DevHub to CodeReentry after a documented

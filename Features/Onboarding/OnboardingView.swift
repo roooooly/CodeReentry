@@ -137,10 +137,22 @@ struct OnboardingView: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 Spacer()
-                Button(String(localized: "开始设置")) { flow.goToPickRoot() }
+                Button(String(localized: "手动选择目录")) { flow.goToPickRoot() }
+                    .buttonStyle(.bordered)
+                    .controlSize(.large)
+                Button {
+                    Task {
+                        await flow.discoverProjectsFromSessions(
+                            deps: dependencies,
+                            operation: { try await dependencies.runAggregation() }
+                        )
+                    }
+                } label: {
+                    Label(String(localized: "从会话发现项目"), systemImage: "sparkle.magnifyingglass")
+                }
                     .buttonStyle(.borderedProminent)
                     .controlSize(.large)
-                    .accessibilityHint(String(localized: "进入项目根目录选择"))
+                    .accessibilityHint(String(localized: "明确触发一次只读会话元数据扫描，并在注册前确认发现的项目"))
             }
         }
     }
@@ -198,15 +210,28 @@ struct OnboardingView: View {
     private var scanningStep: some View {
         VStack(spacing: 16) {
             ProgressView().controlSize(.large)
-            Text(String(localized: "正在扫描项目候选..."))
+            Text(
+                flow.isDiscoveringSessionProjects
+                    ? String(localized: "正在从本地会话发现项目…")
+                    : String(localized: "正在扫描项目候选...")
+            )
                 .foregroundStyle(.secondary)
+            if flow.isDiscoveringSessionProjects {
+                Text(String(localized: "只读取受支持工具的有界元数据；不会读取源码，也不会注册任何目录。"))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
         }
     }
 
     // Step: 确认注册
     private var confirmStep: some View {
         VStack(spacing: 12) {
-            Text(String(localized: "确认要注册的项目"))
+            Text(
+                flow.discoveredProjectsFromSessions
+                    ? String(localized: "确认会话中的项目")
+                    : String(localized: "确认要注册的项目")
+            )
                 .font(.title2.bold())
             if let err = flow.scanError {
                 Text(err).foregroundStyle(.red)
@@ -215,7 +240,11 @@ struct OnboardingView: View {
                 ContentUnavailableView {
                     Label(String(localized: "未发现候选项目"), systemImage: "folder.badge.questionmark")
                 } description: {
-                    Text(String(localized: "你可以返回选择其他目录，也可以先跳过，稍后从侧边栏添加项目。"))
+                    Text(
+                        flow.discoveredProjectsFromSessions
+                            ? String(localized: "受支持工具中没有带有效工作目录的会话。你可以改为手动选择项目目录。")
+                            : String(localized: "你可以返回选择其他目录，也可以先跳过，稍后从侧边栏添加项目。")
+                    )
                 }
                 .frame(maxHeight: 300)
             } else {
@@ -235,6 +264,14 @@ struct OnboardingView: View {
                                         Image(systemName: "circle.lefthalf.filled")
                                             .foregroundStyle(.green)
                                     }
+                                    if c.sessionCount > 0 {
+                                        Text(String(localized: "\(c.sessionCount) 条会话"))
+                                            .font(.caption2.weight(.semibold))
+                                            .foregroundStyle(DevHubTheme.accent)
+                                            .padding(.horizontal, 7)
+                                            .padding(.vertical, 3)
+                                            .background(DevHubTheme.accent.opacity(0.10), in: Capsule())
+                                    }
                                     Text(c.path)
                                         .font(.caption)
                                         .foregroundStyle(.secondary)
@@ -247,15 +284,33 @@ struct OnboardingView: View {
                 .frame(maxHeight: 300)
             }
             HStack {
-                Button(String(localized: "返回")) { flow.step = .pickRoot }
+                Button(
+                    flow.discoveredProjectsFromSessions
+                        ? String(localized: "改为手动选择")
+                        : String(localized: "返回")
+                ) { flow.step = .pickRoot }
                 Spacer()
-                Button(flow.selectedCandidates.isEmpty
-                       ? String(localized: "跳过并继续")
-                       : String(localized: "注册选中并继续")) {
-                    do { try flow.confirmRegistration(deps: dependencies) }
-                    catch { flow.scanError = error.localizedDescription }
+                Button {
+                    Task {
+                        do { try await flow.confirmRegistration(deps: dependencies) }
+                        catch { flow.scanError = error.localizedDescription }
+                    }
+                } label: {
+                    HStack(spacing: 7) {
+                        if flow.isRegisteringProjects {
+                            ProgressView().controlSize(.small)
+                        }
+                        Text(
+                            flow.isRegisteringProjects
+                                ? String(localized: "正在关联会话…")
+                                : flow.selectedCandidates.isEmpty
+                                    ? String(localized: "跳过并继续")
+                                    : String(localized: "注册选中并继续")
+                        )
+                    }
                 }
                 .buttonStyle(.borderedProminent)
+                .disabled(flow.isRegisteringProjects)
             }
         }
     }
@@ -311,7 +366,11 @@ struct OnboardingView: View {
         VStack(spacing: 16) {
             Text(String(localized: "找回第一条会话"))
                 .font(.title2.bold())
-            Text(String(localized: "项目已就绪。最后由你主动触发一次只读增量扫描，CodeReentry 才能把本地会话关联到项目。"))
+            Text(
+                flow.discoveredProjectsFromSessions
+                    ? String(localized: "项目与已有会话已经关联，可以直接从首页继续最近的工作。")
+                    : String(localized: "项目已就绪。最后由你主动触发一次只读增量扫描，CodeReentry 才能把本地会话关联到项目。")
+            )
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
             VStack(alignment: .leading, spacing: 10) {
@@ -345,37 +404,46 @@ struct OnboardingView: View {
                 .fixedSize(horizontal: false, vertical: true)
             }
             HStack {
-                Button(String(localized: "暂不扫描")) {
-                    flow.complete(deps: dependencies, onComplete: onComplete)
-                }
-                .disabled(flow.isScanningSessions)
-                Spacer()
-                Button {
-                    Task {
-                        await flow.scanSessionsAndComplete(
-                            deps: dependencies,
-                            operation: { try await dependencies.runAggregation() },
-                            onComplete: onComplete
-                        )
+                if flow.discoveredProjectsFromSessions {
+                    Spacer()
+                    Button(String(localized: "开始使用（已关联 \(flow.linkedSessionCount) 条会话）")) {
+                        flow.complete(deps: dependencies, onComplete: onComplete)
                     }
-                } label: {
-                    HStack(spacing: 8) {
-                        if flow.isScanningSessions {
-                            ProgressView().controlSize(.small)
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
+                } else {
+                    Button(String(localized: "暂不扫描")) {
+                        flow.complete(deps: dependencies, onComplete: onComplete)
+                    }
+                    .disabled(flow.isScanningSessions)
+                    Spacer()
+                    Button {
+                        Task {
+                            await flow.scanSessionsAndComplete(
+                                deps: dependencies,
+                                operation: { try await dependencies.runAggregation() },
+                                onComplete: onComplete
+                            )
                         }
-                        Text(
-                            flow.isScanningSessions
-                                ? String(localized: "正在扫描本地会话…")
-                                : String(localized: "扫描会话并开始")
-                        )
+                    } label: {
+                        HStack(spacing: 8) {
+                            if flow.isScanningSessions {
+                                ProgressView().controlSize(.small)
+                            }
+                            Text(
+                                flow.isScanningSessions
+                                    ? String(localized: "正在扫描本地会话…")
+                                    : String(localized: "扫描会话并开始")
+                            )
+                        }
                     }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
+                    .disabled(flow.isScanningSessions)
+                    .accessibilityHint(
+                        String(localized: "仅在点击后增量读取本机会话元数据，不在后台扫描")
+                    )
                 }
-                .buttonStyle(.borderedProminent)
-                .controlSize(.large)
-                .disabled(flow.isScanningSessions)
-                .accessibilityHint(
-                    String(localized: "仅在点击后增量读取本机会话元数据，不在后台扫描")
-                )
             }
         }
     }

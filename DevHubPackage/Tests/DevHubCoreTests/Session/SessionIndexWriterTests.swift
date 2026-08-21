@@ -108,6 +108,37 @@ struct SessionIndexWriterTests {
         #expect(try await writer.fetchProjectStableId(identityKey: session.identityKey) == project.stableId)
     }
 
+    @Test("registering projects links cached unclassified sessions without replacing manual assignment")
+    @MainActor
+    func linksCachedUnclassifiedSessions() async throws {
+        let container = try ModelContainerFactory.makeContainer(inMemory: true)
+        let context = container.mainContext
+        let parent = Project(stableId: "parent", name: "Parent", path: "/tmp/work")
+        let nested = Project(stableId: "nested", name: "Nested", path: "/tmp/work/nested")
+        context.insert(parent)
+        context.insert(nested)
+        try context.save()
+        let writer = SessionIndexWriter(modelContainer: container)
+        let now = Date()
+        try await writer.upsert(
+            tool: "codex", toolSessionId: "automatic", sourcePath: "/tmp/automatic.jsonl",
+            projectCwd: "/tmp/work/nested/Sources", startedAt: now, updatedAt: now,
+            messageCount: 1, title: "Automatic", preview: "Automatic"
+        )
+        try await writer.upsert(
+            tool: "codex", toolSessionId: "manual", sourcePath: "/tmp/manual.jsonl",
+            projectCwd: "/tmp/work/nested/Sources", startedAt: now, updatedAt: now,
+            messageCount: 1, title: "Manual", preview: "Manual"
+        )
+        try await writer.assignProject(identityKey: "codex:manual", projectStableId: parent.stableId)
+
+        let linked = try await writer.linkUnclassifiedSessionsToRegisteredProjects()
+
+        #expect(linked == 1)
+        #expect(try await writer.fetchProjectStableId(identityKey: "codex:automatic") == nested.stableId)
+        #expect(try await writer.fetchProjectStableId(identityKey: "codex:manual") == parent.stableId)
+    }
+
     @Test("fresh batch import persists every row across save boundaries")
     @MainActor
     func freshBatchPersistsAllRows() async throws {
