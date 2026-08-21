@@ -155,7 +155,10 @@ struct MCPClientIntegrationTests {
                 args: ["-c", source, childPIDFile.path]
             ),
             reconnectPolicy: MCPReconnectPolicy(maxAttempts: 0, baseDelay: 0),
-            handshakeTimeout: 1
+            // Hosted runners can take more than a second to launch Python and
+            // persist the descendant PID. Keep this below the test limit while
+            // ensuring the process tree exists before timeout cleanup begins.
+            handshakeTimeout: 5
         )
 
         await client.start()
