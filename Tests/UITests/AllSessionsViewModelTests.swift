@@ -112,12 +112,15 @@ struct AllSessionsViewModelTests {
         #expect(try await writer.fetchCwd(identityKey: "zcode:z-unclassified") == "/tmp/project-a")
     }
 
-    @Test("OpenCode 元数据会话不会冒充可读正文")
-    func openCodeMetadataCapabilityIsExplicit() throws {
+    @Test("OpenCode 会话可按需读取正文")
+    func openCodeConversationCapabilityIsExplicit() throws {
         let env = try makeEnvironment()
         env.container.mainContext.insert(SessionIndex(
             tool: "opencode", toolSessionId: "open-metadata",
             sourcePath: "/tmp/opencode.db", projectCwd: env.project.path,
+            // v0.6.1 and older OpenCode indexes persisted zero because discovery
+            // was metadata-only. The new on-demand reader must work without
+            // waiting for the source database mtime to change.
             startedAt: Date(), updatedAt: Date(), messageCount: 0,
             title: "OpenCode metadata", preview: "OpenCode metadata", project: env.project
         ))
@@ -128,8 +131,8 @@ struct AllSessionsViewModelTests {
         let session = try #require(
             viewModel.allSessions.first { $0.toolSessionId == "open-metadata" }
         )
-        #expect(session.isMetadataOnly)
-        #expect(session.hasReadableConversation == false)
+        #expect(!session.isMetadataOnly)
+        #expect(session.hasReadableConversation)
     }
 
     private func makeEnvironment() throws -> (container: ModelContainer, project: Project) {

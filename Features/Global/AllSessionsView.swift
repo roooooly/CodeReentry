@@ -61,10 +61,12 @@ struct GlobalSessionItem: Identifiable, Equatable {
             title: title,
             preview: preview
         )
+            || (tool == "opencode"
+                && SessionDisplayText.displayTitle(title: title, preview: preview) != nil)
     }
 
     var isMetadataOnly: Bool {
-        tool == "kimi" || tool == "opencode"
+        tool == "kimi"
     }
 }
 
@@ -506,9 +508,7 @@ private struct GlobalSessionRow: View {
 
             if session.isMetadataOnly {
                 Label(
-                    session.tool == "kimi"
-                        ? String(localized: "仅索引本地状态元数据；不读取消息内容，也不能恢复指定会话。")
-                        : String(localized: "OpenCode 会话仅索引元数据；请在 OpenCode 中继续查看。"),
+                    String(localized: "仅索引本地状态元数据；不读取消息内容，也不能恢复指定会话。"),
                     systemImage: "info.circle"
                 )
                 .font(.caption2)

@@ -96,7 +96,7 @@ Release 性能另用[可复现的合成基线](docs/performance-baseline.md)跟�
 | Codex | 支持 | 按需、限量读取 | 恢复会话 | 作为新用户消息发送 |
 | ZCode | 支持 | 支持已适配的本地记录 | 恢复会话 | 通过提示参数传递 |
 | Kimi | 仅状态元数据 | 不支持 | 打开应用，不能定位到该会话 | 不支持 |
-| OpenCode | 元数据（v1.18.19 SQLite） | 不支持 | 精确恢复会话（`--session`） | 通过提示参数传递 |
+| OpenCode | 支持（v1.18.19 SQLite） | 按需、限量读取 | 精确恢复会话（`--session`） | 通过提示参数传递 |
 | Gemini CLI | 支持（项目级 JSONL） | 按需、限量读取 | 精确恢复会话（`--resume`） | 不支持 |
 | GitHub Copilot CLI | 支持（`session-state` 事件） | 按需、限量读取 | 按完整 ID 恢复（`--resume`） | 不支持 |
 | VS Code | 不适用 | 不适用 | 打开项目 | 用户确认后通过剪贴板辅助 |
@@ -104,10 +104,12 @@ Release 性能另用[可复现的合成基线](docs/performance-baseline.md)跟�
 表格描述的是当前源码已经实现的路径。第三方工具的存储格式和命令行行为可能变化，
 兼容性修改必须同时提供脱敏测试样本和版本说明。
 
-OpenCode 兼容性以 v1.18.19 为验证基准。CodeReentry 从默认的
-`~/.local/share/opencode/opencode.db`、`OPENCODE_DB` 自定义路径以及有上限的
-`opencode-<channel>.db` 同级数据库发现会话元数据。数据库会先校验 `session`
-表，再以只读方式打开；每个数据库最多索引最近 1,000 个未归档会话，不读取消息正文。
+OpenCode 兼容性以[兼容性说明](docs/opencode-compatibility.md)中固定的上游源码为验证基准。
+CodeReentry 从默认的 `~/.local/share/opencode/opencode.db`、`OPENCODE_DB` 自定义路径以及
+有上限的 `opencode-<channel>.db` 同级数据库发现会话元数据。数据库会先校验结构，再以
+只读方式打开；每个数据库最多索引最近 1,000 个未归档会话，发现阶段不读取消息正文。
+用户打开对话后，只读取指定会话，并限制消息数、片段数、单条 JSON 和总字符数；推理内容
+与非对话执行记录不会进入 CodeReentry 的正文视图。
 
 Gemini CLI 兼容性以[兼容性说明](docs/gemini-cli-compatibility.md)中记录的上游源码快照为
 验证基准。CodeReentry 只依据 Gemini CLI 的 `.project_root` 标记或 `projects.json` 注册表
