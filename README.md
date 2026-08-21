@@ -13,6 +13,7 @@
 
 <p align="center">
   <a href="README.zh-CN.md">简体中文</a> ·
+  <a href="https://github.com/roooooly/DevHub/releases">Source beta</a> ·
   <a href="#run-from-source">Run from source</a> ·
   <a href="PRIVACY.md">Privacy</a> ·
   <a href="ROADMAP.md">Roadmap</a> ·
@@ -21,13 +22,15 @@
 
 <p align="center">
   <a href="https://github.com/roooooly/DevHub/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/roooooly/DevHub/ci.yml?branch=main&label=CI" alt="CI status"></a>
+  <a href="https://github.com/roooooly/DevHub/releases"><img src="https://img.shields.io/github/v/release/roooooly/DevHub?include_prereleases&label=source%20beta" alt="Latest source beta"></a>
   <img src="https://img.shields.io/badge/macOS-14%2B-111111?logo=apple" alt="macOS 14 or newer">
   <img src="https://img.shields.io/badge/Swift-6-F05138?logo=swift&logoColor=white" alt="Swift 6">
   <img src="https://img.shields.io/badge/data-local--first-1F7A67" alt="Local-first">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-7D1727" alt="MIT license"></a>
 </p>
 
-> **Source beta:** DevHub does not have a signed and notarized public binary yet.
+> **Source beta:** The current source release is v0.2.0. DevHub does not have a signed
+> and notarized public binary yet.
 > Build it from source for evaluation, and do not install binaries from unofficial
 > mirrors. Public distribution remains blocked until the Apple signing and
 > notarization requirements in [RELEASE.md](RELEASE.md) are satisfied.

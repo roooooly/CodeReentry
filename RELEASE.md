@@ -53,8 +53,9 @@ Run the deterministic Release scenario described in
 
 The command must exit successfully against `scripts/performance-budget.json`. Run the
 large scale before claiming large-index readiness. Its latest full five-minute result
-still misses the initial-scan budget, so that claim and gate remain blocked. Generated
-samples stay under ignored `local-data/` and must not be attached to a release.
+passes the initial-scan budget with all 20,000 synthetic sessions verified. Generated
+samples stay under ignored `local-data/` and must not be attached to a release. Historical
+failed controls remain in the baseline so performance improvements can be audited.
 
 ## Install
 
