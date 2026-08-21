@@ -5,6 +5,9 @@ published a signed public binary.
 
 ## Unreleased
 
+- Add bounded, read-only Cline CLI v3.0.56 root-session discovery from its SQLite
+  metadata store with manifest fallback, on-demand text-only conversation inspection,
+  storage-override support, and exact `cline --id <session-id>` resume.
 - Add bounded, read-only Aider project-history discovery and conversation viewing for
   exact registered roots, plus `--restore-chat-history` continuation without following
   symbolic links or scanning unrelated home-directory content.

@@ -443,6 +443,7 @@ private extension ReentryTrialTool {
         case .geminiCLI: "Gemini CLI"
         case .githubCopilot: "GitHub Copilot CLI"
         case .aider: "Aider"
+        case .cline: "Cline"
         }
     }
 }

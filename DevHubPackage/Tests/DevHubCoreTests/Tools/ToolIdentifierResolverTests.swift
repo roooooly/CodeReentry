@@ -9,6 +9,7 @@ struct ToolIdentifierResolverTests {
         #expect(ToolIdentifierResolver.canonical("Open Code") == "opencode")
         #expect(ToolIdentifierResolver.canonical("VS Code") == "vscode")
         #expect(ToolIdentifierResolver.canonical("Aider Chat") == "aider")
+        #expect(ToolIdentifierResolver.canonical("Cline CLI") == "cline")
         #expect(ToolIdentifierResolver.canonical("Gemini") == "gemini-cli")
         #expect(ToolIdentifierResolver.canonical("GitHub Copilot CLI") == "github-copilot")
     }
@@ -40,5 +41,15 @@ struct ToolIdentifierResolverTests {
         )
 
         #expect(ToolIdentifierResolver.identifier(for: tool) == "github-copilot")
+    }
+
+    @Test("renamed Cline tool remains identifiable from its executable")
+    func renamedClineUsesExecutable() {
+        let tool = Tool(
+            name: "Terminal agent", kind: .cli,
+            launchCommand: "/opt/tools/cline --provider custom",
+            workingDirMode: .projectRoot, injectionMode: .cliFlag, sortOrder: 0
+        )
+        #expect(ToolIdentifierResolver.identifier(for: tool) == "cline")
     }
 }
