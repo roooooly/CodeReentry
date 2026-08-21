@@ -35,10 +35,11 @@ public struct OpenCodeAdapter: ToolAdapter {
         ))
     }
 
-    /// 纯函数：构造命令（便于测试）。OpenCode 用 `resume <id>` 恢复，记忆走位置参数。
+    /// 纯函数：构造命令（便于测试）。OpenCode v1.18.19 用 `--session <id>` 恢复，
+    /// 记忆走位置参数。
     public func buildCommand(ctx: LaunchContext) async throws -> CommandSpec {
         var args: [String] = []
-        if let sid = ctx.sessionId { args.append(contentsOf: ["resume", sid]) }
+        if let sid = ctx.sessionId { args.append(contentsOf: ["--session", sid]) }
         if let mem = ctx.renderedMemoryFile {
             args.append("$__DEVHUB_MEMORY_FILE__\(mem)")
         }

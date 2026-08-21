@@ -25,6 +25,63 @@ struct MemoryTabTests {
         let vm = MemoryTabViewModel()
         try vm.load(projectID: env.projectID, projectPath: env.projectPath, deps: env.deps)
         #expect(vm.hasLastSummary == false)
+        #expect(vm.summaryReviewStatus == .none)
+    }
+
+    @Test("summary status shows unverified legacy, current provenance, and newer-session warning")
+    func summaryReviewStatuses() throws {
+        let env = try MemoryTabTests.makeMemoryEnv(contextMd: "x", summaryMd: "会话总结")
+        let vm = MemoryTabViewModel()
+        let sourceDate = Date(timeIntervalSince1970: 1_700_000_000)
+
+        try vm.load(
+            projectID: env.projectID,
+            projectPath: env.projectPath,
+            latestSessionUpdatedAt: sourceDate,
+            deps: env.deps
+        )
+        #expect(vm.summaryReviewStatus == .unverified)
+
+        let store = env.deps.memoryStore(forProjectPath: env.projectPath)
+        try store.writeLastSessionSummary(
+            "会话总结",
+            metadata: SessionSummaryMetadata(
+                tool: "codex",
+                toolSessionId: "session-1",
+                sessionUpdatedAt: sourceDate
+            )
+        )
+        try vm.load(
+            projectID: env.projectID,
+            projectPath: env.projectPath,
+            latestSessionUpdatedAt: sourceDate,
+            deps: env.deps
+        )
+        #expect(vm.summaryReviewStatus == .current)
+
+        try vm.load(
+            projectID: env.projectID,
+            projectPath: env.projectPath,
+            latestSessionUpdatedAt: sourceDate.addingTimeInterval(1),
+            deps: env.deps
+        )
+        #expect(vm.summaryReviewStatus == .outdated)
+    }
+
+    @Test("malformed summary metadata degrades to unverified without hiding context")
+    func malformedMetadataDoesNotBlockContext() throws {
+        let env = try MemoryTabTests.makeMemoryEnv(contextMd: "重要的稳定上下文", summaryMd: "会话总结")
+        let metadataFile = URL(fileURLWithPath: env.projectPath)
+            .appendingPathComponent(".devhub/memory/last-session-summary.metadata.json")
+        try Data("not-json".utf8).write(to: metadataFile)
+        let vm = MemoryTabViewModel()
+
+        try vm.load(projectID: env.projectID, projectPath: env.projectPath, deps: env.deps)
+
+        #expect(vm.contextMd == "重要的稳定上下文")
+        #expect(vm.hasLastSummary)
+        #expect(vm.summaryReviewStatus == .unverified)
+        #expect(vm.loadError == nil)
     }
 
     @Test("保存 context.md → 写回磁盘（再读一致）")

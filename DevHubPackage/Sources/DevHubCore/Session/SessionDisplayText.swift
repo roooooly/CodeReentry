@@ -125,7 +125,9 @@ public enum SessionDisplayText {
     }
 
     private static func startsWithHiddenBootstrap(_ raw: String) -> Bool {
-        let normalized = collapseWhitespace(raw).lowercased()
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard trimmed.first?.lowercased() == "y" else { return false }
+        let normalized = collapseWhitespace(trimmed).lowercased()
         return hiddenBootstrapPrefixes.contains { normalized.hasPrefix($0) }
     }
 

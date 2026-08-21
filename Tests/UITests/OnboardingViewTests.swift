@@ -152,6 +152,54 @@ struct OnboardingViewTests {
         #expect(preferences.bool(forKey: "devhub.onboarding.completed") == true)
     }
 
+    @Test("用户明确选择扫描后完成引导")
+    func sessionScanCompletesOnboarding() async throws {
+        let suiteName = "io.github.roooooly.devhub.tests.onboarding-scan-complete.\(UUID().uuidString)"
+        let preferences = try #require(UserDefaults(suiteName: suiteName))
+        preferences.removePersistentDomain(forName: suiteName)
+        defer { preferences.removePersistentDomain(forName: suiteName) }
+
+        let env = try OnboardingViewTests.makeOnboardingEnv(preferences: preferences)
+        let flow = OnboardingFlow()
+        var operationCount = 0
+        var completed = false
+
+        await flow.scanSessionsAndComplete(
+            deps: env.deps,
+            operation: { operationCount += 1 },
+            onComplete: { completed = true }
+        )
+
+        #expect(operationCount == 1)
+        #expect(completed == true)
+        #expect(env.deps.onboardingCompleted == true)
+        #expect(flow.isScanningSessions == false)
+        #expect(flow.sessionScanError == nil)
+    }
+
+    @Test("会话扫描失败时保留引导供重试或跳过")
+    func sessionScanFailureRemainsActionable() async throws {
+        let suiteName = "io.github.roooooly.devhub.tests.onboarding-scan-failure.\(UUID().uuidString)"
+        let preferences = try #require(UserDefaults(suiteName: suiteName))
+        preferences.removePersistentDomain(forName: suiteName)
+        defer { preferences.removePersistentDomain(forName: suiteName) }
+
+        let env = try OnboardingViewTests.makeOnboardingEnv(preferences: preferences)
+        let flow = OnboardingFlow()
+        var completed = false
+
+        await flow.scanSessionsAndComplete(
+            deps: env.deps,
+            operation: { throw SyntheticSessionScanError.failed },
+            onComplete: { completed = true }
+        )
+
+        #expect(completed == false)
+        #expect(env.deps.onboardingCompleted == false)
+        #expect(flow.isScanningSessions == false)
+        #expect(flow.sessionScanError == SyntheticSessionScanError.failed.localizedDescription)
+    }
+
     // MARK: - env
 
     struct OnboardingEnv {
@@ -177,4 +225,10 @@ struct OnboardingViewTests {
 
         return OnboardingEnv(container: container, ctx: container.mainContext, deps: deps, root: root)
     }
+}
+
+private enum SyntheticSessionScanError: LocalizedError {
+    case failed
+
+    var errorDescription: String? { "Synthetic session scan failure" }
 }

@@ -68,6 +68,82 @@ struct ToolsTabTests {
         #expect(plan.rendered.isEmpty == false)
     }
 
+    @Test("planInject: legacy summary without provenance is unverified")
+    func legacySummaryIsUnverified() async throws {
+        let env = try ToolsTabTests.makeEnv(
+            tools: [.claude],
+            contextMd: "稳定上下文",
+            summaryMd: "旧版生成的总结"
+        )
+        let vm = ToolsTabViewModel()
+        vm.boundProjectPath = env.projectPath
+        vm.registerAdapterProvider { id in env.adapter(forId: id) }
+        vm.loadTools(from: env.ctx, matching: env.project)
+
+        let plan = try await vm.planInject(for: env.tools[0], deps: env.deps)
+
+        #expect(plan.summaryReviewStatus == .unverified)
+    }
+
+    @Test("planInject: provenance matching latest indexed session is current")
+    func matchingSummaryIsCurrent() async throws {
+        let sourceDate = Date(timeIntervalSince1970: 1_700_000_000)
+        let metadata = SessionSummaryMetadata(
+            tool: "claude-code",
+            toolSessionId: "source-session",
+            sessionUpdatedAt: sourceDate
+        )
+        let env = try ToolsTabTests.makeEnv(
+            tools: [.claude],
+            contextMd: "稳定上下文",
+            summaryMd: "最新决定",
+            summaryMetadata: metadata,
+            latestSessionUpdatedAt: sourceDate
+        )
+        let vm = ToolsTabViewModel()
+        vm.boundProjectPath = env.projectPath
+        vm.registerAdapterProvider { id in env.adapter(forId: id) }
+        vm.loadTools(from: env.ctx, matching: env.project)
+
+        let plan = try await vm.planInject(for: env.tools[0], deps: env.deps)
+
+        #expect(plan.summaryReviewStatus == .current)
+    }
+
+    @Test("planInject: newer indexed session makes summary outdated; stable-only plan removes it")
+    func outdatedSummaryCanBeExcluded() async throws {
+        let sourceDate = Date(timeIntervalSince1970: 1_700_000_000)
+        let metadata = SessionSummaryMetadata(
+            tool: "claude-code",
+            toolSessionId: "source-session",
+            sessionUpdatedAt: sourceDate
+        )
+        let env = try ToolsTabTests.makeEnv(
+            tools: [.claude],
+            contextMd: "必须保留的稳定约束",
+            summaryMd: "已经过期的决定",
+            summaryMetadata: metadata,
+            latestSessionUpdatedAt: sourceDate.addingTimeInterval(60)
+        )
+        let vm = ToolsTabViewModel()
+        vm.boundProjectPath = env.projectPath
+        vm.registerAdapterProvider { id in env.adapter(forId: id) }
+        vm.loadTools(from: env.ctx, matching: env.project)
+
+        let fullPlan = try await vm.planInject(for: env.tools[0], deps: env.deps)
+        let stableOnlyPlan = try await vm.planInject(
+            for: env.tools[0],
+            deps: env.deps,
+            includeLastSessionSummary: false
+        )
+
+        #expect(fullPlan.summaryReviewStatus == .outdated)
+        #expect(fullPlan.rendered.contains("已经过期的决定"))
+        #expect(stableOnlyPlan.summaryReviewStatus == .none)
+        #expect(stableOnlyPlan.rendered.contains("必须保留的稳定约束"))
+        #expect(!stableOnlyPlan.rendered.contains("已经过期的决定"))
+    }
+
     @Test("planInject: codex 位置参数 → adapterWarning=.codexStartsNewTurn")
     func planInjectCodexWarnsNewTurn() async throws {
         let env = try ToolsTabTests.makeEnv(tools: [.codex], contextMd: "安全内容")
@@ -271,7 +347,13 @@ struct ToolsTabTests {
         func adapter(forId id: String) -> MockToolAdapter { adapters[id]! }
     }
 
-    static func makeEnv(tools: [ToolKindFixture], contextMd: String = "") throws -> TestEnv {
+    static func makeEnv(
+        tools: [ToolKindFixture],
+        contextMd: String = "",
+        summaryMd: String? = nil,
+        summaryMetadata: SessionSummaryMetadata? = nil,
+        latestSessionUpdatedAt: Date? = nil
+    ) throws -> TestEnv {
         let container = try ModelContainer(
             for: Project.self, Tool.self, Subscription.self,
                  PlatformAccount.self, ProjectPlatformBinding.self,
@@ -293,7 +375,26 @@ struct ToolsTabTests {
         try FileManager.default.createDirectory(at: memDir, withIntermediateDirectories: true)
         try contextMd.write(to: memDir.appendingPathComponent("context.md"), atomically: true, encoding: .utf8)
         let projectStore = MemoryStore(projectRoot: tmp)
+        if let summaryMd {
+            try projectStore.writeLastSessionSummary(summaryMd, metadata: summaryMetadata)
+        }
         let projectFactory: (String) -> MemoryStore = { _ in projectStore }
+
+        if let latestSessionUpdatedAt {
+            let latestSession = SessionIndex(
+                tool: "claude-code",
+                toolSessionId: "latest-session",
+                sourcePath: "/tmp/latest.jsonl",
+                projectCwd: tmp.path,
+                startedAt: latestSessionUpdatedAt,
+                updatedAt: latestSessionUpdatedAt,
+                messageCount: 1,
+                title: "Latest",
+                preview: "Latest",
+                project: project
+            )
+            ctx.insert(latestSession)
+        }
 
         // 构造工具 + adapter
         var toolModels: [Tool] = []

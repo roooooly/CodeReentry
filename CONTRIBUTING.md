@@ -17,6 +17,9 @@ a broad feature or a new product area.
 
 ```bash
 ./scripts/privacy-audit.sh
+./scripts/test-reentry-trial.sh
+./scripts/test-performance-fixture.sh
+./scripts/test-performance-summary.sh
 swift test --package-path DevHubPackage
 xcodebuild -project DevHub.xcodeproj -scheme DevHub \
   -destination 'platform=macOS,arch=arm64' test
@@ -32,6 +35,10 @@ xcodebuild -project DevHub.xcodeproj -scheme DevHub \
 
 Run `git diff --cached` before every commit and confirm that no generated history,
 diagnostic output, account identifier, or local absolute path is included.
+
+Performance changes should use the deterministic protocol in
+[`docs/performance-baseline.md`](docs/performance-baseline.md). Never substitute a quick
+zero-idle smoke run for the five-minute release result or weaken a budget after a failure.
 
 ## Compatibility changes
 

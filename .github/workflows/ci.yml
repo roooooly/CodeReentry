@@ -25,6 +25,8 @@ jobs:
         run: command -v rg >/dev/null || (sudo apt-get update && sudo apt-get install -y ripgrep)
       - name: Reject private paths, generated data, and credential shapes
         run: ./scripts/privacy-audit.sh
+      - name: Test the privacy-safe re-entry recorder
+        run: ./scripts/test-reentry-trial.sh
 
   macos-tests:
     name: macOS tests
@@ -32,12 +34,18 @@ jobs:
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v7
+      - name: Verify the one-command source build from the committed project
+        run: ./scripts/run-source.sh --build-only
       - name: Install XcodeGen
         run: brew install xcodegen
       - name: Generate the Xcode project
         run: xcodegen generate
       - name: Test DevHubCore
         run: swift test --package-path DevHubPackage
+      - name: Test synthetic performance fixtures
+        run: ./scripts/test-performance-fixture.sh
+      - name: Test performance budget summaries
+        run: ./scripts/test-performance-summary.sh
       - name: Test the app in English without signing
         run: >-
           xcodebuild

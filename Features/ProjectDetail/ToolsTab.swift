@@ -17,6 +17,7 @@ struct ToolsTab: View {
 
     private enum InjectionGate: Hashable {
         case blockedSecret
+        case staleSummary
         case warnedSecret
         case truncation
         case codexNewTurn
@@ -29,6 +30,10 @@ struct ToolsTab: View {
 
         var nextGate: InjectionGate? {
             if plan.scanResult == .blocked { return .blockedSecret }
+            if (plan.summaryReviewStatus == .outdated || plan.summaryReviewStatus == .unverified),
+               !acknowledged.contains(.staleSummary) {
+                return .staleSummary
+            }
             if plan.scanResult == .warnedButAllowed && !acknowledged.contains(.warnedSecret) {
                 return .warnedSecret
             }
@@ -132,6 +137,24 @@ struct ToolsTab: View {
         } message: {
             Text(String(localized: "向 codex 发送项目记忆将立即作为一条用户消息发送并开启新对话，不是系统上下文。确认继续？"))
         }
+        // 波动性会话总结来源不明或已经落后：允许只发送稳定 context.md。
+        .confirmationDialog(
+            staleSummaryTitle,
+            isPresented: gateBinding(.staleSummary),
+            titleVisibility: .visible
+        ) {
+            Button(String(localized: "只发送稳定上下文")) {
+                let tool = pendingInjection?.tool
+                pendingInjection = nil
+                if let tool { Task { await runContinueWithStableContextOnly(tool) } }
+            }
+            Button(String(localized: "仍发送这份总结")) {
+                acknowledge(.staleSummary)
+            }
+            Button(String(localized: "取消"), role: .cancel) { pendingInjection = nil }
+        } message: {
+            Text(staleSummaryMessage)
+        }
         // 8KB 截断确认
         .confirmationDialog(
             String(localized: "项目记忆超过 8KB，将被截断"),
@@ -217,6 +240,21 @@ struct ToolsTab: View {
     }
 
     @MainActor
+    private func runContinueWithStableContextOnly(_ tool: Tool) async {
+        do {
+            let plan = try await viewModel.planInject(
+                for: tool,
+                deps: deps,
+                includeLastSessionSummary: false
+            )
+            pendingInjection = PendingInjection(tool: tool, plan: plan)
+            executeIfAllGatesAcknowledged()
+        } catch {
+            alertMessage = error.localizedDescription
+        }
+    }
+
+    @MainActor
     private func proceedInject(_ pending: PendingInjection) async {
         do {
             let outcome = try await viewModel.continueWithMemory(
@@ -262,6 +300,20 @@ struct ToolsTab: View {
             return String(localized: "检测到疑似密钥或 token。内容会复制到系统剪贴板，之后需要你在目标 CLI 手动粘贴；若期间未复制其他内容，DevHub 会在 30 秒后清理。剪贴板历史工具仍可能保留副本，请确认可以发送。")
         }
         return String(localized: "检测到疑似密钥或 token。内容不会写入命令行参数，但目标 CLI 会读取临时文件。请确认这些内容可以发送给该工具。")
+    }
+
+    private var staleSummaryTitle: String {
+        if pendingInjection?.plan.summaryReviewStatus == .outdated {
+            return String(localized: "会话总结可能已经过期")
+        }
+        return String(localized: "无法验证会话总结来源")
+    }
+
+    private var staleSummaryMessage: String {
+        if pendingInjection?.plan.summaryReviewStatus == .outdated {
+            return String(localized: "项目中存在更新时间更晚的会话。这份总结可能遗漏后续决定；你可以只发送稳定的 context.md，或确认仍发送旧总结。")
+        }
+        return String(localized: "这份总结来自旧版本或手工文件，DevHub 无法确认它对应哪次会话。建议只发送稳定的 context.md，或在“会话”页重新生成总结。")
     }
 
     private func executeIfAllGatesAcknowledged() {

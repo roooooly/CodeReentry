@@ -139,6 +139,16 @@
 "集中管理平台账号，一键打开" = "Manage platform accounts in one place and open them with one click";
 "识别项目脚本，本地运行，实时日志，可随时停止" = "Detect project scripts, run locally, stream logs, and stop at any time";
 "开始使用" = "Start Using DevHub";
+"找回第一条会话" = "Recover Your First Session";
+"项目已就绪。最后由你主动触发一次只读增量扫描，DevHub 才能把本地会话关联到项目。" = "Your projects are ready. Start one explicit, read-only incremental scan so DevHub can connect local sessions to them.";
+"只读取受支持工具的有界元数据，不在后台运行" = "Reads bounded metadata from supported tools and never runs in the background";
+"从项目继续" = "Continue from the Project";
+"首页显示最近可恢复会话，一步回到原工具" = "See the latest resumable session on the overview and return to the original tool in one step";
+"保留项目记忆" = "Keep Project Memory";
+"需要时再把经确认的会话总结写入 context.md" = "Add a reviewed session summary to context.md only when you need it";
+"暂不扫描" = "Not Now";
+"扫描会话并开始" = "Scan Sessions and Start";
+"会话扫描未完成：%@" = "Session scan did not finish: %@";
 
 /* General settings */
 "通用" = "General";
@@ -190,8 +200,15 @@
 "全部工具" = "All Tools";
 "未分类" = "Unclassified";
 "正在扫描…" = "Scanning…";
+"正在扫描本地会话…" = "Scanning local sessions…";
+"扫描本地会话" = "Scan Local Sessions";
+"仅在点击后增量读取本机会话元数据，不在后台扫描" = "Incrementally reads local session metadata only after you select this action; no background scanning.";
+"已索引 %lld 个项目会话" = "Indexed %lld project sessions";
+"部分会话来源已更新" = "Some session sources were updated";
+"会话索引未完全更新" = "Session Index Partially Updated";
 "尚无会话索引" = "No Session Index";
 "点击刷新以扫描 Claude Code、Codex、ZCode 与可用的 Kimi 本地元数据。" = "Refresh to scan Claude Code, Codex, ZCode, and available local Kimi metadata.";
+"点击刷新以扫描 Claude Code、Codex、ZCode、OpenCode 与可用的 Kimi 本地元数据。" = "Refresh to scan Claude Code, Codex, ZCode, OpenCode, and available local Kimi metadata.";
 "会话操作失败" = "Session Action Failed";
 "查看对话" = "View Conversation";
 "显示源文件" = "Reveal Source File";
@@ -201,6 +218,7 @@
 "打开 Kimi 应用；不会恢复到此条元数据记录" = "Open the Kimi app without restoring this metadata record";
 "仅索引本地状态元数据；不读取消息内容，也不能恢复指定会话。" = "Only local state metadata is indexed. Message content is not read, and a specific session cannot be restored.";
 "仅显示 Kimi 本地状态元数据；当前无法读取消息内容或恢复指定会话。" = "Only local Kimi state metadata is available. Message content and session restore are not supported yet.";
+"OpenCode 会话仅索引元数据；请在 OpenCode 中继续查看。" = "Only OpenCode session metadata is indexed. Continue in OpenCode to view the conversation.";
 "内容格式暂时无法解析；请用“显示源文件”检查原始记录。" = "This content format cannot be parsed yet. Use Reveal Source File to inspect the original record.";
 "内容格式暂时无法解析，可直接检查原始文件。" = "This content format cannot be parsed yet. You can inspect the original file.";
 "在 DevHub 内查看完整对话正文" = "Read the full conversation in DevHub";
@@ -772,6 +790,9 @@
 "显示 %lld 个" = "Showing %lld";
 "再显示 %lld 个" = "Show %lld more";
 "已显示 %lld / %lld 个会话" = "Showing %lld of %lld sessions";
+"载入更早的索引会话" = "Load older indexed sessions";
+"已加载 %lld / %lld 个索引会话" = "Loaded %lld of %lld indexed sessions";
+"只加载下一批索引元数据，不读取会话正文" = "Loads only the next metadata batch without reading conversation bodies";
 "按需载入下一批会话，不读取会话正文" = "Loads the next batch on demand without reading conversation bodies";
 "更新登录项失败：%@" = "Could not update the login item: %@";
 "最近提交 %@" = "Latest commit: %@";
@@ -795,3 +816,12 @@
 "重置于 %@" = "Resets %@";
 "降级：%@" = "Degraded: %@";
 "项目卡片 %@" = "Project card %@";
+"总结来源已记录" = "Summary source recorded";
+"存在更新会话，发送前会确认" = "Newer session found; confirmation required before sending";
+"总结来源未记录，建议重新生成" = "Summary source unknown; regenerate it from a session";
+"会话总结可能已经过期" = "The session summary may be outdated";
+"无法验证会话总结来源" = "The session summary source cannot be verified";
+"只发送稳定上下文" = "Send stable context only";
+"仍发送这份总结" = "Send this summary anyway";
+"项目中存在更新时间更晚的会话。这份总结可能遗漏后续决定；你可以只发送稳定的 context.md，或确认仍发送旧总结。" = "A session was updated after this summary's source session. It may omit later decisions. Send only the stable context.md, or confirm that you still want to send the older summary.";
+"这份总结来自旧版本或手工文件，DevHub 无法确认它对应哪次会话。建议只发送稳定的 context.md，或在“会话”页重新生成总结。" = "This summary came from an older DevHub version or a manually created file, so its source session cannot be verified. Send only the stable context.md, or regenerate the summary from the Sessions tab.";

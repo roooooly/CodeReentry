@@ -352,6 +352,12 @@ struct ContentView: View {
             await loadPluginCommandItems()
             await loadMCPCommandItems()
         }
+        .task {
+            await PerformanceScenarioRunner.runIfRequested(
+                dependencies: deps,
+                modelContext: modelContext
+            )
+        }
         .onReceive(NotificationCenter.default.publisher(
             for: PluginEnableViewModel.commandsChangedNotification
         )) { _ in

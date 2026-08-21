@@ -5,6 +5,15 @@ published a signed public binary.
 
 ## Unreleased
 
+- Add bounded, read-only OpenCode v1.18.19 session discovery and exact-session resume.
+- Put an explicit local-session scan on the project overview and at the end of onboarding.
+- Add a one-command, CI-verified source build and launch path that does not require XcodeGen.
+- Record session-summary provenance and require confirmation before sending an outdated or unverifiable summary.
+- Add a local, privacy-safe re-entry trial recorder and an explicit evidence gate for recovery claims.
+- Add reproducible small/medium/large Release performance fixtures, sampling, budgets,
+  and a published baseline that keeps the remaining large-scan failure visible.
+- Reduce large incremental-index refresh work to a cached source-file lookup and bound
+  the global session page to explicit 500-row metadata batches.
 - Require Sparkle 2.9.6 or newer for upstream security fixes.
 - Clarify the project-recovery focus and current compatibility boundaries.
 - Add separate English and Simplified Chinese repository documentation.

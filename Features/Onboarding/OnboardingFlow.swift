@@ -67,6 +67,8 @@ final class OnboardingFlow {
     var selectedCandidates: Set<String> = []  // 存 path
     var scanError: String?
     var registrationSummary: OnboardingRegistrationSummary?
+    private(set) var isScanningSessions = false
+    private(set) var sessionScanError: String?
 
     func goToPickRoot() { step = .pickRoot }
     func goToWelcome() { step = .welcome }
@@ -142,6 +144,26 @@ final class OnboardingFlow {
     }
 
     func goToIntro() { step = .intro }
+
+    /// 用户在引导末页明确选择后，才执行一次会话增量扫描。失败时不把引导标记为
+    /// 已完成，让用户可以重试或明确选择“暂不扫描”。
+    func scanSessionsAndComplete(
+        deps: AppDependencies,
+        operation: @MainActor () async throws -> Void,
+        onComplete: () -> Void
+    ) async {
+        guard !isScanningSessions else { return }
+        isScanningSessions = true
+        sessionScanError = nil
+        defer { isScanningSessions = false }
+
+        do {
+            try await operation()
+            complete(deps: deps, onComplete: onComplete)
+        } catch {
+            sessionScanError = error.localizedDescription
+        }
+    }
 
     func complete(deps: AppDependencies, onComplete: () -> Void) {
         deps.onboardingCompleted = true

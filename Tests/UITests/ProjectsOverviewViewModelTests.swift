@@ -165,4 +165,86 @@ struct ProjectsOverviewViewModelTests {
         #expect(data.latestSession?.sessionId == "s1")
         #expect(data.latestSession?.title == "Demo")
     }
+
+    @Test("OpenCode metadata session is eligible for one-click resume")
+    func openCodeMetadataCanResume() throws {
+        let container = try makeContainer()
+        let ctx = container.mainContext
+        let project = ProjectFixtures.makeProject(name: "ExampleApp", path: "/tmp/ExampleApp")
+        ctx.insert(project)
+        let session = SessionIndex(
+            tool: "opencode", toolSessionId: "ses_example",
+            sourcePath: "/tmp/opencode.db", projectCwd: "/tmp/ExampleApp",
+            startedAt: Date(), updatedAt: Date(), messageCount: 0,
+            title: "Fix checkout flow", preview: "Fix checkout flow"
+        )
+        session.project = project
+        ctx.insert(session)
+        try ctx.save()
+
+        let data = ProjectsOverviewViewModel.cardData(for: project)
+
+        #expect(data.latestSession?.tool == "opencode")
+        #expect(data.latestSession?.sessionId == "ses_example")
+        #expect(data.latestSession?.title == "Fix checkout flow")
+    }
+
+    @Test("首页用户主动扫描后立即显示可恢复会话")
+    func explicitSessionScanRefreshesCards() async throws {
+        let container = try makeContainer()
+        let project = ProjectFixtures.makeProject(name: "ExampleApp", path: "/tmp/ExampleApp")
+        container.mainContext.insert(project)
+        try container.mainContext.save()
+        let viewModel = ProjectsOverviewViewModel()
+        viewModel.load(from: container)
+
+        try await viewModel.scanSessions(from: container) {
+            container.mainContext.insert(SessionIndex(
+                tool: "opencode", toolSessionId: "ses_scan",
+                sourcePath: "/tmp/opencode.db", projectCwd: project.path,
+                startedAt: Date(), updatedAt: Date(), messageCount: 0,
+                title: "Resume from overview", preview: "Resume from overview",
+                project: project
+            ))
+            try container.mainContext.save()
+        }
+
+        #expect(viewModel.isScanningSessions == false)
+        #expect(viewModel.projectSessionCount == 1)
+        #expect(viewModel.cards.first?.latestSession?.sessionId == "ses_scan")
+        #expect(viewModel.sessionScanStatus?.contains("1") == true)
+    }
+
+    @Test("部分 reader 失败时首页仍加载成功来源")
+    func partialSessionScanKeepsSuccessfulResults() async throws {
+        let container = try makeContainer()
+        let project = ProjectFixtures.makeProject(name: "ExampleApp", path: "/tmp/ExampleApp")
+        container.mainContext.insert(project)
+        try container.mainContext.save()
+        let viewModel = ProjectsOverviewViewModel()
+        viewModel.load(from: container)
+
+        await #expect(throws: OverviewScanFixtureError.self) {
+            try await viewModel.scanSessions(from: container) {
+                container.mainContext.insert(SessionIndex(
+                    tool: "codex", toolSessionId: "partial-success",
+                    sourcePath: "/tmp/partial.jsonl", projectCwd: project.path,
+                    startedAt: Date(), updatedAt: Date(), messageCount: 1,
+                    title: "Kept after partial failure", preview: "Kept",
+                    project: project
+                ))
+                try container.mainContext.save()
+                throw OverviewScanFixtureError.readerFailed
+            }
+        }
+
+        #expect(viewModel.isScanningSessions == false)
+        #expect(viewModel.projectSessionCount == 1)
+        #expect(viewModel.cards.first?.latestSession?.sessionId == "partial-success")
+        #expect(viewModel.sessionScanStatus != nil)
+    }
+}
+
+private enum OverviewScanFixtureError: Error {
+    case readerFailed
 }

@@ -1,0 +1,26 @@
+{
+  "small": {
+    "initial_scan_milliseconds": 2000,
+    "refresh_p95_milliseconds": 1000,
+    "peak_rss_mb": 300,
+    "peak_physical_mb": 250,
+    "recovery_rss_mb": 250,
+    "cycle_growth_percent": 20
+  },
+  "medium": {
+    "initial_scan_milliseconds": 5000,
+    "refresh_p95_milliseconds": 1500,
+    "peak_rss_mb": 400,
+    "peak_physical_mb": 350,
+    "recovery_rss_mb": 325,
+    "cycle_growth_percent": 20
+  },
+  "large": {
+    "initial_scan_milliseconds": 15000,
+    "refresh_p95_milliseconds": 3000,
+    "peak_rss_mb": 650,
+    "peak_physical_mb": 600,
+    "recovery_rss_mb": 500,
+    "cycle_growth_percent": 20
+  }
+}

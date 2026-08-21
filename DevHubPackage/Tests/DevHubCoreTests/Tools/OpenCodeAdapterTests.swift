@@ -36,12 +36,12 @@ struct OpenCodeAdapterTests {
         #expect(spec.arguments == [])
     }
 
-    @Test("resume: opencode resume <id>")
+    @Test("resume: opencode --session <id>")
     func resumeNoMemory() async throws {
         let spec = try await adapter.buildCommand(ctx: LaunchContext(
             projectPath: "/tmp/P", renderedMemoryFile: nil, sessionId: "abc-123", tool: nil
         ))
-        #expect(spec.arguments == ["resume", "abc-123"])
+        #expect(spec.arguments == ["--session", "abc-123"])
     }
 
     @Test("resume with memory uses launcher placeholder")
@@ -49,6 +49,6 @@ struct OpenCodeAdapterTests {
         let spec = try await adapter.buildCommand(ctx: LaunchContext(
             projectPath: "/tmp/P", renderedMemoryFile: "/tmp/inj.md", sessionId: "abc-123", tool: nil
         ))
-        #expect(spec.arguments == ["resume", "abc-123", "$__DEVHUB_MEMORY_FILE__/tmp/inj.md"])
+        #expect(spec.arguments == ["--session", "abc-123", "$__DEVHUB_MEMORY_FILE__/tmp/inj.md"])
     }
 }
