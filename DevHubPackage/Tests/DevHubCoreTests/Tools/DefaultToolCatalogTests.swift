@@ -15,12 +15,13 @@ struct DefaultToolCatalogTests {
         let tools = try DefaultToolCatalog.seedIfNeeded(in: context)
 
         #expect(tools.map(\.name) == DefaultToolCatalog.defaultNames)
-        #expect(tools.filter(\.enabled).count == 7)
+        #expect(tools.filter(\.enabled).count == 8)
         #expect(tools.first { $0.name == "Claude Code" }?.injectionMode == .cliFlag)
         #expect(tools.first { $0.name == "Codex" }?.injectionMode == .positionalArg)
         #expect(tools.first { $0.name == "VS Code" }?.kind == .app)
         #expect(tools.first { $0.name == "OpenCode" }?.launchCommand == "opencode")
         #expect(tools.first { $0.name == "Gemini CLI" }?.launchCommand == "gemini")
+        #expect(tools.first { $0.name == "GitHub Copilot CLI" }?.launchCommand == "copilot")
     }
 
     @Test("automatic seed is idempotent and preserves a customized catalog")
@@ -53,8 +54,8 @@ struct DefaultToolCatalogTests {
 
         let tools = try DefaultToolCatalog.restoreMissingDefaults(in: context)
 
-        #expect(tools.count == 7)
-        #expect(project.tools.count == 7)
+        #expect(tools.count == 8)
+        #expect(project.tools.count == 8)
     }
 
     @Test("single-default restore does not revive unrelated deleted tools")

@@ -19,6 +19,8 @@ final class AppDependencies {
 
     private static let geminiCatalogMigrationKey =
         "DefaultToolCatalog.didMigrateGeminiCLI.v1"
+    private static let copilotCatalogMigrationKey =
+        "DefaultToolCatalog.didMigrateGitHubCopilotCLI.v1"
 
     // MARK: - Core 服务
 
@@ -127,14 +129,15 @@ final class AppDependencies {
             let projects = (try? ctx.fetch(FetchDescriptor<Project>())) ?? []
             return projects.map(\.path).filter { !$0.isEmpty }
         })
-        // OpenCode 仅发现 SQLite 元数据；Gemini 使用有界 JSONL reader。
+        // OpenCode 仅发现 SQLite 元数据；Gemini/Copilot 使用有界 JSONL reader。
         // 聚合只由用户显式刷新触发。
         let home = FileManager.default.homeDirectoryForCurrentUser
         let kimiPaths = KimiPathDiscovery.discover(
             candidates: KimiPathDiscovery.standardCandidates(home: home), home: home)
         self.sessionReaders = [
             ClaudeReader(), CodexReader(), ZcodeReader(), KimiReader(paths: kimiPaths),
-            OpenCodeReader(homeURL: home), GeminiReader(homeURL: home)
+            OpenCodeReader(homeURL: home), GeminiReader(homeURL: home),
+            GitHubCopilotReader(homeURL: home)
         ]
         // A resource manager should open on a useful operating surface, not an
         // empty detail pane that asks the user to make a redundant choice.
@@ -161,6 +164,17 @@ final class AppDependencies {
                     )
                 }
                 preferences.set(true, forKey: Self.geminiCatalogMigrationKey)
+            }
+            if !preferences.bool(forKey: Self.copilotCatalogMigrationKey) {
+                let existing = try modelContainer.mainContext.fetch(FetchDescriptor<Tool>())
+                if !existing.contains(where: {
+                    ToolIdentifierResolver.matches($0, sessionToolIdentifier: "github-copilot")
+                }) {
+                    _ = try DefaultToolCatalog.restoreDefault(
+                        named: "GitHub Copilot CLI", in: modelContainer.mainContext
+                    )
+                }
+                preferences.set(true, forKey: Self.copilotCatalogMigrationKey)
             }
         } catch {
             logger.error("初始化内置工具失败: \(error.localizedDescription, privacy: .public)")
@@ -227,6 +241,8 @@ final class AppDependencies {
         case "opencode":    return OpenCodeAdapter()
         case "gemini-cli":  return GeminiAdapter()
         case "gemini":      return GeminiAdapter()
+        case "github-copilot": return GitHubCopilotAdapter()
+        case "copilot":        return GitHubCopilotAdapter()
         default:            return nil
         }
     }

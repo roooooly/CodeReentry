@@ -15,7 +15,7 @@ struct AppDependenciesTests {
         // 无参 Core 服务为值类型，非空即可
         _ = deps.gitStatusProvider
         _ = deps.keychain
-        // adapter 工厂与会话 reader 均覆盖 OpenCode 恢复路径。
+        // adapter 工厂与会话 reader 覆盖所有可恢复的内置工具。
         #expect(deps.adapter(for: "codex") != nil)
         #expect(deps.adapter(for: "claude-code") != nil)
         #expect(deps.adapter(for: "vscode") != nil)
@@ -23,12 +23,14 @@ struct AppDependenciesTests {
         #expect(deps.adapter(for: "kimi") != nil)
         #expect(deps.adapter(for: "opencode") != nil)
         #expect(deps.adapter(for: "gemini-cli") != nil)
+        #expect(deps.adapter(for: "github-copilot") != nil)
         #expect(deps.sessionReader(forToolId: "opencode")?.toolId == "opencode")
         #expect(deps.sessionReader(forToolId: "gemini-cli")?.toolId == "gemini-cli")
+        #expect(deps.sessionReader(forToolId: "github-copilot")?.toolId == "github-copilot")
     }
 
-    @Test("existing catalogs receive Gemini once and respect later deletion")
-    func migratesGeminiDefaultOnce() throws {
+    @Test("existing catalogs receive new defaults once and respect later deletion")
+    func migratesNewDefaultsOnce() throws {
         let container = try Self.inMemoryContainer()
         let context = container.mainContext
         let project = Project(stableId: "stable", name: "P", path: "/tmp/P")
@@ -48,10 +50,17 @@ struct AppDependenciesTests {
         let migrated = try #require(
             try context.fetch(FetchDescriptor<Tool>()).first { $0.name == "Gemini CLI" }
         )
+        let migratedCopilot = try #require(
+            try context.fetch(FetchDescriptor<Tool>()).first {
+                $0.name == "GitHub Copilot CLI"
+            }
+        )
         #expect(migrated.projects.map(\.stableId) == ["stable"])
-        #expect(try context.fetchCount(FetchDescriptor<Tool>()) == 2)
+        #expect(migratedCopilot.projects.map(\.stableId) == ["stable"])
+        #expect(try context.fetchCount(FetchDescriptor<Tool>()) == 3)
 
         context.delete(migrated)
+        context.delete(migratedCopilot)
         try context.save()
         _ = AppDependencies(modelContainer: container, preferences: preferences)
 

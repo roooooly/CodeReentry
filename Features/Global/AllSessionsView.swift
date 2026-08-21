@@ -222,7 +222,7 @@ struct AllSessionsView: View {
                     ContentUnavailableView(
                         String(localized: "尚无会话索引"),
                         systemImage: "bubble.left.and.bubble.right",
-                        description: Text(String(localized: "点击刷新以扫描 Claude Code、Codex、ZCode、OpenCode、Gemini CLI 与可用的 Kimi 本地元数据。"))
+                        description: Text(String(localized: "点击刷新以扫描 Claude Code、Codex、ZCode、OpenCode、Gemini CLI、GitHub Copilot CLI 与可用的 Kimi 本地元数据。"))
                     )
                 } else if filteredSessions.isEmpty {
                     VStack(spacing: 12) {
