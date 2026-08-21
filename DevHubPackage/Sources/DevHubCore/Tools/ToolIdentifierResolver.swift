@@ -11,6 +11,7 @@ public enum ToolIdentifierResolver {
             return "github-copilot"
         case "aider chat": return "aider"
         case "cline cli": return "cline"
+        case "goose cli": return "goose"
         case "open code": return "opencode"
         case "vs code": return "vscode"
         case "z code": return "zcode"
@@ -23,7 +24,7 @@ public enum ToolIdentifierResolver {
         let name = canonical(tool.name)
         if [
             "codex", "claude-code", "gemini-cli", "github-copilot", "vscode",
-            "zcode", "kimi", "opencode", "aider", "cline"
+            "zcode", "kimi", "opencode", "aider", "cline", "goose"
         ].contains(name) {
             return name
         }
@@ -41,6 +42,7 @@ public enum ToolIdentifierResolver {
         if command == "opencode" || command.hasSuffix("/opencode") { return "opencode" }
         if command == "aider" || command.hasSuffix("/aider") { return "aider" }
         if command == "cline" || command.hasSuffix("/cline") { return "cline" }
+        if command == "goose" || command.hasSuffix("/goose") { return "goose" }
         if command.contains("visual studio code.app") || command.hasSuffix("/code") { return "vscode" }
         if command.contains("kimi.app") { return "kimi" }
         return name

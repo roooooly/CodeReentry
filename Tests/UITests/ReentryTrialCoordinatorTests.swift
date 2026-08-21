@@ -120,6 +120,17 @@ struct ReentryTrialCoordinatorTests {
         #expect(coordinator.activeTrial?.tool == .cline)
     }
 
+    @Test("Goose sessions participate in the local evidence schema")
+    func acceptsGoose() throws {
+        let coordinator = ReentryTrialCoordinator(store: ReentryTrialStore(fileURL: nil))
+        try coordinator.start(
+            projectStableID: "project",
+            toolIdentifier: "goose-cli",
+            sessionStartedAt: Date()
+        )
+        #expect(coordinator.activeTrial?.tool == .goose)
+    }
+
     @Test("deleting evidence clears completed records and an active timer")
     func deletesEvidence() async throws {
         var current = Date(timeIntervalSince1970: 1_700_000_000)

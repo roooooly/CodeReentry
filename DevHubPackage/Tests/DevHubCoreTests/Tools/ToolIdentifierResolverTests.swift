@@ -10,6 +10,7 @@ struct ToolIdentifierResolverTests {
         #expect(ToolIdentifierResolver.canonical("VS Code") == "vscode")
         #expect(ToolIdentifierResolver.canonical("Aider Chat") == "aider")
         #expect(ToolIdentifierResolver.canonical("Cline CLI") == "cline")
+        #expect(ToolIdentifierResolver.canonical("Goose CLI") == "goose")
         #expect(ToolIdentifierResolver.canonical("Gemini") == "gemini-cli")
         #expect(ToolIdentifierResolver.canonical("GitHub Copilot CLI") == "github-copilot")
     }
@@ -51,5 +52,15 @@ struct ToolIdentifierResolverTests {
             workingDirMode: .projectRoot, injectionMode: .cliFlag, sortOrder: 0
         )
         #expect(ToolIdentifierResolver.identifier(for: tool) == "cline")
+    }
+
+    @Test("renamed Goose tool remains identifiable from its executable")
+    func renamedGooseUsesExecutable() {
+        let tool = Tool(
+            name: "Local agent", kind: .cli,
+            launchCommand: "/opt/tools/goose --debug",
+            workingDirMode: .projectRoot, injectionMode: .cliFlag, sortOrder: 0
+        )
+        #expect(ToolIdentifierResolver.identifier(for: tool) == "goose")
     }
 }

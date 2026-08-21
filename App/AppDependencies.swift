@@ -25,6 +25,8 @@ final class AppDependencies {
         "DefaultToolCatalog.didMigrateAider.v1"
     private static let clineCatalogMigrationKey =
         "DefaultToolCatalog.didMigrateCline.v1"
+    private static let gooseCatalogMigrationKey =
+        "DefaultToolCatalog.didMigrateGoose.v1"
 
     // MARK: - Core 服务
 
@@ -173,7 +175,7 @@ final class AppDependencies {
                 ClaudeReader(), CodexReader(), ZcodeReader(), KimiReader(paths: kimiPaths),
                 OpenCodeReader(homeURL: home), GeminiReader(homeURL: home),
                 GitHubCopilotReader(homeURL: home), AiderReader(projectRoots: []),
-                ClineReader(homeURL: home)
+                ClineReader(homeURL: home), GooseReader(homeURL: home)
             ]
         }
         // A resource manager should open on a useful operating surface, not an
@@ -234,6 +236,17 @@ final class AppDependencies {
                     )
                 }
                 preferences.set(true, forKey: Self.clineCatalogMigrationKey)
+            }
+            if !preferences.bool(forKey: Self.gooseCatalogMigrationKey) {
+                let existing = try modelContainer.mainContext.fetch(FetchDescriptor<Tool>())
+                if !existing.contains(where: {
+                    ToolIdentifierResolver.matches($0, sessionToolIdentifier: "goose")
+                }) {
+                    _ = try DefaultToolCatalog.restoreDefault(
+                        named: "Goose", in: modelContainer.mainContext
+                    )
+                }
+                preferences.set(true, forKey: Self.gooseCatalogMigrationKey)
             }
         } catch {
             logger.error("初始化内置工具失败: \(error.localizedDescription, privacy: .public)")
@@ -304,6 +317,7 @@ final class AppDependencies {
         case "copilot":        return GitHubCopilotAdapter()
         case "aider":          return AiderAdapter()
         case "cline":          return ClineAdapter()
+        case "goose":          return GooseAdapter()
         default:            return nil
         }
     }

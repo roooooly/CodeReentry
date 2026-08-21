@@ -80,7 +80,7 @@ Release performance is tracked separately with a
 - Project overview, status, tags, Git state, detected scripts, and quick launchers
 - Session-first onboarding that proposes project roots from local cwd metadata before registration
 - Local session aggregation for Claude Code, Codex, ZCode, Gemini CLI, GitHub Copilot
-  CLI, OpenCode, Cline, Aider project histories, and Kimi metadata
+  CLI, OpenCode, Cline, Goose, Aider project histories, and Kimi metadata
 - Bounded streaming readers for large JSONL and Markdown histories
 - On-demand conversation loading and original-tool resume where supported
 - Explicit, local recovery measurement from session detail, with a privacy-safe evidence
@@ -110,6 +110,7 @@ Release performance is tracked separately with a
 | GitHub Copilot CLI | Yes (`session-state` events) | Bounded, on demand | Exact-ID resume (`--resume`) | No |
 | Aider | One continuing history per registered project | Bounded, on demand | Restore project history (`--restore-chat-history`) | No |
 | Cline | Yes (v3.0.56 SQLite + manifests) | Bounded, on demand | Exact-ID resume (`--id`) | No |
+| Goose | Yes (v1.46.0 shared SQLite) | Bounded text, on demand | Exact-ID resume (`--session-id`) | No |
 | VS Code | Not applicable | Not applicable | Open project | Clipboard-assisted when requested |
 
 This table describes the paths implemented in the current source. Third-party storage
@@ -156,6 +157,14 @@ per-session manifests if the database is absent. Opening a conversation reads on
 selected message document under the configured session root, rejects symbolic links and
 path escapes, keeps only bounded user/assistant text, and resumes the complete ID with
 `cline --id`. Synthetic fixtures do not count as a real recovery trial.
+
+Goose compatibility is verified against the pinned v1.46.0 sources in the
+[compatibility note](docs/goose-compatibility.md). CodeReentry opens the shared macOS
+`sessions.db` read-only, honors an absolute `GOOSE_PATH_ROOT`, and indexes only user-session
+metadata. Opening one conversation retains bounded user-visible text while excluding
+images, tool traffic, thinking, notifications, and errors. Resume passes the complete ID
+to `goose session --resume --session-id`. Synthetic fixtures do not count as a real
+recovery trial.
 
 ## Privacy boundary
 
