@@ -16,7 +16,7 @@ usage() {
     '' \
     'Accepted values:' \
     '  project slot: p1, p2, ... (anonymous; never use a project name)' \
-    '  tool: claude-code | codex | zcode | opencode | kimi | gemini-cli | github-copilot | aider | cline' \
+    '  tool: claude-code | codex | zcode | opencode | kimi | gemini-cli | github-copilot | aider | cline | goose | pi' \
     '  session age: recent | older' \
     '  outcome: correct | wrong-project | wrong-session | unusable-context | launch-failed' \
     '  reduction band: 0 | 1-29 | 30-69 | 70-99 | 100' \
@@ -75,7 +75,7 @@ ensure_data_file() {
       valid = valid && ($2 != "")
       valid = valid && ($3 ~ /^[0-9]+$/ && $3 > 0)
       valid = valid && ($4 ~ /^p[1-9][0-9]*$/)
-      valid = valid && ($5 ~ /^(claude-code|codex|zcode|opencode|kimi|gemini-cli|github-copilot|aider|cline)$/)
+      valid = valid && ($5 ~ /^(claude-code|codex|zcode|opencode|kimi|gemini-cli|github-copilot|aider|cline|goose|pi)$/)
       valid = valid && ($6 ~ /^(recent|older)$/)
       valid = valid && ($7 ~ /^[0-9]+$/ && $7 > 0)
       valid = valid && ($8 ~ /^[0-9]+$/ && $8 > 0)
@@ -130,7 +130,7 @@ record_trial() {
       ;;
     *) fail 'project slot must be an anonymous value such as p1 or p2' ;;
   esac
-  validate_enum tool "$devhub_tool" claude-code codex zcode opencode kimi gemini-cli github-copilot aider cline
+  validate_enum tool "$devhub_tool" claude-code codex zcode opencode kimi gemini-cli github-copilot aider cline goose pi
   validate_enum 'session age' "$devhub_session_age" recent older
   validate_positive_integer 'baseline seconds' "$devhub_baseline_seconds"
   validate_positive_integer 'DevHub seconds' "$devhub_elapsed_seconds"

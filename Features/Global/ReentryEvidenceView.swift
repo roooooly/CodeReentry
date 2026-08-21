@@ -445,6 +445,7 @@ private extension ReentryTrialTool {
         case .aider: "Aider"
         case .cline: "Cline"
         case .goose: "Goose"
+        case .pi: "Pi"
         }
     }
 }

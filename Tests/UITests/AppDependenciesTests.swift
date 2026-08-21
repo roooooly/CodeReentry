@@ -28,12 +28,14 @@ struct AppDependenciesTests {
         #expect(deps.adapter(for: "aider") != nil)
         #expect(deps.adapter(for: "cline") != nil)
         #expect(deps.adapter(for: "goose") != nil)
+        #expect(deps.adapter(for: "pi") != nil)
         #expect(deps.sessionReader(forToolId: "opencode")?.toolId == "opencode")
         #expect(deps.sessionReader(forToolId: "gemini-cli")?.toolId == "gemini-cli")
         #expect(deps.sessionReader(forToolId: "github-copilot")?.toolId == "github-copilot")
         #expect(deps.sessionReader(forToolId: "aider")?.toolId == "aider")
         #expect(deps.sessionReader(forToolId: "cline")?.toolId == "cline")
         #expect(deps.sessionReader(forToolId: "goose")?.toolId == "goose")
+        #expect(deps.sessionReader(forToolId: "pi")?.toolId == "pi")
     }
 
     @Test("Aider reader follows current registered roots but preserves test injection")
@@ -95,18 +97,23 @@ struct AppDependenciesTests {
         let migratedGoose = try #require(
             try context.fetch(FetchDescriptor<Tool>()).first { $0.name == "Goose" }
         )
+        let migratedPi = try #require(
+            try context.fetch(FetchDescriptor<Tool>()).first { $0.name == "Pi" }
+        )
         #expect(migrated.projects.map(\.stableId) == ["stable"])
         #expect(migratedCopilot.projects.map(\.stableId) == ["stable"])
         #expect(migratedAider.projects.map(\.stableId) == ["stable"])
         #expect(migratedCline.projects.map(\.stableId) == ["stable"])
         #expect(migratedGoose.projects.map(\.stableId) == ["stable"])
-        #expect(try context.fetchCount(FetchDescriptor<Tool>()) == 6)
+        #expect(migratedPi.projects.map(\.stableId) == ["stable"])
+        #expect(try context.fetchCount(FetchDescriptor<Tool>()) == 7)
 
         context.delete(migrated)
         context.delete(migratedCopilot)
         context.delete(migratedAider)
         context.delete(migratedCline)
         context.delete(migratedGoose)
+        context.delete(migratedPi)
         try context.save()
         _ = AppDependencies(modelContainer: container, preferences: preferences)
 

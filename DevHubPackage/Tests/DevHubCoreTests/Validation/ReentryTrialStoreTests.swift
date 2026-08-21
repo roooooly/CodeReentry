@@ -4,6 +4,12 @@ import Testing
 
 @Suite("ReentryTrialStore")
 struct ReentryTrialStoreTests {
+    @Test("recognizes Pi evidence aliases")
+    func piAliases() {
+        #expect(ReentryTrialTool(sessionToolIdentifier: "pi") == .pi)
+        #expect(ReentryTrialTool(sessionToolIdentifier: "pi-coding-agent") == .pi)
+    }
+
     @Test("anonymous project slots are deterministic and contain no source identifier")
     func anonymousSlot() {
         let source = "project-stable-secret-value"

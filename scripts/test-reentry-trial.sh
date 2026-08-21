@@ -122,10 +122,22 @@ DEVHUB_REENTRY_DATA_FILE="$devhub_new_tools_file" DEVHUB_REENTRY_NOW_EPOCH=17000
     --project-slot p4 --tool cline --session-age older \
     --baseline-seconds 120 --devhub-seconds 45 --outcome correct \
     --reduction-band 70-99 --cross-project no --failure none >/dev/null
-test "$(wc -l < "$devhub_new_tools_file" | tr -d ' ')" -eq 5
+DEVHUB_REENTRY_DATA_FILE="$devhub_new_tools_file" DEVHUB_REENTRY_NOW_EPOCH=1700000004 \
+  "$devhub_recorder" record \
+    --project-slot p5 --tool goose --session-age recent \
+    --baseline-seconds 120 --devhub-seconds 45 --outcome correct \
+    --reduction-band 70-99 --cross-project no --failure none >/dev/null
+DEVHUB_REENTRY_DATA_FILE="$devhub_new_tools_file" DEVHUB_REENTRY_NOW_EPOCH=1700000005 \
+  "$devhub_recorder" record \
+    --project-slot p6 --tool pi --session-age older \
+    --baseline-seconds 120 --devhub-seconds 45 --outcome correct \
+    --reduction-band 70-99 --cross-project no --failure none >/dev/null
+test "$(wc -l < "$devhub_new_tools_file" | tr -d ' ')" -eq 7
 grep -q ',gemini-cli,' "$devhub_new_tools_file"
 grep -q ',github-copilot,' "$devhub_new_tools_file"
 grep -q ',aider,' "$devhub_new_tools_file"
 grep -q ',cline,' "$devhub_new_tools_file"
+grep -q ',goose,' "$devhub_new_tools_file"
+grep -q ',pi,' "$devhub_new_tools_file"
 
 printf '%s\n' 'reentry-trial tests: passed'
