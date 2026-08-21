@@ -127,6 +127,7 @@
 "读取 ~/.claude/ 等点目录通常无需授权。仅当项目位于 ~/Desktop / ~/Documents / ~/Downloads 时才触发。若被拒，请到「系统设置 → 隐私与安全性 → 完全磁盘访问」手动添加 CodeReentry。" = "Reading dot folders such as ~/.claude usually needs no prompt. Projects under Desktop, Documents, or Downloads may trigger macOS access control. If denied, add CodeReentry under System Settings → Privacy & Security → Full Disk Access.";
 "项目详情 6 个 tab" = "Six Project Detail Tabs";
 "工具" = "Tools";
+"可用工具" = "Available tools";
 "会话" = "Sessions";
 "记忆" = "Memory";
 "订阅" = "Subscriptions";
@@ -772,6 +773,7 @@
 "将调用 %@ / %@。MCP server 可能读写文件、访问网络或启动进程，请确认参数与 server 来源可信。" = "CodeReentry will call %1$@ / %2$@. An MCP server may read or write files, access the network, or launch processes. Confirm that you trust the arguments and server source.";
 "工作目录不存在：%@" = "Working directory does not exist: %@";
 "工具 %lld 个" = "%lld tools";
+"可用工具 %lld 个" = "%lld available tools";
 "工具 %@ 的启动适配器不可用。" = "No launcher adapter is available for %@.";
 "已保存：%@" = "Saved to: %@";
 "已加载备份（v%lld）" = "Backup loaded (v%lld)";

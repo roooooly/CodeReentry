@@ -27,6 +27,7 @@ struct ProjectCardData: Identifiable, Equatable {
     let status: ProjectStatus
     let version: String
     let pathAvailable: Bool
+    /// 已启用且在本机探测为可运行的工具数量。
     let toolCount: Int
     let sessionCount: Int
     /// 月度订阅成本（按币种），如 ["USD": 20, "CNY": 68]。
@@ -170,7 +171,7 @@ struct ProjectCardView: View {
 
     private var statsRow: some View {
         HStack(spacing: 10) {
-            stat(value: "\(data.toolCount)", label: String(localized: "工具"),
+            stat(value: "\(data.toolCount)", label: String(localized: "可用工具"),
                  systemImage: "wrench.and.screwdriver")
             stat(value: "\(data.sessionCount)", label: String(localized: "会话"),
                  systemImage: "bubble.left.and.bubble.right")
@@ -275,7 +276,7 @@ struct ProjectCardView: View {
         var parts = [String(localized: "项目卡片 \(data.name)")]
         parts.append(data.status.title)
         if !data.version.isEmpty { parts.append(String(localized: "版本 \(data.version)")) }
-        parts.append(String(localized: "工具 \(data.toolCount) 个"))
+        parts.append(String(localized: "可用工具 \(data.toolCount) 个"))
         parts.append(String(localized: "会话 \(data.sessionCount) 条"))
         if !data.pathAvailable { parts.append(String(localized: "项目路径已失效")) }
         return ListFormatter.localizedString(byJoining: parts)

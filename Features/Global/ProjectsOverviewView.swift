@@ -156,6 +156,20 @@ final class ProjectsOverviewViewModel {
         // "Latest" means the latest session that can actually be resumed. If
         // none is ready, retain the newest candidate so the card can explain why.
         let latestSession = resumeTargets.first { $0.readiness == .ready } ?? resumeTargets.first
+        let detector = ToolDetector()
+        let availableToolCount = project.tools
+            .filter(\.enabled)
+            .filter { tool in
+                if case .found = detector.probe(
+                    executableHint: nil,
+                    detectPath: tool.detectPath,
+                    launchCommand: tool.launchCommand
+                ) {
+                    return true
+                }
+                return false
+            }
+            .count
         return ProjectCardData(
             id: project.id,
             stableId: project.stableId,
@@ -165,7 +179,7 @@ final class ProjectsOverviewViewModel {
             status: project.statusEnum,
             version: project.versionString,
             pathAvailable: pathOK,
-            toolCount: project.tools.filter(\.enabled).count,
+            toolCount: availableToolCount,
             sessionCount: project.sessions.count,
             monthlyCostByCurrency: monthly,
             lastActivityAt: lastActivity,
