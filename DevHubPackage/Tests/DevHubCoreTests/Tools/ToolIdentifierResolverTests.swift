@@ -8,6 +8,7 @@ struct ToolIdentifierResolverTests {
         #expect(ToolIdentifierResolver.canonical("claude") == "claude-code")
         #expect(ToolIdentifierResolver.canonical("Open Code") == "opencode")
         #expect(ToolIdentifierResolver.canonical("VS Code") == "vscode")
+        #expect(ToolIdentifierResolver.canonical("Aider Chat") == "aider")
         #expect(ToolIdentifierResolver.canonical("Gemini") == "gemini-cli")
         #expect(ToolIdentifierResolver.canonical("GitHub Copilot CLI") == "github-copilot")
     }

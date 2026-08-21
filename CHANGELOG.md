@@ -5,6 +5,9 @@ published a signed public binary.
 
 ## Unreleased
 
+- Add bounded, read-only Aider project-history discovery and conversation viewing for
+  exact registered roots, plus `--restore-chat-history` continuation without following
+  symbolic links or scanning unrelated home-directory content.
 - Add bounded, read-only OpenCode conversation inspection for the selected session,
   including text and tool calls while excluding reasoning and execution bookkeeping.
 - Show project-card tool counts only for enabled tools that are actually available on

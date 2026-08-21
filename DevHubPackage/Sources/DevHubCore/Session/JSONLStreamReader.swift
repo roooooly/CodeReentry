@@ -31,6 +31,7 @@ public enum JSONLStreamReader {
         byteLimit: UInt64? = nil,
         chunkSize: Int = defaultChunkSize,
         maximumLineBytes: Int = defaultMaximumLineBytes,
+        includeEmptyLines: Bool = false,
         _ body: (Data) throws -> Bool
     ) throws -> ReadResult {
         precondition(chunkSize > 0)
@@ -85,7 +86,7 @@ public enum JSONLStreamReader {
                 let lineLength = buffer.distance(from: lineStart, to: lineEnd)
                 if lineLength > maximumLineBytes {
                     skippedOversizedLines += 1
-                } else if lineLength > 0 {
+                } else if lineLength > 0 || includeEmptyLines {
                     let line = Data(buffer[lineStart..<lineEnd])
                     let shouldContinue = try autoreleasepool { try body(line) }
                     if !shouldContinue {

@@ -25,9 +25,35 @@ struct AppDependenciesTests {
         #expect(deps.adapter(for: "opencode") != nil)
         #expect(deps.adapter(for: "gemini-cli") != nil)
         #expect(deps.adapter(for: "github-copilot") != nil)
+        #expect(deps.adapter(for: "aider") != nil)
         #expect(deps.sessionReader(forToolId: "opencode")?.toolId == "opencode")
         #expect(deps.sessionReader(forToolId: "gemini-cli")?.toolId == "gemini-cli")
         #expect(deps.sessionReader(forToolId: "github-copilot")?.toolId == "github-copilot")
+        #expect(deps.sessionReader(forToolId: "aider")?.toolId == "aider")
+    }
+
+    @Test("Aider reader follows current registered roots but preserves test injection")
+    func buildsAiderReaderFromRegistry() throws {
+        let container = try Self.inMemoryContainer()
+        let registered = Project(stableId: "aider-project", name: "Aider Project", path: "/tmp/Aider")
+        let invalid = Project(stableId: "relative", name: "Relative", path: "relative/path")
+        container.mainContext.insert(registered)
+        container.mainContext.insert(invalid)
+        try container.mainContext.save()
+
+        let live = AppDependencies(modelContainer: container)
+        let liveReader = try #require(live.sessionReader(forToolId: "aider") as? AiderReader)
+        #expect(liveReader.projectRoots.map(\.path) == ["/tmp/Aider"])
+
+        let injectedRoot = URL(fileURLWithPath: "/tmp/Injected-Aider", isDirectory: true)
+        let injected = AppDependencies(
+            modelContainer: container,
+            sessionReaders: [AiderReader(projectRoots: [injectedRoot])]
+        )
+        let injectedReader = try #require(
+            injected.sessionReader(forToolId: "aider") as? AiderReader
+        )
+        #expect(injectedReader.projectRoots.map(\.path) == ["/tmp/Injected-Aider"])
     }
 
     @Test("existing catalogs receive new defaults once and respect later deletion")
@@ -56,12 +82,17 @@ struct AppDependenciesTests {
                 $0.name == "GitHub Copilot CLI"
             }
         )
+        let migratedAider = try #require(
+            try context.fetch(FetchDescriptor<Tool>()).first { $0.name == "Aider" }
+        )
         #expect(migrated.projects.map(\.stableId) == ["stable"])
         #expect(migratedCopilot.projects.map(\.stableId) == ["stable"])
-        #expect(try context.fetchCount(FetchDescriptor<Tool>()) == 3)
+        #expect(migratedAider.projects.map(\.stableId) == ["stable"])
+        #expect(try context.fetchCount(FetchDescriptor<Tool>()) == 4)
 
         context.delete(migrated)
         context.delete(migratedCopilot)
+        context.delete(migratedAider)
         try context.save()
         _ = AppDependencies(modelContainer: container, preferences: preferences)
 

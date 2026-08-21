@@ -8,6 +8,7 @@ public enum ReentryTrialTool: String, CaseIterable, Sendable {
     case kimi
     case geminiCLI = "gemini-cli"
     case githubCopilot = "github-copilot"
+    case aider
 
     public init?(sessionToolIdentifier: String) {
         switch sessionToolIdentifier.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() {
@@ -18,6 +19,7 @@ public enum ReentryTrialTool: String, CaseIterable, Sendable {
         case "kimi": self = .kimi
         case "gemini", "gemini-cli": self = .geminiCLI
         case "copilot", "github-copilot", "github-copilot-cli": self = .githubCopilot
+        case "aider", "aider-chat": self = .aider
         default: return nil
         }
     }

@@ -29,6 +29,24 @@ struct JSONLStreamReaderTests {
         #expect(result.reachedEndOfFile)
     }
 
+    @Test("空行默认跳过，Markdown 调用可显式保留")
+    func optionallyIncludesEmptyLines() throws {
+        let file = try write("first\n\nsecond\n")
+        var defaultLines: [String] = []
+        _ = try JSONLStreamReader.forEachLine(at: file) { data in
+            defaultLines.append(String(decoding: data, as: UTF8.self))
+            return true
+        }
+        var markdownLines: [String] = []
+        _ = try JSONLStreamReader.forEachLine(at: file, includeEmptyLines: true) { data in
+            markdownLines.append(String(decoding: data, as: UTF8.self))
+            return true
+        }
+
+        #expect(defaultLines == ["first", "second"])
+        #expect(markdownLines == ["first", "", "second"])
+    }
+
     @Test("尾部扫描丢弃起始位置的半行")
     func tailScanDropsPartialFirstLine() throws {
         let file = try write("partial line\nkept\n")
