@@ -10,6 +10,8 @@ published a signed public binary.
 - Add a session-first onboarding path that infers recent project roots from bounded local
   cwd metadata, requires confirmation, and links cached unclassified sessions immediately.
 - Preserve manual folder setup and explicit, on-demand scanning as the privacy-safe fallback.
+- Bound MCP timeout cleanup even when a hostile descendant inherits a transport pipe and
+  ignores graceful termination.
 
 ## 0.3.0 - 2026-08-21
 

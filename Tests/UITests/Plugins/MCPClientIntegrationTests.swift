@@ -161,12 +161,15 @@ struct MCPClientIntegrationTests {
             handshakeTimeout: 5
         )
 
+        let startedAt = ContinuousClock.now
         await client.start()
+        let elapsed = ContinuousClock.now - startedAt
 
         guard case .degraded = client.status else {
             Issue.record("无响应 server 应在握手超时后进入 degraded，实际为 \(client.status)")
             return
         }
+        #expect(elapsed < .seconds(15))
         let childPIDText = try String(contentsOf: childPIDFile, encoding: .utf8)
             .trimmingCharacters(in: .whitespacesAndNewlines)
         let childPID = try #require(Int32(childPIDText))

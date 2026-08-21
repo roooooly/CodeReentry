@@ -33,6 +33,8 @@ final class ProcessTransport: @unchecked Sendable {
     let process: Process
     private let stdinPipe: Pipe
     private let stdoutPipe: Pipe
+    private let terminationLock = NSLock()
+    private var terminationStarted = false
 
     /// 子进程 stdin 对应的 FileDescriptor（写入端 → 传给 StdioTransport 的 output）
     /// 子进程 stdout 对应的 FileDescriptor（读取端 → 传给 StdioTransport 的 input）
@@ -115,6 +117,13 @@ final class ProcessTransport: @unchecked Sendable {
     var isRunning: Bool { process.isRunning }
 
     func terminate(gracePeriod: TimeInterval = 0.5) async {
+        let shouldTerminate = terminationLock.withLock {
+            guard !terminationStarted else { return false }
+            terminationStarted = true
+            return true
+        }
+        guard shouldTerminate else { return }
+
         let processIdentifier = process.processIdentifier
         let descendants = Self.descendantProcessIdentifiers(of: processIdentifier)
         for identifier in descendants.reversed() {
@@ -129,16 +138,24 @@ final class ProcessTransport: @unchecked Sendable {
             }
             if process.isRunning {
                 kill(processIdentifier, SIGKILL)
-                process.waitUntilExit()
             }
         }
         for identifier in descendants where kill(identifier, 0) == 0 {
             kill(identifier, SIGKILL)
         }
-        // 只结束进程还不足以保证 SDK 的 read 立即返回：父进程仍持有 Pipe 端点。
-        // 显式关闭传输描述符，让超时后的 connect task 确定性退出。
-        try? stdinPipe.fileHandleForWriting.close()
-        try? stdoutPipe.fileHandleForReading.close()
+        // Foundation's FileHandle.close() can wait for an in-flight async read. A hostile
+        // descendant that inherited stdout used to make timeout cleanup wait until that
+        // process exited naturally. Close on utility workers: the caller returns after the
+        // bounded signal grace period, while the SDK read still receives EOF as soon as the
+        // handles finish closing. Strong handle captures also avoid a deinit/double-close race.
+        let inputHandle = stdinPipe.fileHandleForWriting
+        let outputHandle = stdoutPipe.fileHandleForReading
+        DispatchQueue.global(qos: .utility).async {
+            try? inputHandle.close()
+        }
+        DispatchQueue.global(qos: .utility).async {
+            try? outputHandle.close()
+        }
     }
 
     /// MCP server 常通过 npx/node 再派生子进程。退出时只杀直接 Process 会留下孤儿，
