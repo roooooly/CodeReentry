@@ -5,6 +5,11 @@ published a signed public binary.
 
 ## Unreleased
 
+- Show project-card tool counts only for enabled tools that are actually available on
+  the current Mac, instead of presenting every bound catalog entry as usable.
+- Cross-compile and verify an `x86_64` source bundle in CI while keeping Intel-hardware
+  execution as an explicit, still-open validation boundary.
+
 ## 0.6.1 - 2026-08-21
 
 - Freeze recovery duration before opening the result form so form-entry time cannot

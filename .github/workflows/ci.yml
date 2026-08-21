@@ -38,6 +38,8 @@ jobs:
         run: ./scripts/run-source.sh --build-only
       - name: Verify safe user-level source installation
         run: ./scripts/test-source-install.sh
+      - name: Cross-compile and verify the Intel source bundle
+        run: CODEREENTRY_BUILD_ARCH=x86_64 ./scripts/run-source.sh --build-only
       - name: Install XcodeGen
         run: brew install xcodegen
       - name: Generate the Xcode project

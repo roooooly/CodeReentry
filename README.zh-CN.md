@@ -177,6 +177,11 @@ cd CodeReentry
 `--build-only` 可以只构建、不启动；与 `--install` 组合时会安装但不启动。首次构建需要
 解析和编译 Swift 依赖，可能需要几分钟。
 
+CI 还会在 Apple Silicon 上交叉编译并校验 Intel slice。你可以运行
+`CODEREENTRY_BUILD_ARCH=x86_64 ./scripts/run-source.sh --build-only` 执行同样的编译检查。
+这只能证明当前源码和依赖能够产出 `x86_64` 应用包，不能替代
+[issue #4](https://github.com/roooooly/CodeReentry/issues/4) 所需的 Intel 真机运行验证。
+
 首次启动时，选择**从会话发现项目**是获得价值最短的路径。CodeReentry 只在你点击后
 执行一次元数据扫描，最多提出 20 个最近项目根目录，并在注册任何内容前等待确认。
 如果更愿意按目录设置，仍可选择**手动选择目录**。
