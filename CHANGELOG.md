@@ -5,6 +5,8 @@ published a signed public binary.
 
 ## Unreleased
 
+- Add bounded, read-only Pi v0.84.2 JSONL discovery and active-branch text inspection,
+  plus exact-file recovery with `pi --session <absolute-session-path>`.
 - Add bounded, read-only Goose v1.46.0 user-session discovery and on-demand text-only
   conversation inspection, plus exact `goose session --resume --session-id <id>` recovery.
 - Add bounded, read-only Cline CLI v3.0.56 root-session discovery from its SQLite

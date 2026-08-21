@@ -80,7 +80,7 @@ Release performance is tracked separately with a
 - Project overview, status, tags, Git state, detected scripts, and quick launchers
 - Session-first onboarding that proposes project roots from local cwd metadata before registration
 - Local session aggregation for Claude Code, Codex, ZCode, Gemini CLI, GitHub Copilot
-  CLI, OpenCode, Cline, Goose, Aider project histories, and Kimi metadata
+  CLI, OpenCode, Cline, Goose, Pi, Aider project histories, and Kimi metadata
 - Bounded streaming readers for large JSONL and Markdown histories
 - On-demand conversation loading and original-tool resume where supported
 - Explicit, local recovery measurement from session detail, with a privacy-safe evidence
@@ -111,6 +111,7 @@ Release performance is tracked separately with a
 | Aider | One continuing history per registered project | Bounded, on demand | Restore project history (`--restore-chat-history`) | No |
 | Cline | Yes (v3.0.56 SQLite + manifests) | Bounded, on demand | Exact-ID resume (`--id`) | No |
 | Goose | Yes (v1.46.0 shared SQLite) | Bounded text, on demand | Exact-ID resume (`--session-id`) | No |
+| Pi | Yes (v0.84.2 project JSONL) | Bounded active-branch text | Exact-file resume (`--session`) | No |
 | VS Code | Not applicable | Not applicable | Open project | Clipboard-assisted when requested |
 
 This table describes the paths implemented in the current source. Third-party storage
@@ -165,6 +166,15 @@ metadata. Opening one conversation retains bounded user-visible text while exclu
 images, tool traffic, thinking, notifications, and errors. Resume passes the complete ID
 to `goose session --resume --session-id`. Synthetic fixtures do not count as a real
 recovery trial.
+
+Pi compatibility is verified against the pinned v0.84.2 sources in the
+[compatibility note](docs/pi-compatibility.md). CodeReentry scans only ordinary JSONL
+files under the default `~/.pi/agent/sessions/` tree or an absolute
+`PI_CODING_AGENT_SESSION_DIR`, reads only each header during discovery, and validates the
+stored cwd before project binding. Opening one conversation follows the active parent
+chain and retains bounded user/assistant text while excluding images, thinking, tool
+traffic, extension messages, and summaries. Resume passes the discovered absolute file
+path to `pi --session`. Synthetic fixtures do not count as a real recovery trial.
 
 ## Privacy boundary
 

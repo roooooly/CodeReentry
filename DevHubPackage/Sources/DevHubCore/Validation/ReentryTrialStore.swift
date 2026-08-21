@@ -11,6 +11,7 @@ public enum ReentryTrialTool: String, CaseIterable, Sendable {
     case aider
     case cline
     case goose
+    case pi
 
     public init?(sessionToolIdentifier: String) {
         switch sessionToolIdentifier.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() {
@@ -24,6 +25,7 @@ public enum ReentryTrialTool: String, CaseIterable, Sendable {
         case "aider", "aider-chat": self = .aider
         case "cline", "cline-cli": self = .cline
         case "goose", "goose-cli": self = .goose
+        case "pi", "pi-coding-agent": self = .pi
         default: return nil
         }
     }

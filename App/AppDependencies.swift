@@ -27,6 +27,8 @@ final class AppDependencies {
         "DefaultToolCatalog.didMigrateCline.v1"
     private static let gooseCatalogMigrationKey =
         "DefaultToolCatalog.didMigrateGoose.v1"
+    private static let piCatalogMigrationKey =
+        "DefaultToolCatalog.didMigratePi.v1"
 
     // MARK: - Core 服务
 
@@ -175,7 +177,7 @@ final class AppDependencies {
                 ClaudeReader(), CodexReader(), ZcodeReader(), KimiReader(paths: kimiPaths),
                 OpenCodeReader(homeURL: home), GeminiReader(homeURL: home),
                 GitHubCopilotReader(homeURL: home), AiderReader(projectRoots: []),
-                ClineReader(homeURL: home), GooseReader(homeURL: home)
+                ClineReader(homeURL: home), GooseReader(homeURL: home), PiReader(homeURL: home)
             ]
         }
         // A resource manager should open on a useful operating surface, not an
@@ -248,6 +250,17 @@ final class AppDependencies {
                 }
                 preferences.set(true, forKey: Self.gooseCatalogMigrationKey)
             }
+            if !preferences.bool(forKey: Self.piCatalogMigrationKey) {
+                let existing = try modelContainer.mainContext.fetch(FetchDescriptor<Tool>())
+                if !existing.contains(where: {
+                    ToolIdentifierResolver.matches($0, sessionToolIdentifier: "pi")
+                }) {
+                    _ = try DefaultToolCatalog.restoreDefault(
+                        named: "Pi", in: modelContainer.mainContext
+                    )
+                }
+                preferences.set(true, forKey: Self.piCatalogMigrationKey)
+            }
         } catch {
             logger.error("初始化内置工具失败: \(error.localizedDescription, privacy: .public)")
         }
@@ -318,6 +331,7 @@ final class AppDependencies {
         case "aider":          return AiderAdapter()
         case "cline":          return ClineAdapter()
         case "goose":          return GooseAdapter()
+        case "pi":             return PiAdapter()
         default:            return nil
         }
     }
