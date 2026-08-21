@@ -5,6 +5,21 @@ published a signed public binary.
 
 ## Unreleased
 
+## 0.5.0 - 2026-08-21
+
+- Add an isolated demo that lets cautious users inspect the complete recovery flow with
+  synthetic, disposable data before granting access to local projects or sessions.
+- Keep demo mode outside the normal database and preferences, disable local readers,
+  usage scans, plugins, MCP servers, Git subprocesses, and external tool launches, and
+  remove its temporary workspace when the app exits.
+- Add bounded GitHub Copilot CLI session discovery, conversation viewing, and exact-ID
+  resume from documented `session-state` events while excluding reasoning, system
+  prompts, streaming deltas, subagents, and symbolic links.
+- Show the explicit scan, bounded conversation inspection, and original-tool continue
+  path in both repository languages with synthetic snapshots.
+- Prevent a transient session-detail loading state from replacing already available
+  conversation content.
+
 ## 0.4.0 - 2026-08-21
 
 - Add bounded, read-only Gemini CLI session discovery, on-demand conversation viewing,

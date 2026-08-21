@@ -29,7 +29,7 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-7D1727" alt="MIT 许可证"></a>
 </p>
 
-> **源码 Beta：**当前源码版本为 v0.4.0。CodeReentry 暂时没有经过 Developer ID 签名和
+> **源码 Beta：**当前源码版本为 v0.5.0。CodeReentry 暂时没有经过 Developer ID 签名和
 > Apple 公证的公开安装包。
 > 当前请从源码构建体验，不要安装非官方镜像提供的二进制文件。只有满足
 > [RELEASE.md](RELEASE.md) 中的签名与公证条件后，才会提供公开下载。
