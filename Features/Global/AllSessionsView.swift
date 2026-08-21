@@ -209,7 +209,7 @@ struct AllSessionsView: View {
     @State private var viewModel = AllSessionsViewModel()
     @State private var isRefreshing = false
     @State private var statusMessage: String?
-    @State private var errorMessage: String?
+    @State private var launchFailure: TerminalLaunchFailure?
     @State private var detailSession: GlobalSessionItem?
 
     var body: some View {
@@ -241,13 +241,11 @@ struct AllSessionsView: View {
         .onReceive(NotificationCenter.default.publisher(for: SidebarViewModel.projectsChangedNotification)) { _ in
             viewModel.load(from: deps.modelContainer)
         }
-        .alert(
-            String(localized: "会话操作失败"),
-            isPresented: Binding(get: { errorMessage != nil }, set: { if !$0 { errorMessage = nil } })
+        .terminalLaunchRecoveryAlert(
+            failure: $launchFailure,
+            fallbackTitle: String(localized: "会话操作失败")
         ) {
-            Button(String(localized: "好")) { errorMessage = nil }
-        } message: {
-            Text(errorMessage ?? "")
+            statusMessage = String(localized: "一次性恢复命令已复制。请粘贴到 Terminal 后回车。")
         }
         .sheet(item: $detailSession) { session in
             SessionDetailView(
@@ -406,7 +404,7 @@ struct AllSessionsView: View {
             statusMessage = String(localized: "已更新 \(viewModel.totalSessionCount) 个会话")
         } catch {
             viewModel.load(from: deps.modelContainer)
-            errorMessage = error.localizedDescription
+            launchFailure = TerminalLaunchFailure(error)
             statusMessage = nil
         }
         isRefreshing = false
@@ -418,7 +416,7 @@ struct AllSessionsView: View {
             try await viewModel.assign(session, to: project, in: deps.modelContainer)
             statusMessage = String(localized: "已将会话归类到“\(project.name)”")
         } catch {
-            errorMessage = error.localizedDescription
+            launchFailure = TerminalLaunchFailure(error)
         }
     }
 
@@ -453,7 +451,7 @@ struct AllSessionsView: View {
                 ? String(localized: "已打开 Kimi（未恢复指定会话）")
                 : String(localized: "已在原工具中打开")
         } catch {
-            errorMessage = error.localizedDescription
+            launchFailure = TerminalLaunchFailure(error)
         }
     }
 

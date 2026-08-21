@@ -377,8 +377,9 @@ final class ToolsTabViewModel {
     private func dispatch(instance: ToolInstance, deps: AppDependencies) async throws {
         switch instance {
         case .cli(let launcherPath):
-            // 通过 AppleScript 在 Terminal 中执行 launcher（0700）。executor 注入点使测试不真启 Terminal。
-            _ = try await deps.terminalController.execute(terminal: .terminal, launcherPath: launcherPath)
+            // 与会话恢复共用同一受保护路径；Automation 被拒时保留一次性
+            // launcher，让所有入口都能提供相同的手动恢复命令。
+            try await deps.executeCLI(launcherPath: launcherPath)
         case .gui:
             // GUI 工具走 openGuiProject 路径；此处不应到达
             break

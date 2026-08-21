@@ -337,9 +337,46 @@ final class AppDependencies {
         let instance = try await adapter.resume(sessionId: sessionId, ctx: context)
         switch instance {
         case .cli(let launcherPath):
-            _ = try await terminalController.execute(terminal: .terminal, launcherPath: launcherPath)
+            try await executeCLI(launcherPath: launcherPath)
         case .gui(let bundleId):
             try await guiLauncher.launchApp(bundleId: bundleId, projectPath: workingDirectory)
+        }
+    }
+
+    /// Execute an already prepared launcher through Terminal. If macOS denies
+    /// Automation, preserve the owner-only launcher and surface its exact path so
+    /// every calling UI can offer the same one-time manual fallback.
+    func executeCLI(launcherPath: String) async throws {
+        do {
+            _ = try await terminalController.execute(
+                terminal: .terminal,
+                launcherPath: launcherPath
+            )
+        } catch {
+            logger.error(
+                "Terminal automation failed; preserving managed launcher for manual recovery: \(error.localizedDescription, privacy: .private(mask: .hash))"
+            )
+            throw TerminalLaunchError.automationFailed(launcherPath: launcherPath)
+        }
+    }
+
+    /// Copy only a shell-quoted path invocation. Tool arguments, project memory,
+    /// and environment values remain inside the local 0700 launcher file.
+    func copyTerminalFallbackCommand(launcherPath: String) {
+        pasteboardHelper.write(
+            text: LauncherScriptBuilder.shared.invocationCommand(for: launcherPath)
+        )
+    }
+
+    /// The cancel path removes only a UUID-named launcher under the exact managed
+    /// cache directory. Invalid paths are ignored and logged instead of deleted.
+    func discardTerminalFallback(launcherPath: String) {
+        do {
+            try LauncherScriptBuilder.shared.discardLauncher(at: launcherPath)
+        } catch {
+            logger.error(
+                "Refused to discard unmanaged Terminal fallback: \(error.localizedDescription, privacy: .private(mask: .hash))"
+            )
         }
     }
 
@@ -470,5 +507,19 @@ enum SessionLaunchError: LocalizedError, Equatable {
         case .missingSecret(let key):
             return String(localized: "无法继续：Keychain 中未找到 \(key) 的值。")
         }
+    }
+}
+
+enum TerminalLaunchError: LocalizedError, Equatable {
+    case automationFailed(launcherPath: String)
+
+    var recoveryLauncherPath: String {
+        switch self {
+        case .automationFailed(let launcherPath): launcherPath
+        }
+    }
+
+    var errorDescription: String? {
+        String(localized: "CodeReentry 已准备好启动命令，但 macOS 未允许自动控制 Terminal。你可以复制一次性命令，粘贴到 Terminal 后回车；启动脚本执行后会自动删除。")
     }
 }

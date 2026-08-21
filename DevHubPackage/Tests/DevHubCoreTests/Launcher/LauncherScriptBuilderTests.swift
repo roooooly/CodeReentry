@@ -216,4 +216,50 @@ struct LauncherScriptBuilderTests {
             )
         }
     }
+
+    @Test("manual fallback command contains only a shell-quoted launcher path")
+    func manualFallbackCommandIsPathOnly() throws {
+        let builder = try makeBuilder()
+        let path = "/Users/example/Library/Caches/DevHub/launchers/it's safe.sh"
+
+        let command = builder.invocationCommand(for: path)
+
+        #expect(command == #"/bin/bash '/Users/example/Library/Caches/DevHub/launchers/it'\''s safe.sh'"#)
+        #expect(!command.contains("session-id"))
+        #expect(!command.contains("API_KEY"))
+    }
+
+    @Test("discard removes only a UUID launcher in the managed directory")
+    func discardManagedLauncherOnly() async throws {
+        let builder = try makeBuilder()
+        let injectionDirectory = builder.cacheRoot
+            .appendingPathComponent("injection", isDirectory: true)
+        try FileManager.default.createDirectory(
+            at: injectionDirectory, withIntermediateDirectories: true
+        )
+        let managedInjection = injectionDirectory
+            .appendingPathComponent("\(UUID().uuidString).md")
+        try Data("private context".utf8).write(to: managedInjection)
+        let outsideCompanion = FileManager.default.temporaryDirectory
+            .appendingPathComponent("outside-context-\(UUID().uuidString).md")
+        try Data("keep companion".utf8).write(to: outsideCompanion)
+        defer { try? FileManager.default.removeItem(at: outsideCompanion) }
+        let managed = try await builder.write(
+            cwd: "/tmp", executable: "/usr/bin/true", arguments: [],
+            cleanupPaths: [managedInjection.path, outsideCompanion.path]
+        )
+        let outside = FileManager.default.temporaryDirectory
+            .appendingPathComponent("outside-\(UUID().uuidString).sh")
+        try Data("keep".utf8).write(to: outside)
+        defer { try? FileManager.default.removeItem(at: outside) }
+
+        try builder.discardLauncher(at: managed)
+        #expect(!FileManager.default.fileExists(atPath: managed))
+        #expect(!FileManager.default.fileExists(atPath: managedInjection.path))
+        #expect(FileManager.default.fileExists(atPath: outsideCompanion.path))
+        #expect(throws: LauncherScriptError.unmanagedLauncher(outside.path)) {
+            try builder.discardLauncher(at: outside.path)
+        }
+        #expect(FileManager.default.fileExists(atPath: outside.path))
+    }
 }

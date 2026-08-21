@@ -5,6 +5,14 @@ published a signed public binary.
 
 ## Unreleased
 
+- Preserve an owner-only, one-time launcher when macOS blocks Terminal Automation and
+  offer a shell-quoted path command that users can paste into Terminal without putting
+  session IDs, project memory, or environment values on the clipboard.
+- Delete a declined launcher and its managed memory-injection companion immediately;
+  executed launchers still remove themselves and stale files retain the 24-hour bound.
+- Serialize streaming pipe drains with process termination so short-lived operations do
+  not lose their final stdout or stderr lines.
+
 ## 0.5.0 - 2026-08-21
 
 - Add an isolated demo that lets cautious users inspect the complete recovery flow with

@@ -23,6 +23,13 @@ CodeReentry writes its SwiftData store, preferences, indexes, and caches to the 
 user's application-support locations. Secret values are stored in macOS Keychain. A
 backup contains secret key names only, never secret values.
 
+Launching a CLI creates an owner-only (`0700`) temporary script under CodeReentry's cache.
+The script can contain shell-quoted project paths and launch environment values, so it
+deletes itself after execution. If macOS blocks Terminal Automation, the app offers a
+manual fallback whose clipboard text contains only the shell-quoted launcher path. Choosing
+Discard removes the launcher and its managed memory-injection file immediately. Abandoned
+launcher and injection files are removed when they become more than 24 hours old.
+
 ## Network behavior
 
 CodeReentry has no telemetry or analytics service. Network access can still occur when the

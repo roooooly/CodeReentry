@@ -860,3 +860,9 @@
 "正在刷新演示会话…" = "Refreshing demo sessions…";
 "已载入 %lld 条演示会话" = "%lld demo sessions loaded";
 "只重新载入内存中的合成会话，不读取本地文件" = "Reloads only synthetic sessions in memory and does not read local files";
+"无法自动打开 Terminal" = "Couldn’t open Terminal automatically";
+"复制一次性命令" = "Copy one-time command";
+"丢弃命令" = "Discard command";
+"一次性恢复命令已复制。请粘贴到 Terminal 后回车。" = "The one-time recovery command was copied. Paste it into Terminal and press Return.";
+"恢复命令已复制" = "Recovery command copied";
+"CodeReentry 已准备好启动命令，但 macOS 未允许自动控制 Terminal。你可以复制一次性命令，粘贴到 Terminal 后回车；启动脚本执行后会自动删除。" = "CodeReentry prepared the launch command, but macOS did not allow automatic Terminal control. Copy the one-time command, paste it into Terminal, and press Return; the launcher deletes itself after it runs.";

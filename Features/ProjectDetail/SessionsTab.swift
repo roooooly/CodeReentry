@@ -8,7 +8,7 @@ struct SessionsTab: View {
     @Environment(AppDependencies.self) private var deps
     @State private var viewModel = SessionsTabViewModel()
     @State private var isRefreshing = false
-    @State private var errorMessage: String?
+    @State private var launchFailure: TerminalLaunchFailure?
     @State private var statusMessage: String?
     @State private var detailSession: SessionIndex?
 
@@ -28,11 +28,11 @@ struct SessionsTab: View {
             // 项目或启动应用就扫描庞大的历史会话目录。
             viewModel.load(project: project, from: deps.modelContainer.mainContext)
         }
-        .alert(String(localized: "会话操作失败"),
-               isPresented: Binding(get: { errorMessage != nil }, set: { if !$0 { errorMessage = nil } })) {
-            Button(String(localized: "好")) { errorMessage = nil }
-        } message: {
-            Text(errorMessage ?? "")
+        .terminalLaunchRecoveryAlert(
+            failure: $launchFailure,
+            fallbackTitle: String(localized: "会话操作失败")
+        ) {
+            statusMessage = String(localized: "一次性恢复命令已复制。请粘贴到 Terminal 后回车。")
         }
         .sheet(item: $detailSession) { session in
             SessionDetailView(
@@ -179,7 +179,7 @@ struct SessionsTab: View {
             statusMessage = String(localized: "已更新 \(viewModel.allSessions.count) 个会话")
         } catch {
             viewModel.load(project: project, from: deps.modelContainer.mainContext)
-            errorMessage = error.localizedDescription
+            launchFailure = TerminalLaunchFailure(error)
             statusMessage = nil
         }
         isRefreshing = false
@@ -191,7 +191,7 @@ struct SessionsTab: View {
             try await viewModel.resumeInOriginalTool(session)
             statusMessage = String(localized: "已在原工具中打开")
         } catch {
-            errorMessage = error.localizedDescription
+            launchFailure = TerminalLaunchFailure(error)
         }
     }
 
@@ -201,7 +201,7 @@ struct SessionsTab: View {
             try await viewModel.generateSummary(for: session)
             statusMessage = String(localized: "会话总结已写入项目记忆")
         } catch {
-            errorMessage = error.localizedDescription
+            launchFailure = TerminalLaunchFailure(error)
         }
     }
 }

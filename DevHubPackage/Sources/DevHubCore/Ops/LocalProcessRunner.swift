@@ -193,43 +193,57 @@ public actor LocalProcessRunner {
 
             let stdoutAccumulator = ProcessLineAccumulator()
             let stderrAccumulator = ProcessLineAccumulator()
+            // Removing a readability handler does not wait for an invocation that
+            // is already in flight. Serialize each pipe's read/append/yield cycle
+            // with the final drain so termination cannot finish the AsyncStream
+            // before a short process's last lines are delivered.
+            let stdoutDrainLock = NSLock()
+            let stderrDrainLock = NSLock()
             stdoutPipe.fileHandleForReading.readabilityHandler = { handle in
-                let data = handle.availableData
-                if data.isEmpty { handle.readabilityHandler = nil }
-                else {
-                    for line in stdoutAccumulator.append(data) {
-                        continuation.yield(LogLine(stream: .stdout, text: line))
+                stdoutDrainLock.withLock {
+                    let data = handle.availableData
+                    if data.isEmpty { handle.readabilityHandler = nil }
+                    else {
+                        for line in stdoutAccumulator.append(data) {
+                            continuation.yield(LogLine(stream: .stdout, text: line))
+                        }
                     }
                 }
             }
             stderrPipe.fileHandleForReading.readabilityHandler = { handle in
-                let data = handle.availableData
-                if data.isEmpty { handle.readabilityHandler = nil }
-                else {
-                    for line in stderrAccumulator.append(data) {
-                        continuation.yield(LogLine(stream: .stderr, text: line))
+                stderrDrainLock.withLock {
+                    let data = handle.availableData
+                    if data.isEmpty { handle.readabilityHandler = nil }
+                    else {
+                        for line in stderrAccumulator.append(data) {
+                            continuation.yield(LogLine(stream: .stderr, text: line))
+                        }
                     }
                 }
             }
 
             process.terminationHandler = { proc in
-                // 先停回调，再主动排空剩余 pipe。短命令可能在 readabilityHandler
-                // 获得调度前就退出；只 flush accumulator 会因此丢掉全部 stdout/stderr。
+                // Stop future callbacks, then wait for any callback already reading
+                // before draining the remaining bytes and finishing the stream.
                 stdoutPipe.fileHandleForReading.readabilityHandler = nil
                 stderrPipe.fileHandleForReading.readabilityHandler = nil
-                let remainingStdout = stdoutPipe.fileHandleForReading.readDataToEndOfFile()
-                for line in stdoutAccumulator.append(remainingStdout) {
-                    continuation.yield(LogLine(stream: .stdout, text: line))
+                stdoutDrainLock.withLock {
+                    let remainingStdout = stdoutPipe.fileHandleForReading.readDataToEndOfFile()
+                    for line in stdoutAccumulator.append(remainingStdout) {
+                        continuation.yield(LogLine(stream: .stdout, text: line))
+                    }
+                    if let tail = stdoutAccumulator.flush(), !tail.isEmpty {
+                        continuation.yield(LogLine(stream: .stdout, text: tail))
+                    }
                 }
-                let remainingStderr = stderrPipe.fileHandleForReading.readDataToEndOfFile()
-                for line in stderrAccumulator.append(remainingStderr) {
-                    continuation.yield(LogLine(stream: .stderr, text: line))
-                }
-                if let tail = stdoutAccumulator.flush(), !tail.isEmpty {
-                    continuation.yield(LogLine(stream: .stdout, text: tail))
-                }
-                if let tail = stderrAccumulator.flush(), !tail.isEmpty {
-                    continuation.yield(LogLine(stream: .stderr, text: tail))
+                stderrDrainLock.withLock {
+                    let remainingStderr = stderrPipe.fileHandleForReading.readDataToEndOfFile()
+                    for line in stderrAccumulator.append(remainingStderr) {
+                        continuation.yield(LogLine(stream: .stderr, text: line))
+                    }
+                    if let tail = stderrAccumulator.flush(), !tail.isEmpty {
+                        continuation.yield(LogLine(stream: .stderr, text: tail))
+                    }
                 }
                 if proc.terminationStatus == 0 {
                     continuation.yield(LogLine(stream: .system, text: "[exit 0]"))

@@ -12,6 +12,8 @@ public final class LauncherScriptBuilder: @unchecked Sendable {
     public static let shared = LauncherScriptBuilder()
 
     public let cacheRoot: URL
+    private let pendingCleanupLock = NSLock()
+    private var pendingCleanupPaths: [String: [String]] = [:]
 
     public init(cacheRoot: URL? = nil) {
         if let r = cacheRoot {
@@ -66,7 +68,50 @@ public final class LauncherScriptBuilder: @unchecked Sendable {
             throw LauncherScriptError.cannotCreateScript(scriptURL.path)
         }
 
+        pendingCleanupLock.withLock {
+            // Launchers delete themselves after execution. Prune those completed
+            // entries before recording the new manual-recovery candidate.
+            pendingCleanupPaths = pendingCleanupPaths.filter {
+                FileManager.default.fileExists(atPath: $0.key)
+            }
+            pendingCleanupPaths[scriptURL.standardizedFileURL.path] = cleanupPaths
+        }
+
         return scriptURL.path
+    }
+
+    /// Return a paste-ready command that executes a generated launcher without
+    /// exposing the launcher's arguments or environment on the clipboard.
+    /// The path is quoted with the same rules used inside launcher scripts.
+    public func invocationCommand(for launcherPath: String) -> String {
+        "/bin/bash \(shellQuote(launcherPath))"
+    }
+
+    /// Remove a launcher the user chose not to run. Only UUID-named files inside
+    /// this builder's exact launchers directory are accepted, so a forged error
+    /// cannot turn the recovery UI into an arbitrary-file deletion primitive.
+    public func discardLauncher(at launcherPath: String) throws {
+        let candidate = URL(fileURLWithPath: launcherPath).standardizedFileURL
+        let launchersDirectory = cacheRoot
+            .appendingPathComponent("launchers", isDirectory: true)
+            .standardizedFileURL
+        guard candidate.deletingLastPathComponent() == launchersDirectory,
+              candidate.pathExtension == "sh",
+              UUID(uuidString: candidate.deletingPathExtension().lastPathComponent) != nil else {
+            throw LauncherScriptError.unmanagedLauncher(launcherPath)
+        }
+        let companions = pendingCleanupLock.withLock {
+            pendingCleanupPaths.removeValue(forKey: candidate.path) ?? []
+        }
+        if FileManager.default.fileExists(atPath: candidate.path) {
+            try FileManager.default.removeItem(at: candidate)
+        }
+        for companionPath in companions {
+            guard let companion = managedInjectionURL(for: companionPath) else { continue }
+            if FileManager.default.fileExists(atPath: companion.path) {
+                try FileManager.default.removeItem(at: companion)
+            }
+        }
     }
 
     /// 清理由崩溃/强制退出遗留的 launcher 与注入文件。正常退出由脚本 trap 即时删除。
@@ -84,6 +129,24 @@ public final class LauncherScriptBuilder: @unchecked Sendable {
                 }
             }
         }
+        pendingCleanupLock.withLock {
+            pendingCleanupPaths = pendingCleanupPaths.filter {
+                FileManager.default.fileExists(atPath: $0.key)
+            }
+        }
+    }
+
+    private func managedInjectionURL(for path: String) -> URL? {
+        let candidate = URL(fileURLWithPath: path).standardizedFileURL
+        let injectionDirectory = cacheRoot
+            .appendingPathComponent("injection", isDirectory: true)
+            .standardizedFileURL
+        guard candidate.deletingLastPathComponent() == injectionDirectory,
+              candidate.pathExtension == "md",
+              UUID(uuidString: candidate.deletingPathExtension().lastPathComponent) != nil else {
+            return nil
+        }
+        return candidate
     }
 
     private static func isValidEnvironmentKey(_ key: String) -> Bool {
@@ -113,4 +176,5 @@ public final class LauncherScriptBuilder: @unchecked Sendable {
 public enum LauncherScriptError: Error, Equatable {
     case invalidEnvironmentKey(String)
     case cannotCreateScript(String)
+    case unmanagedLauncher(String)
 }
