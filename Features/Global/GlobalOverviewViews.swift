@@ -165,7 +165,7 @@ struct GlobalSubscriptionsView: View {
                     ContentUnavailableView {
                         Label(String(localized: "尚无订阅"), systemImage: "creditcard")
                     } description: {
-                        Text(String(localized: "添加固定费用与续费日，DevHub 会按币种汇总并在本机提醒。"))
+                        Text(String(localized: "添加固定费用与续费日，CodeReentry 会按币种汇总并在本机提醒。"))
                     } actions: {
                         Button {
                             editingSubscription = nil
@@ -278,7 +278,7 @@ struct GlobalSubscriptionsView: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .top, spacing: 24) {
                 DevHubSectionHeading(
-                    eyebrow: String(localized: "DEVHUB / SUBSCRIPTIONS"),
+                    eyebrow: String(localized: "CODEREENTRY / SUBSCRIPTIONS"),
                     title: String(localized: "固定成本要看得见"),
                     subtitle: String(localized: "所有项目与全局订阅；不同币种保持分组，不做隐式换算。")
                 )
@@ -491,7 +491,7 @@ struct GlobalPlatformsView: View {
         VStack(spacing: 0) {
             HStack {
                 DevHubSectionHeading(
-                    eyebrow: String(localized: "DEVHUB / ACCOUNTS"),
+                    eyebrow: String(localized: "CODEREENTRY / ACCOUNTS"),
                     title: String(localized: "平台账号"),
                     subtitle: String(localized: "集中查看账号并一键打开；编辑与项目绑定在项目“平台”页完成。")
                 )

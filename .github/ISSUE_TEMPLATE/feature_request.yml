@@ -6,7 +6,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        DevHub prioritizes returning to the correct project context over collecting
+        CodeReentry prioritizes returning to the correct project context over collecting
         integrations. Explain the user problem before describing a solution.
 
   - type: textarea

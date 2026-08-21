@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="DevHub/Assets.xcassets/AppIcon.appiconset/icon_512x512.png" width="112" height="112" alt="DevHub app icon">
+  <img src="DevHub/Assets.xcassets/AppIcon.appiconset/icon_512x512.png" width="112" height="112" alt="CodeReentry app icon">
 </p>
 
-<h1 align="center">DevHub</h1>
+<h1 align="center">CodeReentry</h1>
 
 <p align="center"><strong>Resume AI coding work from the project, not from the tool.</strong></p>
 
@@ -13,7 +13,7 @@
 
 <p align="center">
   <a href="README.zh-CN.md">简体中文</a> ·
-  <a href="https://github.com/roooooly/DevHub/releases">Source beta</a> ·
+  <a href="https://github.com/roooooly/CodeReentry/releases">Source beta</a> ·
   <a href="#run-from-source">Run from source</a> ·
   <a href="PRIVACY.md">Privacy</a> ·
   <a href="ROADMAP.md">Roadmap</a> ·
@@ -21,38 +21,38 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/roooooly/DevHub/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/roooooly/DevHub/ci.yml?branch=main&label=CI" alt="CI status"></a>
-  <a href="https://github.com/roooooly/DevHub/releases"><img src="https://img.shields.io/github/v/release/roooooly/DevHub?include_prereleases&label=source%20beta" alt="Latest source beta"></a>
+  <a href="https://github.com/roooooly/CodeReentry/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/roooooly/CodeReentry/ci.yml?branch=main&label=CI" alt="CI status"></a>
+  <a href="https://github.com/roooooly/CodeReentry/releases"><img src="https://img.shields.io/github/v/release/roooooly/CodeReentry?include_prereleases&label=source%20beta" alt="Latest source beta"></a>
   <img src="https://img.shields.io/badge/macOS-14%2B-111111?logo=apple" alt="macOS 14 or newer">
   <img src="https://img.shields.io/badge/Swift-6-F05138?logo=swift&logoColor=white" alt="Swift 6">
   <img src="https://img.shields.io/badge/data-local--first-1F7A67" alt="Local-first">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-7D1727" alt="MIT license"></a>
 </p>
 
-> **Source beta:** The current source release is v0.2.0. DevHub does not have a signed
+> **Source beta:** The current source release is v0.3.0. CodeReentry does not have a signed
 > and notarized public binary yet.
 > Build it from source for evaluation, and do not install binaries from unofficial
 > mirrors. Public distribution remains blocked until the Apple signing and
 > notarization requirements in [RELEASE.md](RELEASE.md) are satisfied.
 
-![DevHub project overview rendered with synthetic fixture data](Tests/SnapshotTests/__Snapshots__/GallerySnapshotTests/projectsOverview.1.png)
+![CodeReentry project overview rendered with synthetic fixture data](Tests/SnapshotTests/__Snapshots__/GallerySnapshotTests/projectsOverview.1.png)
 
-_The screenshot uses synthetic projects and paths. DevHub includes English and
+_The screenshot uses synthetic projects and paths. CodeReentry includes English and
 Simplified Chinese interfaces._
 
-## The problem DevHub focuses on
+## The problem CodeReentry focuses on
 
 When several local projects and AI coding tools are active at once, starting a tool is
 easy. Recovering the **correct project, session, and working context** is the expensive
-part. DevHub keeps the project as the stable unit of work:
+part. CodeReentry keeps the project as the stable unit of work:
 
-1. Register a local project without copying its source into DevHub.
+1. Register a local project without copying its source into CodeReentry.
 2. Refresh a lightweight index of supported local session records on demand.
 3. Inspect a bounded conversation view or continue in the original tool.
-4. Save a deliberate session summary into project memory for the next handoff. DevHub
+4. Save a deliberate session summary into project memory for the next handoff. CodeReentry
    records its source and warns before sending it if a newer session exists.
 
-DevHub is aimed at independent developers and small teams who maintain multiple local
+CodeReentry is aimed at independent developers and small teams who maintain multiple local
 repositories and use more than one coding tool. It is not a cloud session host or a
 claim of lossless cross-tool conversation migration.
 
@@ -76,7 +76,7 @@ Release performance is tracked separately with a
 
 ### Tool compatibility
 
-| Tool | Local session discovery | Conversation in DevHub | Continue or open | Project-memory handoff |
+| Tool | Local session discovery | Conversation in CodeReentry | Continue or open | Project-memory handoff |
 | --- | --- | --- | --- | --- |
 | Claude Code | Yes | Bounded, on demand | Resume session | Append system-prompt file |
 | Codex | Yes | Bounded, on demand | Resume session | New user prompt |
@@ -89,7 +89,7 @@ This table describes the paths implemented in the current source. Third-party st
 formats and command-line behavior can change, so every compatibility change needs
 sanitized fixtures and version notes.
 
-OpenCode compatibility is verified against v1.18.19. DevHub discovers session metadata
+OpenCode compatibility is verified against v1.18.19. CodeReentry discovers session metadata
 from the default `~/.local/share/opencode/opencode.db`, an `OPENCODE_DB` override, and
 bounded `opencode-<channel>.db` siblings. It validates the `session` table before use,
 opens each database read-only, indexes at most 1,000 recent active sessions per database,
@@ -97,13 +97,13 @@ and does not read message bodies.
 
 ## Privacy boundary
 
-DevHub is designed to keep project and session data on the Mac.
+CodeReentry is designed to keep project and session data on the Mac.
 
 - No telemetry or analytics SDK is included.
 - Session discovery is metadata-first; message bodies load only when opened.
 - Source session files are treated as read-only.
 - Tool credentials stay in macOS Keychain and are excluded from backups.
-- Diagnostic export is user initiated, limited to DevHub logs, and redacts common
+- Diagnostic export is user initiated, limited to CodeReentry logs, and redacts common
   credential patterns.
 - Repository checks reject local databases, histories, private paths, signing files,
   and common credential shapes.
@@ -121,8 +121,8 @@ Requirements:
 Clone, build, verify, and launch a local ad-hoc-signed copy with one command:
 
 ```bash
-git clone https://github.com/roooooly/DevHub.git
-cd DevHub
+git clone https://github.com/roooooly/CodeReentry.git
+cd CodeReentry
 ./scripts/run-source.sh
 ```
 
@@ -159,9 +159,9 @@ scoped issue. Tests and documentation must use synthetic project names, paths,
 sessions, screenshots, and credentials.
 
 Questions and design proposals belong in
-[Discussions](https://github.com/roooooly/DevHub/discussions). Reproducible bugs and
+[Discussions](https://github.com/roooooly/CodeReentry/discussions). Reproducible bugs and
 accepted work belong in Issues.
 
 ## License
 
-DevHub is available under the [MIT License](LICENSE).
+CodeReentry is available under the [MIT License](LICENSE).

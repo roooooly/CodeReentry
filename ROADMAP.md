@@ -1,11 +1,12 @@
 # Roadmap
 
-DevHub is currently a source beta. This roadmap describes product gates and bounded
+CodeReentry is currently a source beta. This roadmap describes product gates and bounded
 work areas, not promised dates.
 
 ## Public beta gates
 
-- [ ] Choose a distinctive public product name before broad promotion.
+- [x] Adopt the distinctive public name CodeReentry with a documented
+      [collision check and compatibility boundary](docs/naming-decision.md).
 - [ ] Produce a Developer ID signed and Apple-notarized macOS build.
 - [ ] Publish a verifiable DMG, release notes, checksum, and update policy.
 - [ ] Complete the [privacy-safe repeated real-use checks](docs/reentry-validation.md)
@@ -37,7 +38,7 @@ See the repository Issues for work that is currently accepted.
 
 ## Non-goals
 
-- Uploading source projects or session histories to a DevHub cloud service
+- Uploading source projects or session histories to a CodeReentry cloud service
 - Silent background crawling of complete conversation histories
 - Claiming lossless full-session migration between unrelated tools
 - Adding integrations without a concrete project-recovery use case

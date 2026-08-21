@@ -95,7 +95,7 @@ private struct GeneralSettingsTab: View {
                     .foregroundStyle(.secondary)
                 if viewModel.languageChangeRequiresRestart {
                     Label(
-                        String(localized: "语言已保存；退出并重新打开 DevHub 后生效。"),
+                        String(localized: "语言已保存；退出并重新打开 CodeReentry 后生效。"),
                         systemImage: "arrow.clockwise.circle.fill"
                     )
                     .font(.caption.weight(.semibold))
@@ -117,7 +117,7 @@ private struct GeneralSettingsTab: View {
                     .foregroundStyle(.secondary)
             }
             Section(String(localized: "系统")) {
-                Toggle(String(localized: "登录时启动 DevHub"), isOn: launchAtLoginBinding)
+                Toggle(String(localized: "登录时启动 CodeReentry"), isOn: launchAtLoginBinding)
                 if let message = launchAtLoginStatusMessage {
                     Text(message)
                         .font(.caption)
@@ -177,7 +177,7 @@ private struct GeneralSettingsTab: View {
         .onChange(of: vm.general.theme) { _, _ in saveGeneral(vm) }
         .onChange(of: vm.general.locale) { _, _ in saveGeneral(vm) }
         .confirmationDialog(
-            String(localized: "导出最近 7 天 DevHub 日志？"),
+            String(localized: "导出最近 7 天 CodeReentry 日志？"),
             isPresented: $showLogPrivacyConfirmation,
             titleVisibility: .visible
         ) {
@@ -186,7 +186,7 @@ private struct GeneralSettingsTab: View {
             }
             Button(String(localized: "取消"), role: .cancel) {}
         } message: {
-            Text(String(localized: "统一日志可能包含项目路径、工具名和错误上下文。DevHub 只查询自己的 subsystem，并会再次遮罩疑似 token、密钥和密码；分享前仍请检查文件内容。"))
+            Text(String(localized: "统一日志可能包含项目路径、工具名和错误上下文。CodeReentry 只查询自己的 subsystem，并会再次遮罩疑似 token、密钥和密码；分享前仍请检查文件内容。"))
         }
         .alert(
             String(localized: "通用设置失败"),
@@ -225,7 +225,7 @@ private struct GeneralSettingsTab: View {
     private func chooseProjectsRoot() {
         let panel = NSOpenPanel()
         panel.title = String(localized: "选择项目根目录")
-        panel.message = String(localized: "DevHub 只扫描该目录下一层的项目候选。")
+        panel.message = String(localized: "CodeReentry 只扫描该目录下一层的项目候选。")
         panel.prompt = String(localized: "选择")
         panel.canChooseDirectories = true
         panel.canChooseFiles = false
@@ -257,15 +257,15 @@ private struct GeneralSettingsTab: View {
         case .enabled:
             return String(localized: "已启用；下次登录 macOS 时会自动启动。")
         case .requiresApproval:
-            return String(localized: "等待系统批准。请前往“系统设置 → 通用 → 登录项”允许 DevHub。")
+            return String(localized: "等待系统批准。请前往“系统设置 → 通用 → 登录项”允许 CodeReentry。")
         case .unavailable:
-            return String(localized: "当前签名或运行方式不支持登录项；正式签名的 DevHub.app 可在此启用。")
+            return String(localized: "当前签名或运行方式不支持登录项；正式签名的 CodeReentry.app 可在此启用。")
         }
     }
 
     private func chooseLogExportDestination() {
         let panel = NSSavePanel()
-        panel.title = String(localized: "保存 DevHub 诊断日志")
+        panel.title = String(localized: "保存 CodeReentry 诊断日志")
         panel.prompt = String(localized: "导出")
         panel.canCreateDirectories = true
         panel.isExtensionHidden = false
@@ -273,7 +273,7 @@ private struct GeneralSettingsTab: View {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "en_US_POSIX")
         formatter.dateFormat = "yyyy-MM-dd"
-        panel.nameFieldStringValue = "DevHub-logs-\(formatter.string(from: Date())).ndjson"
+        panel.nameFieldStringValue = "CodeReentry-logs-\(formatter.string(from: Date())).ndjson"
 
         guard panel.runModal() == .OK, let destination = panel.url else { return }
         Task { @MainActor in

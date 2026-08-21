@@ -1,2 +1,2 @@
-"CFBundleName" = "DevHub";
-"NSAppleEventsUsageDescription" = "DevHub 需要控制 Terminal.app 或 iTerm2 以在项目上下文中启动 CLI 开发工具（如 claude、codex）。";
+"CFBundleName" = "CodeReentry";
+"NSAppleEventsUsageDescription" = "CodeReentry 需要控制 Terminal.app 或 iTerm2 以在项目上下文中启动 CLI 开发工具（如 claude、codex）。";

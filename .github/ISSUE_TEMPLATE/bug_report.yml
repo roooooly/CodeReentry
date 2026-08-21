@@ -1,18 +1,18 @@
 name: Bug report
-description: Report a reproducible DevHub defect with sanitized evidence.
+description: Report a reproducible CodeReentry defect with sanitized evidence.
 title: "bug: "
 labels: [bug]
 body:
   - type: markdown
     attributes:
       value: |
-        Thanks for helping improve DevHub. Never attach real session histories,
+        Thanks for helping improve CodeReentry. Never attach real session histories,
         credentials, private repository paths, or unreviewed diagnostic exports.
 
   - type: input
     id: version
     attributes:
-      label: DevHub version or commit
+      label: CodeReentry version or commit
       description: Use a release version when available, otherwise paste the commit hash.
       placeholder: 0.1.0 or abc1234
     validations:

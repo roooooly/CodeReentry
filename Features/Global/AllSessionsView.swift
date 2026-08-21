@@ -264,7 +264,7 @@ struct AllSessionsView: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .top) {
                 DevHubSectionHeading(
-                    eyebrow: String(localized: "DEVHUB / SESSIONS"),
+                eyebrow: String(localized: "CODEREENTRY / SESSIONS"),
                     title: String(localized: "会话是项目的工作记录"),
                     subtitle: String(localized: "只读聚合本机会话；未分类的 ZCode 会话可手动归到已注册项目。")
                 )
@@ -546,7 +546,7 @@ private struct GlobalSessionRow: View {
                     .buttonStyle(.borderless)
                     .controlSize(.small)
                     .foregroundStyle(DevHubTheme.accent)
-                    .accessibilityHint(String(localized: "在 DevHub 内查看完整对话正文"))
+                    .accessibilityHint(String(localized: "在 CodeReentry 内查看完整对话正文"))
                 }
                 Button(String(localized: "显示源文件"), action: onReveal)
                     .buttonStyle(.borderless)

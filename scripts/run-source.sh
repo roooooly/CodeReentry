@@ -10,7 +10,7 @@ usage() {
   cat <<'EOF'
 Usage: ./scripts/run-source.sh [--build-only]
 
-Build a verified, ad-hoc-signed copy of DevHub directly from this checkout.
+Build a verified, ad-hoc-signed copy of CodeReentry directly from this checkout.
 By default the script launches the resulting app. Use --build-only in CI or
 when you only want to verify the source-build path.
 
@@ -38,7 +38,7 @@ if [ "$#" -gt 1 ]; then
 fi
 
 command -v xcodebuild >/dev/null 2>&1 || {
-  echo "error: Xcode is required to build DevHub" >&2
+  echo "error: Xcode is required to build CodeReentry" >&2
   exit 1
 }
 
@@ -56,9 +56,9 @@ case "$devhub_arch" in
     ;;
 esac
 
-devhub_app="$devhub_derived_data/Build/Products/$devhub_configuration/DevHub.app"
+devhub_app="$devhub_derived_data/Build/Products/$devhub_configuration/CodeReentry.app"
 
-echo "Building DevHub from the committed Xcode project ($devhub_arch)…"
+echo "Building CodeReentry from the committed Xcode project ($devhub_arch)…"
 echo "The first build can take several minutes while Swift packages resolve."
 xcodebuild \
   -quiet \
@@ -82,5 +82,5 @@ if [ "$devhub_build_only" = true ]; then
   exit 0
 fi
 
-echo "Launching DevHub. It will not scan projects or sessions until you choose to do so."
+echo "Launching CodeReentry. It will not scan projects or sessions until you choose to do so."
 open -n "$devhub_app"

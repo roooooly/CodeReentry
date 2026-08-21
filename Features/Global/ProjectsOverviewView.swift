@@ -236,7 +236,7 @@ struct ProjectsOverviewView: View {
     private var pageHeading: some View {
         HStack(alignment: .top, spacing: 20) {
             DevHubSectionHeading(
-                eyebrow: String(localized: "DEVHUB / WORKSPACE"),
+                eyebrow: String(localized: "CODEREENTRY / WORKSPACE"),
                 title: String(localized: "从项目继续，而不是从工具重新开始"),
                 subtitle: String(localized: "项目是工作上下文；工具、会话、记忆和固定成本都围绕它组织。")
             )

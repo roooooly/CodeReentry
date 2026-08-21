@@ -2,7 +2,7 @@
 
 ## Our pledge
 
-We pledge to make participation in DevHub a harassment-free experience for everyone,
+We pledge to make participation in CodeReentry a harassment-free experience for everyone,
 regardless of age, body size, visible or invisible disability, ethnicity, sex
 characteristics, gender identity and expression, level of experience, education,
 socioeconomic status, nationality, personal appearance, race, caste, color, religion,
@@ -46,7 +46,7 @@ represents the project in public spaces.
 
 Report abusive, harassing, or otherwise unacceptable behavior privately through the
 repository's
-[security advisory form](https://github.com/roooooly/DevHub/security/advisories/new).
+[security advisory form](https://github.com/roooooly/CodeReentry/security/advisories/new).
 Prefix the report title with `Code of Conduct`. Reports will be reviewed promptly and
 fairly. The maintainer must respect the privacy and security of the reporter.
 

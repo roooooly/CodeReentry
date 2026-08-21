@@ -1,9 +1,21 @@
 # Changelog
 
-All notable user-facing and repository changes are recorded here. DevHub has not yet
+All notable user-facing and repository changes are recorded here. CodeReentry has not yet
 published a signed public binary.
 
 ## Unreleased
+
+## 0.3.0 - 2026-08-21
+
+- Rename the public product and repository from DevHub to CodeReentry after a documented
+  collision check.
+- Keep the existing bundle identifier, `Application Support/DevHub` data directory,
+  `.devhub` project marker, Keychain semantics, script variables, and Swift modules so
+  existing source-beta data remains available without migration.
+- Ship the visible application as `CodeReentry.app` while retaining the internal DevHub
+  Xcode target and module names.
+- Refresh the English, Simplified Chinese, release, roadmap, and social-preview surfaces
+  for the new public name.
 
 ## 0.2.0 - 2026-08-21
 

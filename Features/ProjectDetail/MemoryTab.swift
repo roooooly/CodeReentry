@@ -110,7 +110,7 @@ struct MemoryTab: View {
             ContentUnavailableView {
                 Label(String(localized: "上一项目的记忆尚未保存"), systemImage: "exclamationmark.triangle.fill")
             } description: {
-                Text(String(localized: "为避免把草稿写入错误项目，DevHub 已暂停切换。请重试保存。"))
+                Text(String(localized: "为避免把草稿写入错误项目，CodeReentry 已暂停切换。请重试保存。"))
             } actions: {
                 Button(String(localized: "重试保存并切换")) {
                     viewModel.activate(

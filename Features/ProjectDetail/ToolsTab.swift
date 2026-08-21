@@ -74,7 +74,7 @@ struct ToolsTab: View {
                     ContentUnavailableView(
                         String(localized: "尚未绑定工具"),
                         systemImage: "wrench.and.screwdriver",
-                        description: Text(String(localized: "DevHub 会在项目扫描后列出可用的 CLI 与编辑器。"))
+                        description: Text(String(localized: "CodeReentry 会在项目扫描后列出可用的 CLI 与编辑器。"))
                     )
                     .frame(maxWidth: .infinity, minHeight: 260)
                 } else {
@@ -263,7 +263,7 @@ struct ToolsTab: View {
                 deps: deps
             )
             if outcome.copiedMemory {
-                statusMessage = String(localized: "DevHub 已复制项目记忆并启动工具，但不会模拟键盘输入。请在目标 CLI 中手动粘贴；若剪贴板内容未变化，30 秒后会自动清理。")
+                statusMessage = String(localized: "CodeReentry 已复制项目记忆并启动工具，但不会模拟键盘输入。请在目标 CLI 中手动粘贴；若剪贴板内容未变化，30 秒后会自动清理。")
             }
         } catch {
             alertMessage = error.localizedDescription
@@ -297,7 +297,7 @@ struct ToolsTab: View {
 
     private var warnedSecretMessage: String {
         if pendingInjection?.plan.effectiveMode == .clipboard {
-            return String(localized: "检测到疑似密钥或 token。内容会复制到系统剪贴板，之后需要你在目标 CLI 手动粘贴；若期间未复制其他内容，DevHub 会在 30 秒后清理。剪贴板历史工具仍可能保留副本，请确认可以发送。")
+            return String(localized: "检测到疑似密钥或 token。内容会复制到系统剪贴板，之后需要你在目标 CLI 手动粘贴；若期间未复制其他内容，CodeReentry 会在 30 秒后清理。剪贴板历史工具仍可能保留副本，请确认可以发送。")
         }
         return String(localized: "检测到疑似密钥或 token。内容不会写入命令行参数，但目标 CLI 会读取临时文件。请确认这些内容可以发送给该工具。")
     }
@@ -313,7 +313,7 @@ struct ToolsTab: View {
         if pendingInjection?.plan.summaryReviewStatus == .outdated {
             return String(localized: "项目中存在更新时间更晚的会话。这份总结可能遗漏后续决定；你可以只发送稳定的 context.md，或确认仍发送旧总结。")
         }
-        return String(localized: "这份总结来自旧版本或手工文件，DevHub 无法确认它对应哪次会话。建议只发送稳定的 context.md，或在“会话”页重新生成总结。")
+        return String(localized: "这份总结来自旧版本或手工文件，CodeReentry 无法确认它对应哪次会话。建议只发送稳定的 context.md，或在“会话”页重新生成总结。")
     }
 
     private func executeIfAllGatesAcknowledged() {

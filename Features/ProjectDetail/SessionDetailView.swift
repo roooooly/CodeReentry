@@ -71,7 +71,7 @@ final class SessionDetailViewModel {
     func load() async {
         guard let reader else {
             // Kimi 等无内容 reader：给出明确提示而非通用错误
-            state = .unreadable(String(localized: "此工具的会话正文暂不支持在 DevHub 内读取。可点「在原应用中打开」查看。"))
+            state = .unreadable(String(localized: "此工具的会话正文暂不支持在 CodeReentry 内读取。可点「在原应用中打开」查看。"))
             return
         }
         state = .loading

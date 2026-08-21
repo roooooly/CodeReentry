@@ -61,7 +61,7 @@ struct UsageOverviewView: View {
     private var pageHeading: some View {
         HStack(alignment: .top) {
             DevHubSectionHeading(
-                eyebrow: String(localized: "DEVHUB / USAGE"),
+                eyebrow: String(localized: "CODEREENTRY / USAGE"),
                 title: String(localized: "用量与成本"),
                 subtitle: String(localized: "把本地 token 记录换算成等价 API 成本；固定订阅仍单独列示。")
             )

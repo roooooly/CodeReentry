@@ -1,6 +1,6 @@
 # Reproducible Release performance baseline
 
-DevHub measures performance with deterministic synthetic projects and session metadata,
+CodeReentry measures performance with deterministic synthetic projects and session metadata,
 never with a maintainer's real project paths, histories, prompts, or credentials. The
 runner builds the verified Release app, creates a disposable macOS home profile, samples
 the process with `ps` and `footprint`, writes only aggregate metrics under ignored

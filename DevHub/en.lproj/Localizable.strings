@@ -1,5 +1,5 @@
 /* Core navigation and shared actions */
-"DevHub" = "DevHub";
+"CodeReentry" = "CodeReentry";
 "本地资源台" = "Local Resource Desk";
 "本地索引 · 按需读取" = "Local index · On demand";
 "按需读取，不在后台轮询历史" = "On-demand reads · No background history polling";
@@ -12,7 +12,7 @@
 "平台账号" = "Platform Accounts";
 "插件" = "Plugins";
 "设置" = "Settings";
-"打开 DevHub 设置" = "Open DevHub Settings";
+"打开 CodeReentry 设置" = "Open CodeReentry Settings";
 "打开插件设置" = "Open Plugin Settings";
 "添加项目" = "Add Project";
 "命令面板" = "Command Palette";
@@ -32,7 +32,7 @@
 "移除项目…" = "Remove Project…";
 "移除项目" = "Remove Project";
 "移除项目？" = "Remove Project?";
-"只会从 DevHub 中移除注册信息、关联会话与绑定；磁盘上的项目文件不会被删除。" = "This removes the registration, linked sessions, and bindings from DevHub. Files on disk are not deleted.";
+"只会从 CodeReentry 中移除注册信息、关联会话与绑定；磁盘上的项目文件不会被删除。" = "This removes the registration, linked sessions, and bindings from CodeReentry. Files on disk are not deleted.";
 "整理项目" = "Organize Project";
 "分组" = "Group";
 "标签" = "Tags";
@@ -83,7 +83,7 @@
 "订阅月费" = "Monthly subscriptions";
 "固定成本" = "Fixed costs";
 "种币种" = "currencies";
-"DEVHUB / WORKSPACE" = "DEVHUB / WORKSPACE";
+"CODEREENTRY / WORKSPACE" = "CODEREENTRY / WORKSPACE";
 "从项目继续，而不是从工具重新开始" = "Continue from the project, not from the tool";
 "项目是工作上下文；工具、会话、记忆和固定成本都围绕它组织。" = "The project is the work context. Tools, sessions, memory, and fixed costs stay organized around it.";
 "最近会话" = "Latest Session";
@@ -92,14 +92,14 @@
 "前往项目总览" = "Go to Project Overview";
 
 /* Onboarding */
-"DEVHUB / LOCAL WORKSPACE" = "DEVHUB / LOCAL WORKSPACE";
+"CODEREENTRY / LOCAL WORKSPACE" = "CODEREENTRY / LOCAL WORKSPACE";
 "首次设置进度" = "First-run setup progress";
-"欢迎使用 DevHub" = "Welcome to DevHub";
+"欢迎使用 CodeReentry" = "Welcome to CodeReentry";
 "一个以项目为核心的本地开发资源管理器。把工具、会话、记忆、订阅与发布账号放回同一个工作上下文。" = "A project-centered local development resource manager that brings tools, sessions, memory, subscriptions, and publishing accounts back into one work context.";
 "更快继续工作" = "Resume Work Faster";
 "从项目或最近会话直接回到原工具" = "Return to the original tool from a project or recent session";
 "默认本地、只读" = "Local and Read-only by Default";
-"会话留在磁盘；DevHub 只建立轻量索引" = "Sessions stay on disk; DevHub only creates a lightweight index";
+"会话留在磁盘；CodeReentry 只建立轻量索引" = "Sessions stay on disk; CodeReentry only creates a lightweight index";
 "按需扫描" = "On-demand Scanning";
 "不用时不在后台反复读取历史记录" = "No repeated history reads in the background when idle";
 "全部设置均可稍后修改" = "You can change every setting later";
@@ -124,7 +124,7 @@
 "AppleScript Automation" = "AppleScript Automation";
 "首次启动 CLI 工具时请求控制 Terminal/iTerm。拒绝则该功能不可用。" = "Requested when you first launch a CLI tool through Terminal or iTerm. If denied, that launch feature is unavailable.";
 "文件访问 (TCC)" = "File Access (TCC)";
-"读取 ~/.claude/ 等点目录通常无需授权。仅当项目位于 ~/Desktop / ~/Documents / ~/Downloads 时才触发。若被拒，请到「系统设置 → 隐私与安全性 → 完全磁盘访问」手动添加 DevHub。" = "Reading dot folders such as ~/.claude usually needs no prompt. Projects under Desktop, Documents, or Downloads may trigger macOS access control. If denied, add DevHub under System Settings → Privacy & Security → Full Disk Access.";
+"读取 ~/.claude/ 等点目录通常无需授权。仅当项目位于 ~/Desktop / ~/Documents / ~/Downloads 时才触发。若被拒，请到「系统设置 → 隐私与安全性 → 完全磁盘访问」手动添加 CodeReentry。" = "Reading dot folders such as ~/.claude usually needs no prompt. Projects under Desktop, Documents, or Downloads may trigger macOS access control. If denied, add CodeReentry under System Settings → Privacy & Security → Full Disk Access.";
 "项目详情 6 个 tab" = "Six Project Detail Tabs";
 "工具" = "Tools";
 "会话" = "Sessions";
@@ -138,9 +138,9 @@
 "费用追踪、到期提醒、多币种汇总，支持 CSV 导入" = "Track costs, renewal reminders, and multiple currencies with CSV import";
 "集中管理平台账号，一键打开" = "Manage platform accounts in one place and open them with one click";
 "识别项目脚本，本地运行，实时日志，可随时停止" = "Detect project scripts, run locally, stream logs, and stop at any time";
-"开始使用" = "Start Using DevHub";
+"开始使用" = "Start Using CodeReentry";
 "找回第一条会话" = "Recover Your First Session";
-"项目已就绪。最后由你主动触发一次只读增量扫描，DevHub 才能把本地会话关联到项目。" = "Your projects are ready. Start one explicit, read-only incremental scan so DevHub can connect local sessions to them.";
+"项目已就绪。最后由你主动触发一次只读增量扫描，CodeReentry 才能把本地会话关联到项目。" = "Your projects are ready. Start one explicit, read-only incremental scan so CodeReentry can connect local sessions to them.";
 "只读取受支持工具的有界元数据，不在后台运行" = "Reads bounded metadata from supported tools and never runs in the background";
 "从项目继续" = "Continue from the Project";
 "首页显示最近可恢复会话，一步回到原工具" = "See the latest resumable session on the overview and return to the original tool in one step";
@@ -160,38 +160,38 @@
 "简体中文" = "Simplified Chinese";
 "English" = "English";
 "语言会应用到主窗口、设置、菜单和系统提示。" = "The language applies to the main window, settings, menus, and system prompts.";
-"语言已保存；退出并重新打开 DevHub 后生效。" = "Language saved. Quit and reopen DevHub to apply it.";
+"语言已保存；退出并重新打开 CodeReentry 后生效。" = "Language saved. Quit and reopen CodeReentry to apply it.";
 "路径" = "Path";
 "目录可用" = "Folder available";
 "目录不存在；项目扫描会等待路径恢复" = "Folder not found; project scanning will wait until the path is available";
-"DevHub 只扫描该目录下一层的项目候选。" = "DevHub scans one level below this folder for project candidates.";
+"CodeReentry 只扫描该目录下一层的项目候选。" = "CodeReentry scans one level below this folder for project candidates.";
 "项目详情模块" = "Project Detail Modules";
 "关闭的模块不会出现在项目详情或命令面板中；至少保留一个模块。" = "Disabled modules are hidden from project details and the command palette. At least one module must remain enabled.";
 "至少需要保留一个项目详情模块。" = "At least one project detail module must remain enabled.";
 "系统" = "System";
-"登录时启动 DevHub" = "Launch DevHub at Login";
-"已启用；下次登录 macOS 时会自动启动。" = "Enabled. DevHub will launch the next time you sign in to macOS.";
-"等待系统批准。请前往“系统设置 → 通用 → 登录项”允许 DevHub。" = "Waiting for system approval. Allow DevHub under System Settings → General → Login Items.";
-"当前签名或运行方式不支持登录项；正式签名的 DevHub.app 可在此启用。" = "Launch at Login is unavailable with the current signature or runtime. It can be enabled in a formally signed DevHub.app.";
+"登录时启动 CodeReentry" = "Launch CodeReentry at Login";
+"已启用；下次登录 macOS 时会自动启动。" = "Enabled. CodeReentry will launch the next time you sign in to macOS.";
+"等待系统批准。请前往“系统设置 → 通用 → 登录项”允许 CodeReentry。" = "Waiting for system approval. Allow CodeReentry under System Settings → General → Login Items.";
+"当前签名或运行方式不支持登录项；正式签名的 CodeReentry.app 可在此启用。" = "Launch at Login is unavailable with the current signature or runtime. It can be enabled in a formally signed CodeReentry.app.";
 "诊断日志" = "Diagnostic Logs";
 "仅导出最近 7 天、subsystem 为 io.github.roooooly.devhub 的统一日志。" = "Exports only the last seven days of unified logs for the io.github.roooooly.devhub subsystem.";
 "导出日志…" = "Export Logs…";
-"导出最近 7 天 DevHub 日志？" = "Export the Last Seven Days of DevHub Logs?";
+"导出最近 7 天 CodeReentry 日志？" = "Export the Last Seven Days of CodeReentry Logs?";
 "确认并选择保存位置" = "Confirm and Choose Location";
-"统一日志可能包含项目路径、工具名和错误上下文。DevHub 只查询自己的 subsystem，并会再次遮罩疑似 token、密钥和密码；分享前仍请检查文件内容。" = "Unified logs may contain project paths, tool names, and error context. DevHub queries only its own subsystem and redacts likely tokens, keys, and passwords. Review the file before sharing it.";
+"统一日志可能包含项目路径、工具名和错误上下文。CodeReentry 只查询自己的 subsystem，并会再次遮罩疑似 token、密钥和密码；分享前仍请检查文件内容。" = "Unified logs may contain project paths, tool names, and error context. CodeReentry queries only its own subsystem and redacts likely tokens, keys, and passwords. Review the file before sharing it.";
 "通用设置失败" = "General Settings Failed";
 "设置会自动保存在本机。" = "Settings are saved automatically on this Mac.";
 "恢复通用设置默认值" = "Restore General Defaults";
-"保存 DevHub 诊断日志" = "Save DevHub Diagnostic Logs";
+"保存 CodeReentry 诊断日志" = "Save CodeReentry Diagnostic Logs";
 "导出日志前必须确认隐私提示。" = "Confirm the privacy notice before exporting logs.";
 "请选择一个存在且可写入的文件夹来保存日志。" = "Choose an existing writable folder for the log export.";
-"DevHub 已请求登录时启动，但仍需在“系统设置 → 通用 → 登录项”中批准。" = "DevHub requested launch at login, but you still need to approve it under System Settings → General → Login Items.";
-"当前 DevHub 无法注册为登录项。请使用正式签名的完整 .app 包。" = "DevHub cannot register as a login item in this build. Use a complete, formally signed .app bundle.";
+"CodeReentry 已请求登录时启动，但仍需在“系统设置 → 通用 → 登录项”中批准。" = "CodeReentry requested launch at login, but you still need to approve it under System Settings → General → Login Items.";
+"当前 CodeReentry 无法注册为登录项。请使用正式签名的完整 .app 包。" = "CodeReentry cannot register as a login item in this build. Use a complete, formally signed .app bundle.";
 "系统未应用请求的登录项状态。" = "macOS did not apply the requested login item state.";
 "加载设置失败" = "Could Not Load Settings";
 
 /* Sessions */
-"DEVHUB / SESSIONS" = "DEVHUB / SESSIONS";
+"CODEREENTRY / SESSIONS" = "CODEREENTRY / SESSIONS";
 "会话是项目的工作记录" = "Sessions are the project work record";
 "只读聚合本机会话；未分类的 ZCode 会话可手动归到已注册项目。" = "Read-only aggregation of local sessions. Unclassified ZCode sessions can be assigned to a registered project.";
 "刷新索引" = "Refresh Index";
@@ -221,7 +221,7 @@
 "OpenCode 会话仅索引元数据；请在 OpenCode 中继续查看。" = "Only OpenCode session metadata is indexed. Continue in OpenCode to view the conversation.";
 "内容格式暂时无法解析；请用“显示源文件”检查原始记录。" = "This content format cannot be parsed yet. Use Reveal Source File to inspect the original record.";
 "内容格式暂时无法解析，可直接检查原始文件。" = "This content format cannot be parsed yet. You can inspect the original file.";
-"在 DevHub 内查看完整对话正文" = "Read the full conversation in DevHub";
+"在 CodeReentry 内查看完整对话正文" = "Read the full conversation in CodeReentry";
 "请先注册项目" = "Register a Project First";
 "归类到项目" = "Assign to Project";
 "更改归类" = "Change Assignment";
@@ -241,7 +241,7 @@
 "搜索会话（标题/摘要）" = "Search sessions by title or summary";
 "消息数未统计" = "Message count unavailable";
 "暂不支持读取" = "Reading Not Supported Yet";
-"此工具的会话正文暂不支持在 DevHub 内读取。可点「在原应用中打开」查看。" = "DevHub cannot read this tool's session body yet. Open it in the original app instead.";
+"此工具的会话正文暂不支持在 CodeReentry 内读取。可点「在原应用中打开」查看。" = "CodeReentry cannot read this tool's session body yet. Open it in the original app instead.";
 "正在读取会话正文…" = "Loading conversation…";
 "会话过大，仅显示受限范围内的内容；完整记录仍可在原工具或源文件中查看。" = "This session is large, so only a bounded portion is shown. The full record remains available in the original tool or source file.";
 "助手" = "Assistant";
@@ -252,7 +252,7 @@
 "会话总结已写入项目记忆" = "Session summary added to project memory";
 
 /* Usage */
-"DEVHUB / USAGE" = "DEVHUB / USAGE";
+"CODEREENTRY / USAGE" = "CODEREENTRY / USAGE";
 "把本地 token 记录换算成等价 API 成本；固定订阅仍单独列示。" = "Convert local token records into estimated API-equivalent cost while keeping fixed subscriptions separate.";
 "正在读取本地用量…" = "Reading local usage…";
 "首次统计会扫描 Claude Code 与 Codex 的本地记录；不会联网，也不会读取密钥。" = "The first calculation scans local Claude Code and Codex records. It does not go online or read credentials.";
@@ -269,11 +269,11 @@
 "最近 14 天成本趋势" = "Cost Trend · Last 14 Days";
 
 /* Subscriptions */
-"DEVHUB / SUBSCRIPTIONS" = "DEVHUB / SUBSCRIPTIONS";
+"CODEREENTRY / SUBSCRIPTIONS" = "CODEREENTRY / SUBSCRIPTIONS";
 "固定成本要看得见" = "Make fixed costs visible";
 "所有项目与全局订阅；不同币种保持分组，不做隐式换算。" = "Project and global subscriptions stay grouped by currency without hidden conversion.";
 "尚无订阅" = "No Subscriptions";
-"添加固定费用与续费日，DevHub 会按币种汇总并在本机提醒。" = "Add fixed costs and renewal dates. DevHub groups them by currency and sends local reminders.";
+"添加固定费用与续费日，CodeReentry 会按币种汇总并在本机提醒。" = "Add fixed costs and renewal dates. CodeReentry groups them by currency and sends local reminders.";
 "添加第一条订阅" = "Add First Subscription";
 "每月" = "Monthly";
 "每年" = "Yearly";
@@ -321,7 +321,7 @@
 "订阅即将续费" = "Subscription Renewal Approaching";
 
 /* Platform accounts */
-"DEVHUB / ACCOUNTS" = "DEVHUB / ACCOUNTS";
+"CODEREENTRY / ACCOUNTS" = "CODEREENTRY / ACCOUNTS";
 "集中查看账号并一键打开；编辑与项目绑定在项目“平台”页完成。" = "View accounts in one place and open them with one click. Edit accounts and project bindings from a project's Platforms tab.";
 "尚无平台账号" = "No Platform Accounts";
 "先打开一个项目，在“平台”页添加账号并记录发布状态。" = "Open a project, then add an account and record publishing status from its Platforms tab.";
@@ -386,14 +386,14 @@
 "路径不存在或不是文件夹。" = "The path does not exist or is not a folder.";
 "项目不存在或路径已失效" = "The project does not exist or its path is missing";
 "项目路径已失效" = "Project path missing";
-"项目可能已被移动或删除。重新选择目录后，DevHub 会保留现有会话、订阅和平台绑定。" = "The project may have been moved or deleted. Choose its new folder and DevHub will preserve existing sessions, subscriptions, and platform bindings.";
+"项目可能已被移动或删除。重新选择目录后，CodeReentry 会保留现有会话、订阅和平台绑定。" = "The project may have been moved or deleted. Choose its new folder and CodeReentry will preserve existing sessions, subscriptions, and platform bindings.";
 "请选择一个仍然存在的项目文件夹。" = "Choose an existing project folder.";
 "重新定位" = "Relocate";
 "新路径" = "New Path";
 "请选择该项目移动后的文件夹。" = "Choose the folder where this project was moved.";
 "所选文件夹已被另一个项目注册。" = "The selected folder is already registered to another project.";
 "所选文件夹已绑定到另一个有效项目。" = "The selected folder belongs to another active project.";
-"所选文件夹属于另一个 DevHub 项目，请选择移动后的原项目目录。" = "The selected folder belongs to another DevHub project. Choose the relocated folder for this project.";
+"所选文件夹属于另一个 CodeReentry 项目，请选择移动后的原项目目录。" = "The selected folder belongs to another CodeReentry project. Choose the relocated folder for this project.";
 "无法重新定位项目" = "Could Not Relocate Project";
 "项目记录已不存在，请刷新后重试。" = "The project record no longer exists. Refresh and try again.";
 "项目已打开，但无法更新最近使用时间。" = "The project opened, but its recent-use time could not be updated.";
@@ -406,7 +406,7 @@
 /* Tools */
 "TOOLS / PROJECT" = "TOOLS / PROJECT";
 "开发工具" = "Development Tools";
-"DevHub 会在项目扫描后列出可用的 CLI 与编辑器。" = "DevHub lists available CLI tools and editors after scanning the project.";
+"CodeReentry 会在项目扫描后列出可用的 CLI 与编辑器。" = "CodeReentry lists available CLI tools and editors after scanning the project.";
 "尚未绑定工具" = "No Tools Bound";
 "已发现工具" = "Detected Tools";
 "用此工具打开项目目录" = "Open the project folder with this tool";
@@ -414,12 +414,12 @@
 "不注入打开" = "Open Without Memory";
 "启动并发送项目记忆" = "Launch and Send Project Memory";
 "启动工具并附加项目记忆作为系统上下文" = "Launch the tool with project memory as system context";
-"启动时只会复制项目记忆，不会模拟粘贴或回车；请在目标 CLI 中手动粘贴。内容未变化时会在 30 秒后清理，剪贴板历史工具仍可能保留副本。" = "DevHub copies project memory without simulating paste or Return. Paste it manually in the target CLI. If the clipboard is unchanged, DevHub clears it after 30 seconds, though clipboard history tools may retain a copy.";
+"启动时只会复制项目记忆，不会模拟粘贴或回车；请在目标 CLI 中手动粘贴。内容未变化时会在 30 秒后清理，剪贴板历史工具仍可能保留副本。" = "CodeReentry copies project memory without simulating paste or Return. Paste it manually in the target CLI. If the clipboard is unchanged, CodeReentry clears it after 30 seconds, though clipboard history tools may retain a copy.";
 "在 Terminal 打开此工具，不注入项目记忆" = "Open this tool in Terminal without project memory";
 "复制项目记忆并启动工具；启动后需要在工具中手动粘贴" = "Copy project memory and launch the tool; paste it manually after launch";
 "复制记忆并启动" = "Copy Memory and Launch";
 "项目记忆已复制" = "Project memory copied";
-"DevHub 已复制项目记忆并启动工具，但不会模拟键盘输入。请在目标 CLI 中手动粘贴；若剪贴板内容未变化，30 秒后会自动清理。" = "DevHub copied project memory and launched the tool without simulating keyboard input. Paste manually in the target CLI. If unchanged, the clipboard is cleared after 30 seconds.";
+"CodeReentry 已复制项目记忆并启动工具，但不会模拟键盘输入。请在目标 CLI 中手动粘贴；若剪贴板内容未变化，30 秒后会自动清理。" = "CodeReentry copied project memory and launched the tool without simulating keyboard input. Paste manually in the target CLI. If unchanged, the clipboard is cleared after 30 seconds.";
 "向 codex 发送项目记忆并立即发起一轮新对话" = "Send project memory to Codex and start a new conversation immediately";
 "向 codex 发送项目记忆将立即作为一条用户消息发送并开启新对话，不是系统上下文。确认继续？" = "Project memory will be sent to Codex as a user message and will immediately start a new conversation. It is not system context. Continue?";
 "codex 会立即发起一轮新对话" = "Codex will start a new conversation immediately";
@@ -429,8 +429,8 @@
 "继续发送" = "Continue Sending";
 "检测到疑似敏感信息，已阻止注入" = "Possible sensitive information detected; injection blocked";
 "检测到疑似密钥或 token。内容不会写入命令行参数，但目标 CLI 会读取临时文件。请确认这些内容可以发送给该工具。" = "Possible secrets or tokens were detected. The content will not appear in command-line arguments, but the target CLI will read it from a temporary file. Confirm that it is safe to send to this tool.";
-"检测到疑似密钥或 token。内容会复制到系统剪贴板，之后需要你在目标 CLI 手动粘贴；若期间未复制其他内容，DevHub 会在 30 秒后清理。剪贴板历史工具仍可能保留副本，请确认可以发送。" = "Possible secrets or tokens were detected. The content will be copied to the system clipboard for manual paste. DevHub clears it after 30 seconds if the clipboard is unchanged, but clipboard history tools may retain a copy. Confirm that it is safe to send.";
-"渲染后的项目记忆命中疑似敏感信息（如密钥）。位置参数注入会把它暴露在命令行参数中，已阻止。可选择不注入直接打开。" = "Rendered project memory appears to contain sensitive information such as a key. Positional injection would expose it in process arguments, so DevHub blocked it. You can open the tool without injecting memory.";
+"检测到疑似密钥或 token。内容会复制到系统剪贴板，之后需要你在目标 CLI 手动粘贴；若期间未复制其他内容，CodeReentry 会在 30 秒后清理。剪贴板历史工具仍可能保留副本，请确认可以发送。" = "Possible secrets or tokens were detected. The content will be copied to the system clipboard for manual paste. CodeReentry clears it after 30 seconds if the clipboard is unchanged, but clipboard history tools may retain a copy. Confirm that it is safe to send.";
+"渲染后的项目记忆命中疑似敏感信息（如密钥）。位置参数注入会把它暴露在命令行参数中，已阻止。可选择不注入直接打开。" = "Rendered project memory appears to contain sensitive information such as a key. Positional injection would expose it in process arguments, so CodeReentry blocked it. You can open the tool without injecting memory.";
 "项目记忆包含疑似敏感信息" = "Project memory may contain sensitive information";
 "项目记忆超过 8KB，将被截断" = "Project memory exceeds 8 KB and will be truncated";
 "注入内容超过 8KB，将被截断。完整内容仍可在 .devhub/memory/context.md 查看。" = "Injected content exceeds 8 KB and will be truncated. The full content remains in .devhub/memory/context.md.";
@@ -465,7 +465,7 @@
 "已保存" = "Saved";
 "尚未加载可保存的项目记忆。" = "No editable project memory has been loaded yet.";
 "上一项目的记忆尚未保存" = "The previous project's memory has not been saved";
-"为避免把草稿写入错误项目，DevHub 已暂停切换。请重试保存。" = "To avoid saving a draft to the wrong project, DevHub paused the switch. Retry saving first.";
+"为避免把草稿写入错误项目，CodeReentry 已暂停切换。请重试保存。" = "To avoid saving a draft to the wrong project, CodeReentry paused the switch. Retry saving first.";
 "重试保存并切换" = "Retry Save and Switch";
 "保存项目记忆失败" = "Could Not Save Project Memory";
 "在 Sessions tab 中点「生成本会话总结」以更新" = "Use Generate Session Summary in the Sessions tab to update this";
@@ -477,7 +477,7 @@
 "可用脚本" = "Available Scripts";
 "支持 package.json、Cargo、Go、Python 与 Procfile。" = "Supports package.json, Cargo, Go, Python, and Procfile.";
 "未检测到可运行脚本" = "No Runnable Scripts Detected";
-"从项目清单中检测；运行前会显示完整命令并再次确认。" = "Detected from project manifests. DevHub shows the full command and asks for confirmation before running.";
+"从项目清单中检测；运行前会显示完整命令并再次确认。" = "Detected from project manifests. CodeReentry shows the full command and asks for confirmation before running.";
 "本地启动日志" = "Local Run Log";
 "从左侧选择脚本运行后，标准输出与错误会实时显示在这里。" = "Choose a script on the left. Standard output and errors will stream here in real time.";
 "还没有运行日志" = "No run logs yet";
@@ -554,14 +554,14 @@
 "mcp.json 无法解析。为保留原文件，修复前不能添加或删除 server。" = "mcp.json could not be parsed. To preserve the original file, servers cannot be added or removed until it is repaired.";
 "mcp.json 缺少必需的 mcpServers 字段。" = "mcp.json is missing the required mcpServers field.";
 "MCP 配置已进入只读保护状态" = "MCP configuration is in protected read-only mode";
-"DevHub 不会覆盖该文件。请在外部修复 JSON 后重新读取。" = "DevHub will not overwrite this file. Repair the JSON externally, then reload it.";
+"CodeReentry 不会覆盖该文件。请在外部修复 JSON 后重新读取。" = "CodeReentry will not overwrite this file. Repair the JSON externally, then reload it.";
 "无法读取 mcp.json：" = "Could not read mcp.json: ";
 "从 mcp.json 移除" = "Remove from mcp.json";
 "MCP server 启用确认" = "Confirm MCP Server";
 "确认启用 MCP server" = "Confirm MCP Server";
 "即将启动 MCP server:" = "About to start MCP server:";
 "npx -y 等于远程任意执行，请确认信任来源。" = "npx -y can execute remote code. Confirm that you trust the source.";
-"MCP server 可能读写文件、访问网络或启动进程。DevHub 只会在你检查参数并再次确认后发起调用。" = "An MCP server may read or write files, access the network, or launch processes. DevHub only calls it after you review the arguments and confirm again.";
+"MCP server 可能读写文件、访问网络或启动进程。CodeReentry 只会在你检查参数并再次确认后发起调用。" = "An MCP server may read or write files, access the network, or launch processes. CodeReentry only calls it after you review the arguments and confirm again.";
 "确认启用" = "Confirm Enable";
 "MCP 工具" = "MCP Tools";
 "执行工具（需确认）" = "Run Tool (Confirmation Required)";
@@ -577,7 +577,7 @@
 
 /* Script plugins */
 "Rail C 脚本插件" = "Rail C Script Plugins";
-"未发现插件。将插件放入 ~/Library/Application Support/DevHub/plugins/<name>/（含 manifest.json）。" = "No plugins found. Put plugins under ~/Library/Application Support/DevHub/plugins/<name>/ with a manifest.json file.";
+"未发现插件。为兼容已有数据，插件目录仍为 ~/Library/Application Support/DevHub/plugins/<name>/（含 manifest.json）。" = "No plugins found. For existing-data compatibility, the plugin folder remains ~/Library/Application Support/DevHub/plugins/<name>/ with a manifest.json file.";
 "确认启用插件" = "Confirm Plugin Enablement";
 "撤销权限" = "Revoke Permission";
 "插件操作结果" = "Plugin Result";
@@ -590,10 +590,10 @@
 /* Backup and import */
 "导出备份…" = "Export Backup…";
 "导入备份…" = "Import Backup…";
-"导出 DevHub 备份" = "Export DevHub Backup";
+"导出 CodeReentry 备份" = "Export CodeReentry Backup";
 "备份包含项目配置与索引，但不会包含 Keychain 中的密钥值；在新设备导入后需要重新录入密钥。" = "The backup contains project configuration and indexes, but not Keychain secret values. Re-enter secrets after importing on a new device.";
 "导出备份失败" = "Backup Export Failed";
-"DevHub 数据存储提示" = "DevHub Data Store Notice";
+"CodeReentry 数据存储提示" = "CodeReentry Data Store Notice";
 "导入备份" = "Import Backup";
 "选择备份文件…" = "Choose Backup File…";
 "未选择文件。" = "No file selected.";
@@ -638,7 +638,7 @@
 "已有 %d 个" = "%d already registered";
 "平台数据加载失败：" = "Could not load platform data: ";
 "平台管理" = "Platform Management";
-"打开 DevHub" = "Open DevHub";
+"打开 CodeReentry" = "Open CodeReentry";
 "提供方" = "Provider";
 "搜索日志…" = "Search logs…";
 "搜索项目、标签、插件或 MCP 工具…" = "Search projects, tags, plugins, or MCP tools…";
@@ -661,7 +661,7 @@
 "订阅页面已不可用，请关闭表单后重试。" = "The subscriptions page is no longer available. Close the form and try again.";
 "跳过 %d 个已不可用目录：%@" = "Skipped %d unavailable folders: %@";
 "跳过 %d 个身份重复目录：%@" = "Skipped %d folders with duplicate identities: %@";
-"退出 DevHub" = "Quit DevHub";
+"退出 CodeReentry" = "Quit CodeReentry";
 "选择文件夹注册为新项目" = "Choose a folder to register as a project";
 "选择项目" = "Choose Project";
 
@@ -710,7 +710,7 @@
 "（无用户消息）" = "(No user messages)";
 
 /* Interpolated localization keys */
-"DevHub 将在项目目录执行：%@" = "DevHub will run this command in the project folder: %@";
+"CodeReentry 将在项目目录执行：%@" = "CodeReentry will run this command in the project folder: %@";
 "Keychain 中未找到 %@ 的值" = "No value for %@ was found in Keychain";
 "%lld 个 artifacts" = "%lld artifacts";
 "%lld 个未提交改动" = "%lld uncommitted changes";
@@ -745,12 +745,12 @@
 "## 用户消息（前 %lld 条）" = "## User Messages (First %lld)";
 "插件权限文件无法读取或格式已损坏，为避免覆盖原数据已停止写入：%@" = "The plugin permission file is unreadable or malformed. Writing was stopped to avoid overwriting data: %@";
 "插件脚本不存在：%@" = "The plugin script does not exist: %@";
-"插件要求 DevHub %@ 或更高版本，当前版本为 %@。" = "The plugin requires DevHub %1$@ or newer. The current version is %2$@.";
+"插件要求 CodeReentry %@ 或更高版本，当前版本为 %@。" = "The plugin requires CodeReentry %1$@ or newer. The current version is %2$@.";
 "项目目录无效或已不存在：%@" = "The project folder is invalid or no longer exists: %@";
 "插件动作超过 %lld 秒未完成，已终止。" = "The plugin action did not finish within %lld seconds and was terminated.";
 "“%@”执行失败（退出码 %lld）。" = "“%@” failed with exit code %lld.";
 "“%@”执行成功。" = "“%@” completed successfully.";
-"从 DevHub 移除“%@”？" = "Remove “%@” from DevHub?";
+"从 CodeReentry 移除“%@”？" = "Remove “%@” from CodeReentry?";
 "从 mcp.json 移除 %@" = "Remove %@ from mcp.json";
 "会话 %lld 条" = "%lld sessions";
 "保存失败：%@" = "Save failed: %@";
@@ -761,7 +761,7 @@
 "分支 %@" = "Branch %@";
 "加载失败: %@" = "Load failed: %@";
 "即将启动 MCP server: %@" = "About to start MCP server: %@";
-"原数据库无法打开，已保留到 %@，并创建了一个新数据库。你可以从 DevHub 备份重新导入数据。" = "The original database could not be opened. It was preserved at %@ and a new database was created. You can re-import data from a DevHub backup.";
+"原数据库无法打开，已保留到 %@，并创建了一个新数据库。你可以从 CodeReentry 备份重新导入数据。" = "The original database could not be opened. It was preserved at %@ and a new database was created. You can re-import data from a CodeReentry backup.";
 "启用 %@" = "Enable %@";
 "安装 %@" = "Install %@";
 "密钥 %@ 已不在工具配置中，请刷新设置后重试。" = "Secret %@ is no longer in the tool configuration. Refresh Settings and try again.";
@@ -769,7 +769,7 @@
 "将于 %@ 续费" = "renews on %@";
 "将删除“%@”及其 %lld 个 Keychain 密钥引用，并移除 %lld 个项目绑定。此操作无法撤销。" = "This deletes “%@”, its %lld Keychain secret references, and %lld project bindings. This cannot be undone.";
 "将把上面的参数发送给 %@ / %@。请仅在 server 来源和参数都可信时继续。" = "The arguments above will be sent to %1$@ / %2$@. Continue only if you trust both the server source and the arguments.";
-"将调用 %@ / %@。MCP server 可能读写文件、访问网络或启动进程，请确认参数与 server 来源可信。" = "DevHub will call %1$@ / %2$@. An MCP server may read or write files, access the network, or launch processes. Confirm that you trust the arguments and server source.";
+"将调用 %@ / %@。MCP server 可能读写文件、访问网络或启动进程，请确认参数与 server 来源可信。" = "CodeReentry will call %1$@ / %2$@. An MCP server may read or write files, access the network, or launch processes. Confirm that you trust the arguments and server source.";
 "工作目录不存在：%@" = "Working directory does not exist: %@";
 "工具 %lld 个" = "%lld tools";
 "工具 %@ 的启动适配器不可用。" = "No launcher adapter is available for %@.";
@@ -778,7 +778,7 @@
 "已将会话归类到“%@”" = "Assigned the session to “%@”";
 "已更新 %lld 个会话" = "Updated %lld sessions";
 "当前活跃项目：%@" = "Active project: %@";
-"持久数据库无法打开（%@）。本次将使用临时内存数据库，退出后更改不会保存；请先导出诊断信息并修复磁盘权限。" = "The persistent database could not be opened (%@). DevHub will use a temporary in-memory database for this run, so changes will not survive quit. Export diagnostics and repair disk permissions first.";
+"持久数据库无法打开（%@）。本次将使用临时内存数据库，退出后更改不会保存；请先导出诊断信息并修复磁盘权限。" = "The persistent database could not be opened (%@). CodeReentry will use a temporary in-memory database for this run, so changes will not survive quit. Export diagnostics and repair disk permissions first.";
 "插件 %@ 启用确认" = "Confirm enabling plugin %@";
 "插件：%@（%@）" = "Plugin: %1$@ (%2$@)";
 "无法保存“%@”的分组与标签。" = "Could not save the group and tags for “%@”.";
@@ -810,7 +810,7 @@
 "用 %@ 打开此会话" = "Open this session with %@";
 "申请权限：%@" = "Requested permissions: %@";
 "该目录属于另一个项目（%@）。" = "This folder belongs to another project (%@).";
-"读取 DevHub 日志失败（退出码 %d）：%@" = "Could not read DevHub logs (exit code %d): %@";
+"读取 CodeReentry 日志失败（退出码 %d）：%@" = "Could not read CodeReentry logs (exit code %d): %@";
 "运行“%@”" = "Run “%@”";
 "重新定位“%@”" = "Relocate “%@”";
 "重置于 %@" = "Resets %@";
@@ -824,4 +824,4 @@
 "只发送稳定上下文" = "Send stable context only";
 "仍发送这份总结" = "Send this summary anyway";
 "项目中存在更新时间更晚的会话。这份总结可能遗漏后续决定；你可以只发送稳定的 context.md，或确认仍发送旧总结。" = "A session was updated after this summary's source session. It may omit later decisions. Send only the stable context.md, or confirm that you still want to send the older summary.";
-"这份总结来自旧版本或手工文件，DevHub 无法确认它对应哪次会话。建议只发送稳定的 context.md，或在“会话”页重新生成总结。" = "This summary came from an older DevHub version or a manually created file, so its source session cannot be verified. Send only the stable context.md, or regenerate the summary from the Sessions tab.";
+"这份总结来自旧版本或手工文件，CodeReentry 无法确认它对应哪次会话。建议只发送稳定的 context.md，或在“会话”页重新生成总结。" = "This summary came from an older CodeReentry version or a manually created file, so its source session cannot be verified. Send only the stable context.md, or regenerate the summary from the Sessions tab.";

@@ -41,7 +41,7 @@ final class MenuBarController {
 
     func install() {
         let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
-        let img = NSImage(systemSymbolName: "hammer.fill", accessibilityDescription: "DevHub")
+        let img = NSImage(systemSymbolName: "hammer.fill", accessibilityDescription: "CodeReentry")
         item.button?.image = img
         item.button?.imagePosition = .imageOnly
         statusItem = item
@@ -80,9 +80,9 @@ final class MenuBarController {
         recent.submenu = submenu
         menu.addItem(recent)
         menu.addItem(.separator())
-        menu.addItem(withTitle: String(localized: "打开 DevHub"), action: #selector(showApp), keyEquivalent: "")
+        menu.addItem(withTitle: String(localized: "打开 CodeReentry"), action: #selector(showApp), keyEquivalent: "")
         menu.addItem(.separator())
-        menu.addItem(withTitle: String(localized: "退出 DevHub"), action: #selector(quitApp), keyEquivalent: "q")
+        menu.addItem(withTitle: String(localized: "退出 CodeReentry"), action: #selector(quitApp), keyEquivalent: "q")
         return menu
     }
 

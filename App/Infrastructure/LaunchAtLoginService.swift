@@ -20,9 +20,9 @@ enum LaunchAtLoginError: LocalizedError, Equatable {
     var errorDescription: String? {
         switch self {
         case .requiresApproval:
-            return String(localized: "DevHub 已请求登录时启动，但仍需在“系统设置 → 通用 → 登录项”中批准。")
+            return String(localized: "CodeReentry 已请求登录时启动，但仍需在“系统设置 → 通用 → 登录项”中批准。")
         case .unavailable:
-            return String(localized: "当前 DevHub 无法注册为登录项。请使用正式签名的完整 .app 包。")
+            return String(localized: "当前 CodeReentry 无法注册为登录项。请使用正式签名的完整 .app 包。")
         case .operationFailed(let message):
             return String(localized: "更新登录项失败：\(message)")
         }

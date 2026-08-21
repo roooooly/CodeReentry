@@ -156,6 +156,7 @@
 		83237C80A38A47620DFF50F6 /* DetailTab.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailTab.swift; sourceTree = "<group>"; };
 		835C175CE57A566C629B1931 /* MemoryTabViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoryTabViewModel.swift; sourceTree = "<group>"; };
 		840A3F7790AEDA39DAF418E7 /* AllSessionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AllSessionsView.swift; sourceTree = "<group>"; };
+		8462D33777277BECD65720A6 /* CodeReentry.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CodeReentry.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		883168199EA5C0BFFB1FABBB /* SettingsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewModel.swift; sourceTree = "<group>"; };
 		8A9489E21FCDB16791CF78E5 /* SettingsSystemServicesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsSystemServicesTests.swift; sourceTree = "<group>"; };
 		8B3CEF7F06B50EE41373DB83 /* InstallRunnerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InstallRunnerView.swift; sourceTree = "<group>"; };
@@ -198,7 +199,6 @@
 		EA3C3FD3802D0B96E99B2C80 /* ReminderScheduler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReminderScheduler.swift; sourceTree = "<group>"; };
 		EC2E3FFAD1A5F68EF3076552 /* SparkleProductionDriver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SparkleProductionDriver.swift; sourceTree = "<group>"; };
 		ED1D0622ACA0734F47BF821B /* ToolCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToolCard.swift; sourceTree = "<group>"; };
-		F33879797498EC9DC9087CC0 /* DevHub.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DevHub.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		F4CE49F55116045949F71021 /* OpsTabViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpsTabViewModelTests.swift; sourceTree = "<group>"; };
 		F75081905417D353FF6FCA5B /* UsageScannerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageScannerTests.swift; sourceTree = "<group>"; };
 		FB80D313EB616C658462795E /* MenuBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarController.swift; sourceTree = "<group>"; };
@@ -541,7 +541,7 @@
 		F4F59C5B98EE1C5C3A8A4AD9 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				F33879797498EC9DC9087CC0 /* DevHub.app */,
+				8462D33777277BECD65720A6 /* CodeReentry.app */,
 				02DDE73E7D9811E4FA3F8802 /* DevHubTests.xctest */,
 			);
 			name = Products;
@@ -589,7 +589,7 @@
 				AB94DECF27B326C46310345F /* Sparkle */,
 			);
 			productName = DevHub;
-			productReference = F33879797498EC9DC9087CC0 /* DevHub.app */;
+			productReference = 8462D33777277BECD65720A6 /* CodeReentry.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -799,7 +799,8 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				PRODUCT_BUNDLE_IDENTIFIER = io.github.roooooly.devhub;
-				PRODUCT_NAME = DevHub;
+				PRODUCT_MODULE_NAME = DevHub;
+				PRODUCT_NAME = CodeReentry;
 				SDKROOT = macosx;
 			};
 			name = Release;
@@ -840,7 +841,7 @@
 				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = "";
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -855,7 +856,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 0.2.0;
+				MARKETING_VERSION = 0.3.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -903,7 +904,7 @@
 				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = "";
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -924,7 +925,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 0.2.0;
+				MARKETING_VERSION = 0.3.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -953,7 +954,8 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				PRODUCT_BUNDLE_IDENTIFIER = io.github.roooooly.devhub;
-				PRODUCT_NAME = DevHub;
+				PRODUCT_MODULE_NAME = DevHub;
+				PRODUCT_NAME = CodeReentry;
 				SDKROOT = macosx;
 			};
 			name = Debug;
@@ -972,7 +974,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				PRODUCT_BUNDLE_IDENTIFIER = io.github.roooooly.devhub.tests;
 				SDKROOT = macosx;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/DevHub.app/Contents/MacOS/DevHub";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/CodeReentry.app/Contents/MacOS/CodeReentry";
 			};
 			name = Debug;
 		};
@@ -990,7 +992,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				PRODUCT_BUNDLE_IDENTIFIER = io.github.roooooly.devhub.tests;
 				SDKROOT = macosx;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/DevHub.app/Contents/MacOS/DevHub";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/CodeReentry.app/Contents/MacOS/CodeReentry";
 			};
 			name = Release;
 		};

@@ -36,7 +36,7 @@ func projectRelocationErrorMessage(_ error: Error) -> String {
     case .invalidPath:
         return String(localized: "请选择一个仍然存在的项目文件夹。")
     case .stableIdMismatch:
-        return String(localized: "所选文件夹属于另一个 DevHub 项目，请选择移动后的原项目目录。")
+        return String(localized: "所选文件夹属于另一个 CodeReentry 项目，请选择移动后的原项目目录。")
     }
 }
 
@@ -141,7 +141,7 @@ struct ProjectDetailView: View {
             Label(String(localized: "项目路径已失效"), systemImage: "exclamationmark.triangle.fill")
         } description: {
             VStack(spacing: 6) {
-                Text(String(localized: "项目可能已被移动或删除。重新选择目录后，DevHub 会保留现有会话、订阅和平台绑定。"))
+                Text(String(localized: "项目可能已被移动或删除。重新选择目录后，CodeReentry 会保留现有会话、订阅和平台绑定。"))
                 Text(project.path)
                     .font(.system(.caption, design: .monospaced))
                     .textSelection(.enabled)
