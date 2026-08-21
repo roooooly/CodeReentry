@@ -30,7 +30,9 @@ only an anonymous derived project slot, tool, coarse session age, durations, out
 coarse repeated-background reduction, a cross-project flag, and a failure category. It
 does not contain project identifiers, names, paths, session IDs, prompts, messages, source
 content, or free-form notes. An unfinished timer is memory-only. The app has no feature to
-upload this evidence.
+upload this evidence. The Recovery Evidence page can permanently delete the evidence CSV
+and any unfinished timer without deleting projects, sessions, source files, or unrelated
+application-support data.
 
 Launching a CLI creates an owner-only (`0700`) temporary script under CodeReentry's cache.
 The script can contain shell-quoted project paths and launch environment values, so it

@@ -13,6 +13,7 @@ enum ReentryTrialCoordinatorError: Error, LocalizedError, Equatable {
     case activeTrialExists
     case unsupportedTool(String)
     case noActiveTrial
+    case timerStillRunning
 
     var errorDescription: String? {
         switch self {
@@ -22,6 +23,8 @@ enum ReentryTrialCoordinatorError: Error, LocalizedError, Equatable {
             String(localized: "暂不支持测量工具：\(tool)")
         case .noActiveTrial:
             String(localized: "没有正在进行的恢复测量。")
+        case .timerStillRunning:
+            String(localized: "请先停止计时，再保存恢复结果。")
         }
     }
 }
@@ -36,8 +39,11 @@ final class ReentryTrialCoordinator {
     private let now: @MainActor () -> Date
 
     private(set) var activeTrial: ActiveReentryTrial?
+    /// Frozen as soon as the user says context is ready, before the form opens.
+    private(set) var capturedElapsedSeconds: Int?
     private(set) var records: [ReentryTrialRecord] = []
     private(set) var summary: ReentryTrialSummary = .empty
+    private(set) var hasStoredEvidence = false
     private(set) var errorMessage: String?
 
     init(
@@ -49,6 +55,7 @@ final class ReentryTrialCoordinator {
     }
 
     func refresh() async {
+        hasStoredEvidence = await store.hasStoredEvidence()
         do {
             records = try await store.records()
             summary = ReentryTrialStore.summarize(records)
@@ -79,12 +86,27 @@ final class ReentryTrialCoordinator {
             sessionAge: .classify(sessionStartedAt: sessionStartedAt, now: current),
             startedAt: current
         )
+        capturedElapsedSeconds = nil
         errorMessage = nil
     }
 
     func elapsedSeconds(at date: Date? = nil) -> Int {
         guard let activeTrial else { return 0 }
+        if let capturedElapsedSeconds { return capturedElapsedSeconds }
         return max(1, Int((date ?? now()).timeIntervalSince(activeTrial.startedAt).rounded(.up)))
+    }
+
+    /// Freezes the recovery duration at the explicit confirmation moment so
+    /// time spent filling the outcome form cannot inflate the product metric.
+    @discardableResult
+    func captureElapsed() throws -> Int {
+        guard activeTrial != nil else {
+            throw ReentryTrialCoordinatorError.noActiveTrial
+        }
+        if let capturedElapsedSeconds { return capturedElapsedSeconds }
+        let captured = elapsedSeconds()
+        capturedElapsedSeconds = captured
+        return captured
     }
 
     func complete(
@@ -96,6 +118,9 @@ final class ReentryTrialCoordinator {
     ) async throws {
         guard let activeTrial else {
             throw ReentryTrialCoordinatorError.noActiveTrial
+        }
+        guard capturedElapsedSeconds != nil else {
+            throw ReentryTrialCoordinatorError.timerStillRunning
         }
         let input = ReentryTrialInput(
             projectSlot: activeTrial.projectSlot,
@@ -110,11 +135,30 @@ final class ReentryTrialCoordinator {
         )
         _ = try await store.record(input, at: now())
         self.activeTrial = nil
+        capturedElapsedSeconds = nil
         await refresh()
+    }
+
+    /// Clears both completed local evidence and any unfinished in-memory timer.
+    /// State changes only after the file operation succeeds.
+    func deleteAllEvidence() async throws {
+        do {
+            try await store.deleteAllRecords()
+            activeTrial = nil
+            capturedElapsedSeconds = nil
+            records = []
+            summary = .empty
+            hasStoredEvidence = false
+            errorMessage = nil
+        } catch {
+            errorMessage = error.localizedDescription
+            throw error
+        }
     }
 
     func cancelActive() {
         activeTrial = nil
+        capturedElapsedSeconds = nil
         errorMessage = nil
     }
 }

@@ -17,12 +17,21 @@ The normal path is built into CodeReentry:
    and submit the baseline, correctness, coarse repeated-background reduction, and any
    failure category.
 
+Selecting **Record Recovery Result** freezes the timer before the form opens, so time spent
+entering the structured result is not counted as recovery time. Canceling the form keeps
+that frozen duration available for an honest later submission; discarding the measurement
+records nothing.
+
 The app writes the same strict 12-column schema used by the CLI to the owner-only file
 `~/Library/Application Support/CodeReentry/reentry-trials.csv`. It deterministically
 derives an anonymous project slot before recording. It never writes the source
 project identifier, project name, path, session ID, prompt, conversation body, or notes.
 There is no upload or telemetry path. An unfinished timer exists only in memory and is
 discarded when the app exits.
+
+The evidence page also provides an explicit, destructive **Delete All Local Records**
+action. After confirmation it removes the evidence CSV and unfinished timer, while leaving
+projects, sessions, source files, and unrelated application-support data untouched.
 
 The **Recovery Evidence** page summarizes local attempts and shows coverage and outcome
 gates without presenting development fixtures as real evidence.
@@ -96,3 +105,7 @@ failure category, change the product, and repeat rather than weakening the targe
 `local-data/reentry-trials.csv`，两种入口使用同一严格格式但不自动合并。至少用三项项目、
 两种工具完成十次真实复访，同时覆盖近期和较早会话及七天跨度。若正确率、耗时、重复背景
 减少或跨项目上下文指标未达到目标，应保留失败证据并继续改产品，而不是降低标准。
+
+点击“记录恢复结果”时计时会先冻结，因此填写表单的时间不会污染恢复耗时。证据页也提供
+“删除全部本地记录”操作；再次确认后只删除证据 CSV 与未完成计时，不删除项目、会话、源码
+或其他应用数据。
