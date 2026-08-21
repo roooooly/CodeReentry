@@ -7,6 +7,8 @@ public enum ToolIdentifierResolver {
         switch identifier.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() {
         case "claude", "claude-code", "claude code": return "claude-code"
         case "gemini", "gemini cli": return "gemini-cli"
+        case "copilot", "copilot cli", "github copilot", "github copilot cli":
+            return "github-copilot"
         case "open code": return "opencode"
         case "vs code": return "vscode"
         case "z code": return "zcode"
@@ -17,7 +19,10 @@ public enum ToolIdentifierResolver {
 
     public static func identifier(for tool: Tool) -> String {
         let name = canonical(tool.name)
-        if ["codex", "claude-code", "gemini-cli", "vscode", "zcode", "kimi", "opencode"].contains(name) {
+        if [
+            "codex", "claude-code", "gemini-cli", "github-copilot", "vscode",
+            "zcode", "kimi", "opencode"
+        ].contains(name) {
             return name
         }
 
@@ -30,6 +35,7 @@ public enum ToolIdentifierResolver {
         if command.contains("chatgpt.app") || command.hasSuffix("/codex") { return "codex" }
         if command.contains("claude") { return "claude-code" }
         if command == "gemini" || command.hasSuffix("/gemini") { return "gemini-cli" }
+        if command == "copilot" || command.hasSuffix("/copilot") { return "github-copilot" }
         if command == "opencode" || command.hasSuffix("/opencode") { return "opencode" }
         if command.contains("visual studio code.app") || command.hasSuffix("/code") { return "vscode" }
         if command.contains("kimi.app") { return "kimi" }

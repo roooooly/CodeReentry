@@ -9,7 +9,8 @@ import SwiftData
 public enum DefaultToolCatalog {
 
     public static let defaultNames = [
-        "Claude Code", "Codex", "ZCode", "Kimi", "OpenCode", "Gemini CLI", "VS Code"
+        "Claude Code", "Codex", "ZCode", "Kimi", "OpenCode", "Gemini CLI",
+        "GitHub Copilot CLI", "VS Code"
     ]
 
     /// 仅当数据库没有任何工具时创建内置工具，并绑定到已有项目。
@@ -134,10 +135,18 @@ public enum DefaultToolCatalog {
                 downloadURL: "https://github.com/google-gemini/gemini-cli"
             ),
             Tool(
+                name: "GitHub Copilot CLI", kind: .cli, launchCommand: "copilot",
+                workingDirMode: .projectRoot, injectMemory: false,
+                injectionMode: .cliFlag, enabled: true, sortOrder: 6,
+                installCommand: "install copilot-cli",
+                installMethod: .brew,
+                downloadURL: "https://github.com/github/copilot-cli"
+            ),
+            Tool(
                 name: "VS Code", kind: .app,
                 launchCommand: "/Applications/Visual Studio Code.app",
                 workingDirMode: .projectRoot, injectMemory: false,
-                injectionMode: .clipboard, enabled: true, sortOrder: 6,
+                injectionMode: .clipboard, enabled: true, sortOrder: 7,
                 installCommand: "install --cask visual-studio-code",
                 installMethod: .brew,
                 downloadURL: "https://code.visualstudio.com/Download"

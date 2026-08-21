@@ -66,8 +66,8 @@ Release performance is tracked separately with a
 
 - Project overview, status, tags, Git state, detected scripts, and quick launchers
 - Session-first onboarding that proposes project roots from local cwd metadata before registration
-- Local session aggregation for Claude Code, Codex, ZCode, Gemini CLI, OpenCode,
-  and Kimi metadata
+- Local session aggregation for Claude Code, Codex, ZCode, Gemini CLI, GitHub Copilot
+  CLI, OpenCode, and Kimi metadata
 - Bounded streaming readers for large JSONL histories
 - On-demand conversation loading and original-tool resume where supported
 - Guarded one-click resume that selects the latest usable session, falls back from a moved
@@ -88,6 +88,7 @@ Release performance is tracked separately with a
 | Kimi | Metadata only | No | Open app, not an exact session | No |
 | OpenCode | Metadata (v1.18.19 SQLite) | No | Exact-session resume (`--session`) | Prompt argument |
 | Gemini CLI | Yes (project-scoped JSONL) | Bounded, on demand | Exact-session resume (`--resume`) | No |
+| GitHub Copilot CLI | Yes (`session-state` events) | Bounded, on demand | Exact-ID resume (`--resume`) | No |
 | VS Code | Not applicable | Not applicable | Open project | Clipboard-assisted when requested |
 
 This table describes the paths implemented in the current source. Third-party storage
@@ -107,6 +108,13 @@ applies rewind and checkpoint records, excludes subagent histories, and resumes 
 full session UUID. Discovery and conversation loading have explicit directory, file, byte,
 line, message, and character limits; oversized inline data is skipped and reported as a
 truncated conversation rather than loaded without a bound.
+
+GitHub Copilot CLI compatibility is verified against the pinned official documentation
+and CLI snapshot in [the compatibility note](docs/github-copilot-cli-compatibility.md).
+CodeReentry reads only documented persisted root-agent messages and project-context
+events, excludes reasoning, system prompts, streaming deltas, subagent events, and
+symbolic links, and resumes with the complete discovered session ID. The development
+fixture is synthetic; it does not count as a real-user recovery trial.
 
 ## Privacy boundary
 

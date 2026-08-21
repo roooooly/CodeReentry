@@ -9,6 +9,7 @@ struct ToolIdentifierResolverTests {
         #expect(ToolIdentifierResolver.canonical("Open Code") == "opencode")
         #expect(ToolIdentifierResolver.canonical("VS Code") == "vscode")
         #expect(ToolIdentifierResolver.canonical("Gemini") == "gemini-cli")
+        #expect(ToolIdentifierResolver.canonical("GitHub Copilot CLI") == "github-copilot")
     }
 
     @Test("renamed built-in tool remains identifiable from configured executable")
@@ -24,5 +25,19 @@ struct ToolIdentifierResolverTests {
 
         #expect(ToolIdentifierResolver.identifier(for: tool) == "claude-code")
         #expect(ToolIdentifierResolver.matches(tool, sessionToolIdentifier: "claude"))
+    }
+
+    @Test("renamed Copilot tool remains identifiable from its executable")
+    func renamedCopilotUsesExecutable() {
+        let tool = Tool(
+            name: "Pair programmer",
+            kind: .cli,
+            launchCommand: "/opt/tools/copilot --model auto",
+            workingDirMode: .projectRoot,
+            injectionMode: .cliFlag,
+            sortOrder: 0
+        )
+
+        #expect(ToolIdentifierResolver.identifier(for: tool) == "github-copilot")
     }
 }
