@@ -180,7 +180,7 @@ private struct DevHubFixtureTool {
         try fileManager.createDirectory(at: sourcesRoot, withIntermediateDirectories: true)
         try fileManager.createDirectory(at: storeDirectory, withIntermediateDirectories: true)
 
-        let tools = ["claude-code", "codex", "zcode", "opencode", "kimi"]
+        let tools = ["claude-code", "codex", "zcode", "opencode", "gemini-cli", "kimi"]
         var sourceFiles: [String: URL] = [:]
         for tool in tools {
             let source = sourcesRoot.appendingPathComponent("\(tool)-synthetic-session.jsonl")
@@ -255,7 +255,7 @@ private struct DevHubFixtureTool {
             options: .atomic
         )
         let indexedSessions = indexState == .full ? scale.sessionCount : 0
-        print("Created \(scale.rawValue) fixture: \(scale.projectCount) projects, \(scale.sessionCount) synthetic sessions, \(indexedSessions) preindexed, 6 tools.")
+        print("Created \(scale.rawValue) fixture: \(scale.projectCount) projects, \(scale.sessionCount) synthetic sessions, \(indexedSessions) preindexed, \(DefaultToolCatalog.defaultNames.count) tools.")
     }
 
     @MainActor
@@ -300,8 +300,11 @@ private struct DevHubFixtureTool {
                 entity: "session", expected: expectedIndexedSessions, actual: sessionCount
             )
         }
-        guard toolCount == 6 else {
-            throw FixtureToolError.countMismatch(entity: "tool", expected: 6, actual: toolCount)
+        let expectedToolCount = DefaultToolCatalog.defaultNames.count
+        guard toolCount == expectedToolCount else {
+            throw FixtureToolError.countMismatch(
+                entity: "tool", expected: expectedToolCount, actual: toolCount
+            )
         }
         print("Verified \(scale.rawValue) fixture: \(projectCount) projects, \(sessionCount) preindexed sessions, \(toolCount) tools.")
     }

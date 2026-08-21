@@ -29,7 +29,7 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-7D1727" alt="MIT license"></a>
 </p>
 
-> **Source beta:** The current source release is v0.3.2. CodeReentry does not have a signed
+> **Source beta:** The current source release is v0.4.0. CodeReentry does not have a signed
 > and notarized public binary yet.
 > Build it from source for evaluation, and do not install binaries from unofficial
 > mirrors. Public distribution remains blocked until the Apple signing and
@@ -66,7 +66,8 @@ Release performance is tracked separately with a
 
 - Project overview, status, tags, Git state, detected scripts, and quick launchers
 - Session-first onboarding that proposes project roots from local cwd metadata before registration
-- Local session aggregation for Claude Code, Codex, ZCode, and Kimi metadata
+- Local session aggregation for Claude Code, Codex, ZCode, Gemini CLI, OpenCode,
+  and Kimi metadata
 - Bounded streaming readers for large JSONL histories
 - On-demand conversation loading and original-tool resume where supported
 - Guarded one-click resume that selects the latest usable session, falls back from a moved
@@ -86,6 +87,7 @@ Release performance is tracked separately with a
 | ZCode | Yes | Supported local records | Resume session | Prompt argument |
 | Kimi | Metadata only | No | Open app, not an exact session | No |
 | OpenCode | Metadata (v1.18.19 SQLite) | No | Exact-session resume (`--session`) | Prompt argument |
+| Gemini CLI | Yes (project-scoped JSONL) | Bounded, on demand | Exact-session resume (`--resume`) | No |
 | VS Code | Not applicable | Not applicable | Open project | Clipboard-assisted when requested |
 
 This table describes the paths implemented in the current source. Third-party storage
@@ -97,6 +99,14 @@ from the default `~/.local/share/opencode/opencode.db`, an `OPENCODE_DB` overrid
 bounded `opencode-<channel>.db` siblings. It validates the `session` table before use,
 opens each database read-only, indexes at most 1,000 recent active sessions per database,
 and does not read message bodies.
+
+Gemini CLI compatibility is verified against an upstream source snapshot recorded in
+[the compatibility note](docs/gemini-cli-compatibility.md). CodeReentry resolves project
+ownership only from Gemini CLI's `.project_root` marker or `projects.json` registry,
+applies rewind and checkpoint records, excludes subagent histories, and resumes with the
+full session UUID. Discovery and conversation loading have explicit directory, file, byte,
+line, message, and character limits; oversized inline data is skipped and reported as a
+truncated conversation rather than loaded without a bound.
 
 ## Privacy boundary
 

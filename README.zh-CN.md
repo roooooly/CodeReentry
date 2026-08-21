@@ -29,7 +29,7 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-7D1727" alt="MIT 许可证"></a>
 </p>
 
-> **源码 Beta：**当前源码版本为 v0.3.2。CodeReentry 暂时没有经过 Developer ID 签名和
+> **源码 Beta：**当前源码版本为 v0.4.0。CodeReentry 暂时没有经过 Developer ID 签名和
 > Apple 公证的公开安装包。
 > 当前请从源码构建体验，不要安装非官方镜像提供的二进制文件。只有满足
 > [RELEASE.md](RELEASE.md) 中的签名与公证条件后，才会提供公开下载。
@@ -60,7 +60,8 @@ Release 性能另用[可复现的合成基线](docs/performance-baseline.md)跟�
 
 - 项目总览、状态、标签、Git 状态、脚本识别和快速启动
 - 会话优先引导：先从本地 cwd 元数据提出项目根目录，确认后才注册
-- 聚合 Claude Code、Codex、ZCode 的本地会话，以及 Kimi 状态元数据
+- 聚合 Claude Code、Codex、ZCode、Gemini CLI、OpenCode 的本地会话，以及
+  Kimi 状态元数据
 - 面向大型 JSONL 历史记录的流式、限量读取
 - 按需加载会话正文，并在工具支持时回到原会话
 - 受保护的一键恢复：选择最近一条真正可用的会话，在会话子目录移动后安全回退到项目根目录，
@@ -80,6 +81,7 @@ Release 性能另用[可复现的合成基线](docs/performance-baseline.md)跟�
 | ZCode | 支持 | 支持已适配的本地记录 | 恢复会话 | 通过提示参数传递 |
 | Kimi | 仅状态元数据 | 不支持 | 打开应用，不能定位到该会话 | 不支持 |
 | OpenCode | 元数据（v1.18.19 SQLite） | 不支持 | 精确恢复会话（`--session`） | 通过提示参数传递 |
+| Gemini CLI | 支持（项目级 JSONL） | 按需、限量读取 | 精确恢复会话（`--resume`） | 不支持 |
 | VS Code | 不适用 | 不适用 | 打开项目 | 用户确认后通过剪贴板辅助 |
 
 表格描述的是当前源码已经实现的路径。第三方工具的存储格式和命令行行为可能变化，
@@ -89,6 +91,12 @@ OpenCode 兼容性以 v1.18.19 为验证基准。CodeReentry 从默认的
 `~/.local/share/opencode/opencode.db`、`OPENCODE_DB` 自定义路径以及有上限的
 `opencode-<channel>.db` 同级数据库发现会话元数据。数据库会先校验 `session`
 表，再以只读方式打开；每个数据库最多索引最近 1,000 个未归档会话，不读取消息正文。
+
+Gemini CLI 兼容性以[兼容性说明](docs/gemini-cli-compatibility.md)中记录的上游源码快照为
+验证基准。CodeReentry 只依据 Gemini CLI 的 `.project_root` 标记或 `projects.json` 注册表
+确定项目归属，应用回退和检查点记录，排除子代理历史，并使用完整会话 UUID 恢复。发现与
+正文加载都设置了目录、文件、字节、单行、消息和字符上限；遇到超大的内联数据时会跳过并
+标记为截断，而不是无上限载入内存。
 
 ## 隐私边界
 
