@@ -12,6 +12,9 @@ published a signed public binary.
   executed launchers still remove themselves and stale files retain the 24-hour bound.
 - Serialize streaming pipe drains with process termination so short-lived operations do
   not lose their final stdout or stderr lines.
+- Add a verified `--install` path for source evaluators that stages a local build under
+  `~/Applications`, refuses symlinks and foreign bundles, and restores the prior copy if
+  installation fails.
 
 ## 0.5.0 - 2026-08-21
 
