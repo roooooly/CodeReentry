@@ -19,6 +19,7 @@ esac
 DEVHUB_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 DEVHUB_SOURCE_PLIST="$DEVHUB_ROOT/DevHub/Info.plist"
 DEVHUB_BUNDLE_PLIST="$DEVHUB_APP/Contents/Info.plist"
+DEVHUB_VERSION_INFO="$DEVHUB_ROOT/scripts/version-info.sh"
 
 plist_value() {
   /usr/libexec/PlistBuddy -c "Print :$2" "$1"
@@ -38,8 +39,10 @@ require_equal() {
   fi
 }
 
-DEVHUB_EXPECTED_VERSION="$(plist_value "$DEVHUB_SOURCE_PLIST" CFBundleShortVersionString)"
-DEVHUB_EXPECTED_BUILD="$(plist_value "$DEVHUB_SOURCE_PLIST" CFBundleVersion)"
+require_equal "$(plist_value "$DEVHUB_SOURCE_PLIST" CFBundleShortVersionString)" '$(MARKETING_VERSION)' "source marketing-version placeholder"
+require_equal "$(plist_value "$DEVHUB_SOURCE_PLIST" CFBundleVersion)" '$(CURRENT_PROJECT_VERSION)' "source build-version placeholder"
+DEVHUB_EXPECTED_VERSION="$("$DEVHUB_VERSION_INFO" marketing)"
+DEVHUB_EXPECTED_BUILD="$("$DEVHUB_VERSION_INFO" build)"
 DEVHUB_EXPECTED_MINIMUM_SYSTEM="$(plist_value "$DEVHUB_SOURCE_PLIST" LSMinimumSystemVersion)"
 
 require_equal "$(optional_plist_value "$DEVHUB_BUNDLE_PLIST" CFBundleIdentifier)" "io.github.roooooly.devhub" "bundle identifier"

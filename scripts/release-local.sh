@@ -4,7 +4,7 @@ set -euo pipefail
 DEVHUB_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 DEVHUB_DERIVED="$DEVHUB_ROOT/build/ReleaseDerivedData"
 DEVHUB_DIST="$DEVHUB_ROOT/dist"
-DEVHUB_VERSION="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$DEVHUB_ROOT/DevHub/Info.plist")"
+DEVHUB_VERSION="$("$DEVHUB_ROOT/scripts/version-info.sh" marketing)"
 DEVHUB_APP="$DEVHUB_DERIVED/Build/Products/Release/CodeReentry.app"
 DEVHUB_BASENAME="CodeReentry-$DEVHUB_VERSION-arm64"
 
