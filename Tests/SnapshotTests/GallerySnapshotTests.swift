@@ -262,6 +262,36 @@ struct GallerySnapshotTests {
                        record: .missing, timeout: 30)
     }
 
+    @Test("隔离演示工作区")
+    func isolatedDemoWorkspace() throws {
+        let root = FileManager.default.temporaryDirectory
+            .appendingPathComponent("CodeReentry-Demo-Snapshot-\(UUID().uuidString)", isDirectory: true)
+        let workspace = try DemoWorkspace(
+            rootURL: root,
+            preferencesSuiteName: "CodeReentry.DemoSnapshot.\(UUID().uuidString)"
+        )
+        defer { workspace.cleanup() }
+        let container = try ModelContainerFactory.makeContainer(inMemory: true)
+        let deps = AppDependencies(
+            modelContainer: container,
+            preferences: workspace.preferences,
+            runtimeMode: .demo,
+            sessionReaders: workspace.sessionReaders
+        )
+        try workspace.seed(into: container)
+
+        let view = VStack(spacing: 0) {
+            DemoModeBanner()
+            ProjectsOverviewView()
+        }
+        .environment(deps)
+        .modelContainer(container)
+        .frame(width: 1000, height: 720)
+        let vc = NSHostingController(rootView: view)
+        assertSnapshot(of: vc, as: .image(size: CGSize(width: 1000, height: 720)),
+                       record: .missing, timeout: 30)
+    }
+
     // 注：UsageOverviewView 含"最近 14 天"等依赖当天日期的图表，快照会随日期漂移，
     // 故不纳入 snapshot gallery；其数据正确性由 Core 层 UsageAggregator/Reader 单测覆盖。
 }

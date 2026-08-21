@@ -56,17 +56,22 @@ final class ProjectsOverviewViewModel {
     /// 合成闭包验证首次价值路径，不需要读取开发机上的任何会话。
     func scanSessions(
         from container: ModelContainer,
+        demoMode: Bool = false,
         operation: @MainActor () async throws -> Void
     ) async throws {
         guard !isScanningSessions else { return }
         isScanningSessions = true
-        sessionScanStatus = String(localized: "正在扫描本地会话…")
+        sessionScanStatus = demoMode
+            ? String(localized: "正在刷新演示会话…")
+            : String(localized: "正在扫描本地会话…")
         defer { isScanningSessions = false }
 
         do {
             try await operation()
             load(from: container)
-            sessionScanStatus = String(localized: "已索引 \(projectSessionCount) 个项目会话")
+            sessionScanStatus = demoMode
+                ? String(localized: "已载入 \(projectSessionCount) 条演示会话")
+                : String(localized: "已索引 \(projectSessionCount) 个项目会话")
         } catch {
             // SessionAggregator 会保留其他成功 reader 的结果；即使部分失败也必须
             // 立即刷新卡片，再把明确错误交给界面展示。
@@ -278,8 +283,12 @@ struct ProjectsOverviewView: View {
             Spacer(minLength: 16)
             VStack(alignment: .trailing, spacing: 9) {
                 DevHubPill(
-                    text: String(localized: "本地索引 · 按需读取"),
-                    color: viewModel.isScanningSessions ? DevHubTheme.gold : DevHubTheme.teal
+                    text: deps.isDemoMode
+                        ? String(localized: "演示模式 · 纯合成数据")
+                        : String(localized: "本地索引 · 按需读取"),
+                    color: deps.isDemoMode || viewModel.isScanningSessions
+                        ? DevHubTheme.gold
+                        : DevHubTheme.teal
                 )
                 HStack(spacing: 8) {
                     Button {
@@ -292,7 +301,9 @@ struct ProjectsOverviewView: View {
                             Label(
                                 viewModel.isScanningSessions
                                     ? String(localized: "正在扫描…")
-                                    : String(localized: "扫描本地会话"),
+                                    : deps.isDemoMode
+                                        ? String(localized: "刷新演示会话")
+                                        : String(localized: "扫描本地会话"),
                                 systemImage: "tray.and.arrow.down"
                             )
                         }
@@ -301,7 +312,9 @@ struct ProjectsOverviewView: View {
                     .controlSize(.small)
                     .disabled(viewModel.isScanningSessions || viewModel.cards.isEmpty)
                     .accessibilityHint(
-                        String(localized: "仅在点击后增量读取本机会话元数据，不在后台扫描")
+                        deps.isDemoMode
+                            ? String(localized: "只重新载入内存中的合成会话，不读取本地文件")
+                            : String(localized: "仅在点击后增量读取本机会话元数据，不在后台扫描")
                     )
                     Button {
                         NotificationCenter.default.post(
@@ -444,7 +457,10 @@ struct ProjectsOverviewView: View {
     @MainActor
     private func scanLocalSessions() async {
         do {
-            try await viewModel.scanSessions(from: deps.modelContainer) {
+            try await viewModel.scanSessions(
+                from: deps.modelContainer,
+                demoMode: deps.isDemoMode
+            ) {
                 try await deps.runAggregation()
             }
         } catch {

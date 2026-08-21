@@ -23,13 +23,18 @@ struct SidebarView: View {
         )) {
             // 顶部操作
             Section {
-                Button {
-                    viewModel.presentingAddDialog = true
-                } label: {
-                    Label(String(localized: "添加项目"), systemImage: "plus.circle")
+                if deps.isDemoMode {
+                    Label(String(localized: "演示工作区"), systemImage: "shield.lefthalf.filled")
+                        .foregroundStyle(DevHubTheme.accent)
+                } else {
+                    Button {
+                        viewModel.presentingAddDialog = true
+                    } label: {
+                        Label(String(localized: "添加项目"), systemImage: "plus.circle")
+                    }
+                    .accessibilityLabel(String(localized: "添加项目"))
+                    .accessibilityHint(String(localized: "选择文件夹注册为新项目"))
                 }
-                .accessibilityLabel(String(localized: "添加项目"))
-                .accessibilityHint(String(localized: "选择文件夹注册为新项目"))
 
                 // 命令面板入口（⌘P 也可触发）
                 Button {
@@ -70,19 +75,19 @@ struct SidebarView: View {
 
             // 全局视图
             Section(String(localized: "全局")) {
-                globalRow(.projects)
-                globalRow(.usage)
-                globalRow(.subscriptions)
-                globalRow(.sessions)
-                globalRow(.platforms)
-                Button {
-                    deps.requestedSettingsTab = .plugins
-                    openSettings()
-                } label: {
-                    Label(String(localized: "插件"), systemImage: "puzzlepiece.extension")
+                ForEach(globalDestinations, id: \.self) { destination in
+                    globalRow(destination)
                 }
-                .buttonStyle(.plain)
-                .accessibilityHint(String(localized: "打开插件设置"))
+                if !deps.isDemoMode {
+                    Button {
+                        deps.requestedSettingsTab = .plugins
+                        openSettings()
+                    } label: {
+                        Label(String(localized: "插件"), systemImage: "puzzlepiece.extension")
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityHint(String(localized: "打开插件设置"))
+                }
             }
         }
         .navigationTitle(String(localized: "CodeReentry"))
@@ -101,7 +106,15 @@ struct SidebarView: View {
         ) { result in
             handleAddResult(result)
         }
-        .onDrop(of: [.fileURL], delegate: SidebarDropDelegate(viewModel: viewModel, deps: deps, modelContext: modelContext, onChange: reload))
+        .onDrop(
+            of: deps.isDemoMode ? [] : [.fileURL],
+            delegate: SidebarDropDelegate(
+                viewModel: viewModel,
+                deps: deps,
+                modelContext: modelContext,
+                onChange: reload
+            )
+        )
         .sheet(item: $viewModel.editDraft) { draft in
             ProjectOrganizationEditor(draft: draft) { group, tags in
                 saveOrganization(draft, group: group, tags: tags)
@@ -144,6 +157,10 @@ struct SidebarView: View {
             .accessibilityHint(String(localized: "打开全局视图"))
     }
 
+    private var globalDestinations: [GlobalDestination] {
+        deps.isDemoMode ? [.projects, .sessions] : GlobalDestination.allCases
+    }
+
     private var sidebarFooter: some View {
         VStack(alignment: .leading, spacing: 7) {
             Divider()
@@ -163,22 +180,28 @@ struct SidebarView: View {
             Label(String(localized: "按需读取，不在后台轮询历史"), systemImage: "leaf.fill")
                 .font(.caption)
                 .foregroundStyle(.secondary)
-            Button {
-                deps.requestedSettingsTab = .general
-                openSettings()
-            } label: {
-                HStack(spacing: 8) {
-                    Label(String(localized: "设置"), systemImage: "gearshape.fill")
-                    Spacer()
-                    Text("⌘,")
-                        .font(.caption2.monospaced())
-                        .foregroundStyle(.tertiary)
+            if deps.isDemoMode {
+                Label(String(localized: "退出后自动清除"), systemImage: "trash.slash")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            } else {
+                Button {
+                    deps.requestedSettingsTab = .general
+                    openSettings()
+                } label: {
+                    HStack(spacing: 8) {
+                        Label(String(localized: "设置"), systemImage: "gearshape.fill")
+                        Spacer()
+                        Text("⌘,")
+                            .font(.caption2.monospaced())
+                            .foregroundStyle(.tertiary)
+                    }
+                    .contentShape(Rectangle())
                 }
-                .contentShape(Rectangle())
+                .buttonStyle(.plain)
+                .padding(.top, 2)
+                .accessibilityHint(String(localized: "打开 CodeReentry 设置"))
             }
-            .buttonStyle(.plain)
-            .padding(.top, 2)
-            .accessibilityHint(String(localized: "打开 CodeReentry 设置"))
         }
         .padding(14)
         .background(.ultraThinMaterial)

@@ -19,13 +19,16 @@ public final class UsageScanner {
 
     private let claudeReader: ClaudeUsageReader
     private let codexReader: CodexUsageReader
+    private let isEnabled: Bool
     /// 返回当前注册项目的根路径列表（用于按 cwd 归桶到 perProject）。
     /// 闭包形式注入，避免 Core 层依赖 SwiftData；调用时机在后台扫描时。
     private let projectPathsProvider: @Sendable () -> [String]
 
-    public init(claudeReader: ClaudeUsageReader = ClaudeUsageReader(),
+    public init(isEnabled: Bool = true,
+                claudeReader: ClaudeUsageReader = ClaudeUsageReader(),
                 codexReader: CodexUsageReader = CodexUsageReader(),
                 projectPathsProvider: @escaping @Sendable () -> [String] = { [] }) {
+        self.isEnabled = isEnabled
         self.claudeReader = claudeReader
         self.codexReader = codexReader
         self.projectPathsProvider = projectPathsProvider
@@ -34,6 +37,12 @@ public final class UsageScanner {
     /// 全量重新扫描（手动刷新用）。
     public func refresh() async {
         guard !isScanning else { return }
+        guard isEnabled else {
+            snapshot = UsageAggregator.aggregate([])
+            codexRateLimit = nil
+            lastScannedAt = Date()
+            return
+        }
         isScanning = true
         defer { isScanning = false }
         // Claude 与 Codex 并发读取；Codex 单次遍历同时抽 usage 与 rate_limit。

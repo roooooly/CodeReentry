@@ -35,27 +35,47 @@ struct DevHubApp: App {
     @State private var appearanceTheme: String
     @State private var startupWarning: String?
     @State private var sparkleUpdater: SparkleUpdater?
+    private let demoWorkspace: DemoWorkspace?
 
     init() {
-        let startup = DevHubApp.makeModelContainer()
+        let runtimeMode = AppRuntimeMode.resolve(arguments: ProcessInfo.processInfo.arguments)
+        let demoWorkspace = runtimeMode == .demo ? try? DemoWorkspace() : nil
+        let startup = DevHubApp.makeModelContainer(runtimeMode: runtimeMode)
         let container = startup.container
-        let deps = AppDependencies(modelContainer: container)
+        let preferences = demoWorkspace?.preferences ?? .standard
+        let deps = AppDependencies(
+            modelContainer: container,
+            preferences: preferences,
+            runtimeMode: runtimeMode,
+            sessionReaders: demoWorkspace?.sessionReaders
+        )
+        var warning = startup.warning
+        if runtimeMode == .demo {
+            do {
+                guard let demoWorkspace else { throw DemoWorkspaceError.preferencesUnavailable }
+                try demoWorkspace.seed(into: container)
+                deps.onboardingCompleted = true
+            } catch {
+                warning = String(localized: "演示工作区无法初始化：\(error.localizedDescription)")
+            }
+        }
         let settings = try? deps.ensureAppSettings(in: container.mainContext)
         // Bundle localization is chosen before the first window is rendered.
         // UserDefaults is the fast bootstrap path; an imported SwiftData
         // preference is used when no bootstrap preference exists yet.
-        let bootstrapLanguage = UserDefaults.standard.string(
+        let bootstrapLanguage = preferences.string(
             forKey: AppLanguage.preferenceKey
         ).map(AppLanguage.resolved)
             ?? AppLanguage.resolved(settings?.locale)
-        AppLanguage.apply(bootstrapLanguage, to: .standard)
+        AppLanguage.apply(bootstrapLanguage, to: preferences)
         _dependencies = State(initialValue: deps)
-        _showOnboarding = State(initialValue: !deps.onboardingCompleted)
+        _showOnboarding = State(initialValue: runtimeMode == .standard && !deps.onboardingCompleted)
         _mainWindowPresenter = State(initialValue: MainWindowPresenter())
         let theme = settings?.theme ?? "system"
         _appearanceTheme = State(initialValue: theme)
-        _startupWarning = State(initialValue: startup.warning)
+        _startupWarning = State(initialValue: warning)
         _sparkleUpdater = State(initialValue: nil)
+        self.demoWorkspace = demoWorkspace
     }
 
     var body: some Scene {
@@ -96,9 +116,13 @@ struct DevHubApp: App {
         .commands { commandsBody }
 
         Settings {
-            SettingsView()
-                .environment(dependencies)
-                .modelContainer(dependencies.modelContainer)
+            if dependencies.isDemoMode {
+                DemoModeSettingsView()
+            } else {
+                SettingsView()
+                    .environment(dependencies)
+                    .modelContainer(dependencies.modelContainer)
+            }
         }
     }
 
@@ -112,11 +136,15 @@ struct DevHubApp: App {
 
     var commandsBody: some Commands {
         CommandGroup(replacing: .importExport) {
-            Button(String(localized: "导出备份…")) {
-                Task { await Self.exportBackup(dependencies: dependencies) }
-            }
-            Button(String(localized: "导入备份…")) {
-                NotificationCenter.default.post(name: Notification.Name("DevHubImportBackup"), object: nil)
+            if dependencies.isDemoMode {
+                Text(String(localized: "演示模式不导入或导出真实数据"))
+            } else {
+                Button(String(localized: "导出备份…")) {
+                    Task { await Self.exportBackup(dependencies: dependencies) }
+                }
+                Button(String(localized: "导入备份…")) {
+                    NotificationCenter.default.post(name: Notification.Name("DevHubImportBackup"), object: nil)
+                }
             }
         }
     }
@@ -143,7 +171,16 @@ struct DevHubApp: App {
             alert.runModal()
         }
     }
-    private static func makeModelContainer() -> (container: ModelContainer, warning: String?) {
+    static func makeModelContainer(
+        runtimeMode: AppRuntimeMode = .standard
+    ) -> (container: ModelContainer, warning: String?) {
+        if runtimeMode == .demo {
+            do {
+                return (try ModelContainerFactory.makeContainer(inMemory: true), nil)
+            } catch {
+                fatalError("无法创建演示用内存 ModelContainer: \(error)")
+            }
+        }
         do {
             let result = try ModelContainerFactory.makeRecoveringContainer()
             let warning = result.recoveredStoreDirectory.map {
@@ -166,6 +203,13 @@ struct DevHubApp: App {
     /// 安装菜单栏图标（首次 onAppear 时）。
     private func installMenuBarIfNeeded() {
         guard menuBarController == nil else { return }
+        if dependencies.isDemoMode {
+            let workspace = demoWorkspace
+            appDelegate.shutdown = {
+                workspace?.cleanup()
+            }
+            return
+        }
         let shutdownDependencies = dependencies
         appDelegate.shutdown = { [weak shutdownDependencies] in
             await shutdownDependencies?.mcpSupervisor.stopAll()
@@ -255,6 +299,42 @@ final class MainWindowPresenter {
     }
 }
 
+private struct DemoModeSettingsView: View {
+    var body: some View {
+        ContentUnavailableView {
+            Label(String(localized: "演示工作区"), systemImage: "shield.lefthalf.filled")
+        } description: {
+            Text(String(localized: "演示模式只使用合成项目和会话，退出后自动清除；不会读取本机会话、启动外部工具或写入正式数据库。"))
+        }
+        .frame(width: 520, height: 320)
+    }
+}
+
+struct DemoModeBanner: View {
+    var body: some View {
+        HStack(spacing: 10) {
+            Image(systemName: "shield.lefthalf.filled")
+            Text(String(localized: "演示模式 · 纯合成数据"))
+                .font(.callout.weight(.semibold))
+            Text(String(localized: "退出后数据自动清除，不读取本机会话，也不会启动外部工具。"))
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            Spacer()
+            Text("./scripts/run-source.sh")
+                .font(.caption.monospaced())
+                .textSelection(.enabled)
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 9)
+        .foregroundStyle(DevHubTheme.ink)
+        .background(DevHubTheme.gold.opacity(0.16))
+        .overlay(alignment: .bottom) {
+            Divider().overlay(DevHubTheme.gold.opacity(0.45))
+        }
+        .accessibilityElement(children: .combine)
+    }
+}
+
 private final class MainWindowObservingView: NSView {
     var onWindowChange: ((NSWindow) -> Void)?
 
@@ -315,6 +395,11 @@ struct ContentView: View {
             }
         }
         .tint(DevHubTheme.accent)
+        .safeAreaInset(edge: .top, spacing: 0) {
+            if deps.isDemoMode {
+                DemoModeBanner()
+            }
+        }
         .background {
             MainWindowAccessor { window in
                 mainWindowPresenter.register(window: window) {
@@ -349,14 +434,18 @@ struct ContentView: View {
             Text(mcpAlert ?? "")
         }
         .task {
-            await loadPluginCommandItems()
-            await loadMCPCommandItems()
+            if !deps.isDemoMode {
+                await loadPluginCommandItems()
+                await loadMCPCommandItems()
+            }
         }
         .task {
-            await PerformanceScenarioRunner.runIfRequested(
-                dependencies: deps,
-                modelContext: modelContext
-            )
+            if !deps.isDemoMode {
+                await PerformanceScenarioRunner.runIfRequested(
+                    dependencies: deps,
+                    modelContext: modelContext
+                )
+            }
         }
         .onReceive(NotificationCenter.default.publisher(
             for: PluginEnableViewModel.commandsChangedNotification
@@ -393,6 +482,10 @@ struct ContentView: View {
 
     /// 异步加载已确认插件的 action 到缓存（命令面板列表用）。
     private func loadPluginCommandItems() async {
+        guard !deps.isDemoMode else {
+            pluginCommandItems = []
+            return
+        }
         let registry = ScriptPluginRegistry(root: ScriptPluginRegistry.defaultRoot)
         var items: [CommandItem] = []
         for ref in registry.allActions() {
@@ -406,6 +499,11 @@ struct ContentView: View {
     /// ToolContribution is the launcher contract; MCPToolInfo supplies the
     /// schema and exact server/tool identity needed by the execution sheet.
     private func loadMCPCommandItems() async {
+        guard !deps.isDemoMode else {
+            mcpCommandItems = []
+            mcpToolInfos = []
+            return
+        }
         let contributions = await deps.mcpSupervisor.allContributions().tools
         let toolInfos = await deps.mcpSupervisor.allToolInfos()
         mcpToolInfos = toolInfos

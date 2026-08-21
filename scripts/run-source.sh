@@ -5,37 +5,37 @@ devhub_repo_root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 devhub_derived_data=${DEVHUB_DERIVED_DATA_PATH:-"$devhub_repo_root/build/SourceDerivedData"}
 devhub_configuration=Release
 devhub_build_only=false
+devhub_demo=false
 
 usage() {
   cat <<'EOF'
-Usage: ./scripts/run-source.sh [--build-only]
+Usage: ./scripts/run-source.sh [--build-only] [--demo]
 
 Build a verified, ad-hoc-signed copy of CodeReentry directly from this checkout.
 By default the script launches the resulting app. Use --build-only in CI or
-when you only want to verify the source-build path.
+when you only want to verify the source-build path. Use --demo to launch an
+isolated, in-memory workspace containing synthetic projects and sessions; demo
+mode does not read local sessions or launch external developer tools.
 
 Environment:
   DEVHUB_DERIVED_DATA_PATH  Override the ignored build directory.
 EOF
 }
 
-case "${1:-}" in
-  "") ;;
-  --build-only) devhub_build_only=true ;;
-  -h|--help)
-    usage
-    exit 0
-    ;;
-  *)
-    usage >&2
-    exit 64
-    ;;
-esac
-
-if [ "$#" -gt 1 ]; then
-  usage >&2
-  exit 64
-fi
+for devhub_arg in "$@"; do
+  case "$devhub_arg" in
+    --build-only) devhub_build_only=true ;;
+    --demo) devhub_demo=true ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      usage >&2
+      exit 64
+      ;;
+  esac
+done
 
 command -v xcodebuild >/dev/null 2>&1 || {
   echo "error: Xcode is required to build CodeReentry" >&2
@@ -82,5 +82,10 @@ if [ "$devhub_build_only" = true ]; then
   exit 0
 fi
 
-echo "Launching CodeReentry. It will not scan projects or sessions until you choose to do so."
-open -n "$devhub_app"
+if [ "$devhub_demo" = true ]; then
+  echo "Launching isolated CodeReentry demo with synthetic, disposable data."
+  open -n "$devhub_app" --args --demo
+else
+  echo "Launching CodeReentry. It will not scan projects or sessions until you choose to do so."
+  open -n "$devhub_app"
+fi

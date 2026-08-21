@@ -848,3 +848,15 @@
 "无法继续：请先在工具设置中启用 %@。" = "Cannot continue: enable %@ in Tool settings first.";
 "无法继续：未检测到 %@，请先安装或修正启动命令。" = "Cannot continue: %@ was not detected. Install it or correct its launch command first.";
 "无法继续：Keychain 中未找到 %@ 的值。" = "Cannot continue: no value for %@ was found in Keychain.";
+"演示模式 · 纯合成数据" = "Demo mode · synthetic data only";
+"演示模式只使用合成项目和会话，退出后自动清除；不会读取本机会话、启动外部工具或写入正式数据库。" = "Demo mode uses only synthetic projects and sessions and clears them on exit. It does not read local sessions, launch external tools, or write to the production database.";
+"退出后数据自动清除，不读取本机会话，也不会启动外部工具。" = "Data is cleared on exit; local sessions are not read and external tools are not launched.";
+"演示工作区" = "Demo workspace";
+"退出后自动清除" = "Cleared automatically on exit";
+"演示模式不会启动外部工具。退出后不带 --demo 重新运行，才能恢复真实会话。" = "Demo mode does not launch external tools. Quit and run again without --demo to resume real sessions.";
+"演示工作区无法初始化：%@" = "The demo workspace could not be initialized: %@";
+"演示模式不导入或导出真实数据" = "Demo mode does not import or export real data";
+"刷新演示会话" = "Refresh Demo Sessions";
+"正在刷新演示会话…" = "Refreshing demo sessions…";
+"已载入 %lld 条演示会话" = "%lld demo sessions loaded";
+"只重新载入内存中的合成会话，不读取本地文件" = "Reloads only synthetic sessions in memory and does not read local files";

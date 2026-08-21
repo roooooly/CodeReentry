@@ -160,6 +160,20 @@ cd CodeReentry
 ./scripts/run-source.sh
 ```
 
+To inspect the complete workflow before allowing any access to your own projects or
+sessions, launch the isolated demo instead:
+
+```bash
+./scripts/run-source.sh --demo
+```
+
+Demo mode uses an in-memory database plus synthetic projects, conversations, memory, and
+subscriptions under a disposable temporary directory. It does not read local sessions,
+start MCP servers, scan usage files, launch developer tools, or write to the normal
+CodeReentry database. The temporary workspace is removed when the app exits.
+
+![Isolated CodeReentry demo showing only synthetic projects and sessions](Tests/SnapshotTests/__Snapshots__/GallerySnapshotTests/isolatedDemoWorkspace.1.png)
+
 The script uses the committed Xcode project, writes build products only under the
 ignored `build/` directory, verifies the resulting bundle, and does not scan projects
 or sessions before you explicitly request it in the app. Pass `--build-only` to build

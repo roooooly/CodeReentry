@@ -145,6 +145,18 @@ cd CodeReentry
 ./scripts/run-source.sh
 ```
 
+如果想在允许访问自己的项目与会话之前先看清完整流程，可以启动隔离演示：
+
+```bash
+./scripts/run-source.sh --demo
+```
+
+演示模式使用内存数据库，并在可随时清除的临时目录中提供合成项目、对话、记忆和订阅数据。
+它不会读取本机会话、启动 MCP 服务、扫描用量文件、打开开发工具，也不会写入 CodeReentry
+的正式数据库；退出应用时会删除临时工作区。
+
+![只展示合成项目与会话的 CodeReentry 隔离演示](Tests/SnapshotTests/__Snapshots__/GallerySnapshotTests/isolatedDemoWorkspace.1.png)
+
 脚本直接使用仓库已提交的 Xcode 工程，只把构建产物写入已忽略的 `build/` 目录，
 会先校验应用包；除非你在应用内主动操作，否则不会扫描项目或会话。传入
 `--build-only` 可以只构建、不启动。首次构建需要解析和编译 Swift 依赖，可能需要
