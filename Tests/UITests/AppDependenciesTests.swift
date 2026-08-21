@@ -22,7 +22,40 @@ struct AppDependenciesTests {
         #expect(deps.adapter(for: "zcode") != nil)
         #expect(deps.adapter(for: "kimi") != nil)
         #expect(deps.adapter(for: "opencode") != nil)
+        #expect(deps.adapter(for: "gemini-cli") != nil)
         #expect(deps.sessionReader(forToolId: "opencode")?.toolId == "opencode")
+        #expect(deps.sessionReader(forToolId: "gemini-cli")?.toolId == "gemini-cli")
+    }
+
+    @Test("existing catalogs receive Gemini once and respect later deletion")
+    func migratesGeminiDefaultOnce() throws {
+        let container = try Self.inMemoryContainer()
+        let context = container.mainContext
+        let project = Project(stableId: "stable", name: "P", path: "/tmp/P")
+        let existing = Tool(
+            name: "Existing Tool", kind: .cli, launchCommand: "/usr/bin/true",
+            workingDirMode: .projectRoot, injectionMode: .clipboard, sortOrder: 4
+        )
+        context.insert(project)
+        context.insert(existing)
+        try context.save()
+
+        let suite = "CodeReentry.AppDependencies.GeminiMigration.\(UUID().uuidString)"
+        let preferences = try #require(UserDefaults(suiteName: suite))
+        defer { preferences.removePersistentDomain(forName: suite) }
+
+        _ = AppDependencies(modelContainer: container, preferences: preferences)
+        let migrated = try #require(
+            try context.fetch(FetchDescriptor<Tool>()).first { $0.name == "Gemini CLI" }
+        )
+        #expect(migrated.projects.map(\.stableId) == ["stable"])
+        #expect(try context.fetchCount(FetchDescriptor<Tool>()) == 2)
+
+        context.delete(migrated)
+        try context.save()
+        _ = AppDependencies(modelContainer: container, preferences: preferences)
+
+        #expect(try context.fetchCount(FetchDescriptor<Tool>()) == 1)
     }
 
     @Test("adapter(for:) zcode/kimi 返回正确类型 + capabilities 符合预期")

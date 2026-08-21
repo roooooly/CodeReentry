@@ -5,6 +5,15 @@ published a signed public binary.
 
 ## Unreleased
 
+## 0.4.0 - 2026-08-21
+
+- Add bounded, read-only Gemini CLI session discovery, on-demand conversation viewing,
+  and exact resume with the full session UUID.
+- Resolve Gemini projects from the official ownership marker or project registry, apply
+  rewind and checkpoint records, and keep subagent sessions out of the resumable index.
+- Add Gemini CLI once to existing tool catalogs without restoring unrelated tools a user
+  previously removed; later user deletion remains respected.
+
 ## 0.3.2 - 2026-08-21
 
 - Make project cards choose the latest session that can actually resume instead of the

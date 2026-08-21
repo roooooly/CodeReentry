@@ -17,6 +17,9 @@ private let logger = Logger(subsystem: "io.github.roooooly.devhub", category: "a
 @MainActor
 final class AppDependencies {
 
+    private static let geminiCatalogMigrationKey =
+        "DefaultToolCatalog.didMigrateGeminiCLI.v1"
+
     // MARK: - Core 服务
 
     let modelContainer: ModelContainer
@@ -124,13 +127,14 @@ final class AppDependencies {
             let projects = (try? ctx.fetch(FetchDescriptor<Project>())) ?? []
             return projects.map(\.path).filter { !$0.isEmpty }
         })
-        // OpenCode 仅发现 v1.18.19 SQLite 元数据；聚合只由用户显式刷新触发。
+        // OpenCode 仅发现 SQLite 元数据；Gemini 使用有界 JSONL reader。
+        // 聚合只由用户显式刷新触发。
         let home = FileManager.default.homeDirectoryForCurrentUser
         let kimiPaths = KimiPathDiscovery.discover(
             candidates: KimiPathDiscovery.standardCandidates(home: home), home: home)
         self.sessionReaders = [
             ClaudeReader(), CodexReader(), ZcodeReader(), KimiReader(paths: kimiPaths),
-            OpenCodeReader(homeURL: home)
+            OpenCodeReader(homeURL: home), GeminiReader(homeURL: home)
         ]
         // A resource manager should open on a useful operating surface, not an
         // empty detail pane that asks the user to make a redundant choice.
@@ -147,6 +151,17 @@ final class AppDependencies {
             : storedDisabledTabs
         do {
             _ = try DefaultToolCatalog.seedIfNeeded(in: modelContainer.mainContext)
+            if !preferences.bool(forKey: Self.geminiCatalogMigrationKey) {
+                let existing = try modelContainer.mainContext.fetch(FetchDescriptor<Tool>())
+                if !existing.contains(where: {
+                    ToolIdentifierResolver.matches($0, sessionToolIdentifier: "gemini-cli")
+                }) {
+                    _ = try DefaultToolCatalog.restoreDefault(
+                        named: "Gemini CLI", in: modelContainer.mainContext
+                    )
+                }
+                preferences.set(true, forKey: Self.geminiCatalogMigrationKey)
+            }
         } catch {
             logger.error("初始化内置工具失败: \(error.localizedDescription, privacy: .public)")
         }
@@ -210,6 +225,8 @@ final class AppDependencies {
         case "kimi":        return KimiAdapter()
         case "vscode":      return VSCodeAdapter()
         case "opencode":    return OpenCodeAdapter()
+        case "gemini-cli":  return GeminiAdapter()
+        case "gemini":      return GeminiAdapter()
         default:            return nil
         }
     }

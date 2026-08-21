@@ -78,7 +78,7 @@ private struct SyntheticPerformanceSessionReader: SessionReader {
     }
 
     private func generateSessions() -> [DiscoveredSession] {
-        let tools = ["claude-code", "codex", "zcode", "opencode", "kimi"]
+        let tools = ["claude-code", "codex", "zcode", "opencode", "gemini-cli", "kimi"]
         let baseDate = Date(timeIntervalSince1970: 1_700_000_000)
         var result: [DiscoveredSession] = []
         result.reserveCapacity(projectPaths.count * sessionsPerProject)
@@ -230,7 +230,7 @@ enum PerformanceScenarioRunner {
             throw CocoaError(.fileReadCorruptFile)
         }
 
-        let tools = ["claude-code", "codex", "zcode", "opencode", "kimi"]
+        let tools = ["claude-code", "codex", "zcode", "opencode", "gemini-cli", "kimi"]
         var sourcePaths: [String: String] = [:]
         for tool in tools {
             let source = configuration.profile

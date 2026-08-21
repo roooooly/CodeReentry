@@ -8,7 +8,9 @@ import SwiftData
 /// 主动删除后的恢复走 `restoreMissingDefaults(in:)`，避免每次启动都复活已删除项。
 public enum DefaultToolCatalog {
 
-    public static let defaultNames = ["Claude Code", "Codex", "ZCode", "Kimi", "OpenCode", "VS Code"]
+    public static let defaultNames = [
+        "Claude Code", "Codex", "ZCode", "Kimi", "OpenCode", "Gemini CLI", "VS Code"
+    ]
 
     /// 仅当数据库没有任何工具时创建内置工具，并绑定到已有项目。
     @MainActor
@@ -24,6 +26,29 @@ public enum DefaultToolCatalog {
     @discardableResult
     public static func restoreMissingDefaults(in context: ModelContext) throws -> [Tool] {
         try insertMissingDefaults(in: context)
+    }
+
+    /// Restore one named built-in without reviving other defaults the user removed.
+    /// New catalog entries use this during a one-time app migration.
+    @MainActor
+    @discardableResult
+    public static func restoreDefault(named name: String, in context: ModelContext) throws -> Tool? {
+        let existing = try context.fetch(FetchDescriptor<Tool>())
+        if let match = existing.first(where: { canonicalName($0.name) == canonicalName(name) }) {
+            return match
+        }
+        guard let tool = makeDefaults().first(where: {
+            canonicalName($0.name) == canonicalName(name)
+        }) else { return nil }
+
+        // Append on upgraded catalogs instead of rewriting a user's established order.
+        if let maximumSortOrder = existing.map(\.sortOrder).max() {
+            tool.sortOrder = maximumSortOrder + 1
+        }
+        tool.projects = try context.fetch(FetchDescriptor<Project>())
+        context.insert(tool)
+        try context.save()
+        return tool
     }
 
     @MainActor
@@ -101,10 +126,18 @@ public enum DefaultToolCatalog {
                 downloadURL: "https://opencode.ai/docs/"
             ),
             Tool(
+                name: "Gemini CLI", kind: .cli, launchCommand: "gemini",
+                workingDirMode: .projectRoot, injectMemory: false,
+                injectionMode: .cliFlag, enabled: true, sortOrder: 5,
+                installCommand: "install -g @google/gemini-cli",
+                installMethod: .npm,
+                downloadURL: "https://github.com/google-gemini/gemini-cli"
+            ),
+            Tool(
                 name: "VS Code", kind: .app,
                 launchCommand: "/Applications/Visual Studio Code.app",
                 workingDirMode: .projectRoot, injectMemory: false,
-                injectionMode: .clipboard, enabled: true, sortOrder: 5,
+                injectionMode: .clipboard, enabled: true, sortOrder: 6,
                 installCommand: "install --cask visual-studio-code",
                 installMethod: .brew,
                 downloadURL: "https://code.visualstudio.com/Download"

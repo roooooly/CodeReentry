@@ -8,6 +8,7 @@ struct ToolIdentifierResolverTests {
         #expect(ToolIdentifierResolver.canonical("claude") == "claude-code")
         #expect(ToolIdentifierResolver.canonical("Open Code") == "opencode")
         #expect(ToolIdentifierResolver.canonical("VS Code") == "vscode")
+        #expect(ToolIdentifierResolver.canonical("Gemini") == "gemini-cli")
     }
 
     @Test("renamed built-in tool remains identifiable from configured executable")
