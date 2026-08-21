@@ -298,7 +298,46 @@ struct AppDependenciesTests {
         #expect(deps2.onboardingCompleted == true)
     }
 
+    @Test("Terminal automation failure preserves a copyable one-time fallback")
+    func terminalAutomationFailureOffersManualFallback() async throws {
+        let deps = try AppDependencies(modelContainer: Self.inMemoryContainer())
+        let terminal = TerminalController()
+        terminal.executor = { _ in
+            throw TerminalController.TerminalError.executionFailed("Not authorized")
+        }
+        let pasteboard = RecordingPasteboard()
+        deps.overrideServices(
+            terminalController: terminal,
+            pasteboardHelper: pasteboard
+        )
+        let launcherPath = "/tmp/CodeReentry fallback/it's-ready.sh"
+
+        do {
+            try await deps.executeCLI(launcherPath: launcherPath)
+            Issue.record("Terminal automation failure should be surfaced")
+        } catch let error as TerminalLaunchError {
+            #expect(error == .automationFailed(launcherPath: launcherPath))
+            #expect(error.recoveryLauncherPath == launcherPath)
+            let presentation = TerminalLaunchFailure(error)
+            #expect(presentation.launcherPath == launcherPath)
+            #expect(!presentation.message.isEmpty)
+        }
+
+        deps.copyTerminalFallbackCommand(launcherPath: launcherPath)
+        #expect(
+            pasteboard.writtenText
+                == #"/bin/bash '/tmp/CodeReentry fallback/it'\''s-ready.sh'"#
+        )
+    }
+
     // MARK: - helpers
+
+    private final class RecordingPasteboard: PasteboardHandling {
+        var writtenText: String?
+
+        func write(text: String) { writtenText = text }
+        func clearIfUnchanged(after delay: TimeInterval) async {}
+    }
 
     static func inMemoryContainer() throws -> ModelContainer {
         try ModelContainer(

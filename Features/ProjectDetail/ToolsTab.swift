@@ -6,7 +6,8 @@ struct ToolsTab: View {
     let project: Project
     @Environment(AppDependencies.self) private var deps
     @State private var viewModel = ToolsTabViewModel()
-    @State private var alertMessage: String?
+    @State private var launchFailure: TerminalLaunchFailure?
+    @State private var statusTitle = String(localized: "项目记忆已复制")
     @State private var statusMessage: String?
     @State private var pendingInjection: PendingInjection?
     @State private var installTarget: ToolCardState?
@@ -108,13 +109,15 @@ struct ToolsTab: View {
             viewModel.loadTools(from: deps.modelContainer.mainContext, matching: project)
             await viewModel.refreshInstallStates()
         }
-        .alert(String(localized: "启动失败"), isPresented: Binding(get: { alertMessage != nil }, set: { if !$0 { alertMessage = nil } })) {
-            Button(String(localized: "好")) { alertMessage = nil }
-        } message: {
-            Text(alertMessage ?? "")
+        .terminalLaunchRecoveryAlert(
+            failure: $launchFailure,
+            fallbackTitle: String(localized: "启动失败")
+        ) {
+            statusTitle = String(localized: "恢复命令已复制")
+            statusMessage = String(localized: "一次性恢复命令已复制。请粘贴到 Terminal 后回车。")
         }
         .alert(
-            String(localized: "项目记忆已复制"),
+            statusTitle,
             isPresented: Binding(
                 get: { statusMessage != nil },
                 set: { if !$0 { statusMessage = nil } }
@@ -215,7 +218,7 @@ struct ToolsTab: View {
         do {
             _ = try await viewModel.continueInTerminal(for: tool, deps: deps)
         } catch {
-            alertMessage = error.localizedDescription
+            launchFailure = TerminalLaunchFailure(error)
         }
     }
 
@@ -224,7 +227,7 @@ struct ToolsTab: View {
         do {
             try await viewModel.openGuiProject(for: tool, deps: deps)
         } catch {
-            alertMessage = error.localizedDescription
+            launchFailure = TerminalLaunchFailure(error)
         }
     }
 
@@ -235,7 +238,7 @@ struct ToolsTab: View {
             pendingInjection = PendingInjection(tool: tool, plan: plan)
             executeIfAllGatesAcknowledged()
         } catch {
-            alertMessage = error.localizedDescription
+            launchFailure = TerminalLaunchFailure(error)
         }
     }
 
@@ -250,7 +253,7 @@ struct ToolsTab: View {
             pendingInjection = PendingInjection(tool: tool, plan: plan)
             executeIfAllGatesAcknowledged()
         } catch {
-            alertMessage = error.localizedDescription
+            launchFailure = TerminalLaunchFailure(error)
         }
     }
 
@@ -263,10 +266,11 @@ struct ToolsTab: View {
                 deps: deps
             )
             if outcome.copiedMemory {
+                statusTitle = String(localized: "项目记忆已复制")
                 statusMessage = String(localized: "CodeReentry 已复制项目记忆并启动工具，但不会模拟键盘输入。请在目标 CLI 中手动粘贴；若剪贴板内容未变化，30 秒后会自动清理。")
             }
         } catch {
-            alertMessage = error.localizedDescription
+            launchFailure = TerminalLaunchFailure(error)
         }
     }
 

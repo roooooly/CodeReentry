@@ -191,7 +191,8 @@ struct ProjectsOverviewView: View {
     @State private var viewModel = ProjectsOverviewViewModel()
     /// 正在编辑状态/版本的项目 stableId（非 nil 时弹出编辑器 sheet）。
     @State private var editingStableId: String?
-    @State private var launchError: String?
+    @State private var launchFailure: TerminalLaunchFailure?
+    @State private var launchStatus: String?
     @State private var sessionScanError: String?
 
     private let columns = [GridItem(.adaptive(minimum: 330, maximum: 520), spacing: 16)]
@@ -242,16 +243,11 @@ struct ProjectsOverviewView: View {
                 }
             }
         }
-        .alert(
-            String(localized: "无法继续会话"),
-            isPresented: Binding(
-                get: { launchError != nil },
-                set: { if !$0 { launchError = nil } }
-            )
+        .terminalLaunchRecoveryAlert(
+            failure: $launchFailure,
+            fallbackTitle: String(localized: "无法继续会话")
         ) {
-            Button(String(localized: "好")) { launchError = nil }
-        } message: {
-            Text(launchError ?? "")
+            launchStatus = String(localized: "一次性恢复命令已复制。请粘贴到 Terminal 后回车。")
         }
         .alert(
             String(localized: "会话索引未完全更新"),
@@ -328,7 +324,7 @@ struct ProjectsOverviewView: View {
                     .controlSize(.small)
                     .keyboardShortcut("p", modifiers: .command)
                 }
-                if let status = viewModel.sessionScanStatus {
+                if let status = launchStatus ?? viewModel.sessionScanStatus {
                     Text(status)
                         .font(.caption2)
                         .foregroundStyle(.secondary)
@@ -449,8 +445,9 @@ struct ProjectsOverviewView: View {
                 projectPath: session.cwd,
                 configuredToolId: session.configuredToolId
             )
+            launchStatus = String(localized: "已在原工具中打开")
         } catch {
-            launchError = error.localizedDescription
+            launchFailure = TerminalLaunchFailure(error)
         }
     }
 

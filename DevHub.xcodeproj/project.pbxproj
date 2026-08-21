@@ -28,6 +28,7 @@
 		351D79FF722AC34B9C4FF00B /* ProjectDetailViewTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2EEA32DBD2870460BE5DE305 /* ProjectDetailViewTests.swift */; };
 		3A397BD412F24A2C1A98580F /* SessionsTabViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC85A75321F2D873608DDD29 /* SessionsTabViewModel.swift */; };
 		3BF09D9221A95B9C31280A0E /* DevHubCore in Frameworks */ = {isa = PBXBuildFile; productRef = 604B2BE19D7ACF3298DFF916 /* DevHubCore */; };
+		46C00AA7929B6DD7D652BF53 /* TerminalLaunchRecoveryAlert.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C029D1D94DA57B2A86DAE17 /* TerminalLaunchRecoveryAlert.swift */; };
 		4A5FC815DF84C9E43B23C464 /* PerformanceScenarioRunnerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 175F9328A7330A09BC3301D2 /* PerformanceScenarioRunnerTests.swift */; };
 		4B084E1D85F0EADE8601048B /* UsageScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFD52151F230158B653F1EB1 /* UsageScanner.swift */; };
 		4CA0A82BE03F6C9EACE21526 /* MCPClientIntegrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDB1AF8FD17DC42CDB054EF7 /* MCPClientIntegrationTests.swift */; };
@@ -149,6 +150,7 @@
 		679DBDCA4A75641424A38497 /* SessionsTabTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionsTabTests.swift; sourceTree = "<group>"; };
 		68611F5E027D58CFDB42056B /* ProjectStatusVersionEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectStatusVersionEditor.swift; sourceTree = "<group>"; };
 		6AAAD2FBF1B7A3B5F0B76FB9 /* AllSessionsViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AllSessionsViewModelTests.swift; sourceTree = "<group>"; };
+		6C029D1D94DA57B2A86DAE17 /* TerminalLaunchRecoveryAlert.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerminalLaunchRecoveryAlert.swift; sourceTree = "<group>"; };
 		6C0FEEFD82E3277D06BEF77B /* MCPSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MCPSettingsView.swift; sourceTree = "<group>"; };
 		7A853F4D1F1E2BEDA1D02032 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/InfoPlist.strings"; sourceTree = "<group>"; };
 		7B63E7D71A618A6634BFF810 /* GlobalDestination.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalDestination.swift; sourceTree = "<group>"; };
@@ -288,6 +290,7 @@
 			children = (
 				9A3E9EBC3537455564724336 /* DevHubTheme.swift */,
 				7DF85AE3418EC8947E2DE2E8 /* StatusBadge.swift */,
+				6C029D1D94DA57B2A86DAE17 /* TerminalLaunchRecoveryAlert.swift */,
 			);
 			path = Shared;
 			sourceTree = "<group>";
@@ -750,6 +753,7 @@
 				D0F6123F97AD79F38618EA2F /* StatusBadge.swift in Sources */,
 				ED63C5FC340EA1A9DCEA88B3 /* SubscriptionFormView.swift in Sources */,
 				DDB2B24DA65C316D374C5A46 /* SubscriptionsTab.swift in Sources */,
+				46C00AA7929B6DD7D652BF53 /* TerminalLaunchRecoveryAlert.swift in Sources */,
 				ED462FE9A8781ACC210FEBA3 /* ToolCard.swift in Sources */,
 				A53771885AA97F76169EB4F8 /* ToolsTab.swift in Sources */,
 				B882E3ED940B10FF01C20CD6 /* ToolsTabViewModel.swift in Sources */,

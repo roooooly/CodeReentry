@@ -85,6 +85,9 @@ Release performance is tracked separately with a
 - On-demand conversation loading and original-tool resume where supported
 - Guarded one-click resume that selects the latest usable session, falls back from a moved
   session subdirectory to the registered project root, and honors the saved tool command
+- Recoverable Terminal launch failures: when macOS blocks Automation, copy a one-time
+  shell-quoted launcher path without placing session IDs, memory, or environment values
+  on the clipboard
 - Project-scoped stable context plus session summaries with provenance and stale-summary protection
 - Local Claude Code and Codex usage estimates, kept separate from fixed subscriptions
 - Explicit permission checks for script plugins and MCP servers
