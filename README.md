@@ -198,6 +198,12 @@ or sessions before you explicitly request it in the app. Pass `--build-only` to 
 without launching. Combine it with `--install` to install without launching. The first
 build can take several minutes while Swift packages are resolved and compiled.
 
+CI also cross-compiles and verifies an Intel slice from Apple Silicon. You can run the
+same compile-time check with
+`CODEREENTRY_BUILD_ARCH=x86_64 ./scripts/run-source.sh --build-only`. This proves that the
+current source and dependencies produce an `x86_64` bundle; it is not a substitute for
+the Intel-hardware run requested in [issue #4](https://github.com/roooooly/CodeReentry/issues/4).
+
 On first launch, choose **Find projects from sessions** for the shortest path to value.
 CodeReentry performs one explicit metadata-only scan, proposes at most 20 recent project
 roots, and waits for confirmation before registering anything. **Choose folders manually**

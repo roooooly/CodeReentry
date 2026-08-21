@@ -23,7 +23,11 @@ a broad feature or a new product area.
 swift test --package-path DevHubPackage
 xcodebuild -project DevHub.xcodeproj -scheme DevHub \
   -destination 'platform=macOS,arch=arm64' test
+CODEREENTRY_BUILD_ARCH=x86_64 ./scripts/run-source.sh --build-only
 ```
+
+The last command is an Intel cross-compilation check on Apple Silicon. It verifies the
+bundle and `x86_64` slice, but does not count as Intel-hardware execution evidence.
 
 ## Test data rules
 

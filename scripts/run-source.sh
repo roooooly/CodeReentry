@@ -22,6 +22,7 @@ mode does not read local sessions or launch external developer tools. Use
 Environment:
   DEVHUB_DERIVED_DATA_PATH  Override the ignored build directory.
   CODEREENTRY_INSTALL_DIRECTORY  Override the user-level install directory.
+  CODEREENTRY_BUILD_ARCH  Override the target architecture (arm64 or x86_64).
 EOF
 }
 
@@ -51,18 +52,19 @@ test -f "$devhub_repo_root/DevHub.xcodeproj/project.pbxproj" || {
   exit 1
 }
 
-devhub_arch=$(uname -m)
+devhub_host_arch=$(uname -m)
+devhub_arch=${CODEREENTRY_BUILD_ARCH:-$devhub_host_arch}
 case "$devhub_arch" in
   arm64|x86_64) ;;
   *)
-    echo "error: unsupported Mac architecture: $devhub_arch" >&2
+    echo "error: unsupported target architecture: $devhub_arch" >&2
     exit 1
     ;;
 esac
 
 devhub_app="$devhub_derived_data/Build/Products/$devhub_configuration/CodeReentry.app"
 
-echo "Building CodeReentry from the committed Xcode project ($devhub_arch)…"
+echo "Building CodeReentry from the committed Xcode project (target: $devhub_arch; host: $devhub_host_arch)…"
 echo "The first build can take several minutes while Swift packages resolve."
 xcodebuild \
   -quiet \
