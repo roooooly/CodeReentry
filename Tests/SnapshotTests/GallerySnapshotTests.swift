@@ -226,20 +226,36 @@ struct GallerySnapshotTests {
     }
 
     @Test("会话正文查看器")
-    func sessionDetail() {
+    func sessionDetail() async {
         let session = SessionIndex(
             tool: "claude-code", toolSessionId: "s1",
             sourcePath: "/tmp/s.jsonl", projectCwd: "/tmp/P",
             startedAt: Date(timeIntervalSince1970: 1_750_000_000),
             updatedAt: Date(timeIntervalSince1970: 1_750_010_000),
-            messageCount: 2, title: "修复登录 bug", preview: "登录页面报错"
+            messageCount: 3, title: "Repair the sign-in flow", preview: "The sign-in form fails"
         )
         let stub = SnapshotStubReader(messages: [
-            SessionMessage(role: .user, content: "帮我修复登录页面的报错", timestamp: Date(timeIntervalSince1970: 1_750_000_000)),
-            SessionMessage(role: .assistant, content: "好的，我先看一下 `LoginView.swift` 的实现。", timestamp: Date(timeIntervalSince1970: 1_750_000_500))
+            SessionMessage(
+                role: .user,
+                content: "Repair the sign-in error without changing the session API.",
+                timestamp: Date(timeIntervalSince1970: 1_750_000_000)
+            ),
+            SessionMessage(
+                role: .assistant,
+                content: "I found the failing state transition in `LoginView.swift` and kept the existing API intact.",
+                timestamp: Date(timeIntervalSince1970: 1_750_000_500)
+            ),
+            SessionMessage(
+                role: .tool,
+                content: #"{"path":"Sources/LoginView.swift"}"#,
+                timestamp: Date(timeIntervalSince1970: 1_750_000_600),
+                toolName: "edit",
+                toolInput: #"{"path":"Sources/LoginView.swift"}"#
+            )
         ])
         let vm = SessionDetailViewModel(session: session, reader: stub)
-        let view = SessionDetailView(viewModel: vm)
+        await vm.load()
+        let view = SessionDetailView(viewModel: vm, onOpenOriginal: {})
             .background(Color(nsColor: .windowBackgroundColor))
         let vc = NSHostingController(rootView: view)
         assertSnapshot(of: vc, as: .image(size: CGSize(width: 760, height: 620)),

@@ -70,6 +70,21 @@ struct SessionDetailViewModelTests {
             Issue.record("expected failed state, got \(vm.state)")
         }
     }
+
+    @Test("已加载正文不会因视图重建而重复读取")
+    func loadedDetailIsNotReadAgain() async {
+        let reader = CountingSessionReader()
+        let vm = SessionDetailViewModel(session: makeSession(), reader: reader)
+
+        await vm.loadIfNeeded()
+        await vm.loadIfNeeded()
+
+        #expect(await reader.loadCount == 1)
+        guard case .loaded = vm.state else {
+            Issue.record("expected loaded state")
+            return
+        }
+    }
 }
 
 /// 测试桩 reader：返回固定 detail。
@@ -78,4 +93,22 @@ private struct StubSessionReader: SessionReader {
     let detail: SessionDetail
     func discover() async throws -> [DiscoveredSession] { [] }
     func load(_ id: String) async throws -> SessionDetail { detail }
+}
+
+private actor CountingSessionReader: SessionReader {
+    let toolId = "claude-code"
+    private(set) var loadCount = 0
+
+    func discover() async throws -> [DiscoveredSession] { [] }
+
+    func load(_ id: String) async throws -> SessionDetail {
+        loadCount += 1
+        return SessionDetail(
+            tool: toolId,
+            toolSessionId: id,
+            cwd: "/tmp/P",
+            startedAt: Date(),
+            messages: []
+        )
+    }
 }
