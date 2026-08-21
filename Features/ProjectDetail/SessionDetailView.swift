@@ -83,6 +83,13 @@ final class SessionDetailViewModel {
         }
     }
 
+    /// Avoid rereading a conversation when the view is recreated with detail
+    /// that is already available (for example after state restoration).
+    func loadIfNeeded() async {
+        guard state == .idle else { return }
+        await load()
+    }
+
     var messages: [SessionMessage] {
         if case .loaded(let detail) = state { return detail.messages }
         return []
@@ -108,7 +115,7 @@ struct SessionDetailView: View {
             content
         }
         .frame(width: 760, height: 620)
-        .task { await viewModel.load() }
+        .task { await viewModel.loadIfNeeded() }
     }
 
     private var header: some View {

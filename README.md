@@ -40,6 +40,19 @@
 _The screenshot uses synthetic projects and paths. CodeReentry includes English and
 Simplified Chinese interfaces._
 
+## See the recovery loop
+
+CodeReentry does not scan session histories in the background. You explicitly start a
+local scan, inspect a bounded conversation, then continue the exact session in its
+original tool when that tool supports resume.
+
+| 1. Start and confirm a local scan | 2. Inspect context and continue |
+| --- | --- |
+| ![On-demand local session scan](Tests/SnapshotTests/__Snapshots__/GallerySnapshotTests/onboardingSessionScan.1.png) | ![Bounded conversation view with continue action](Tests/SnapshotTests/__Snapshots__/GallerySnapshotTests/sessionDetail.1.png) |
+
+_Both views are rendered from synthetic fixtures. Source session files are treated as
+read-only; the app stores only its own local index and deliberate project memory._
+
 ## The problem CodeReentry focuses on
 
 When several local projects and AI coding tools are active at once, starting a tool is

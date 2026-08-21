@@ -38,6 +38,18 @@
 
 _截图中的项目、路径和数据均为合成测试数据。CodeReentry 内置简体中文与英文界面。_
 
+## 看清恢复流程
+
+CodeReentry 不会在后台扫描会话历史。你需要主动开始本地扫描；随后可以限量查看会话正文，
+并在原工具支持恢复时，继续这一条精确会话。
+
+| 1. 主动开始并确认本地扫描 | 2. 查看上下文并继续 |
+| --- | --- |
+| ![按需进行本地会话扫描](Tests/SnapshotTests/__Snapshots__/GallerySnapshotTests/onboardingSessionScan.1.png) | ![带继续入口的限量会话正文视图](Tests/SnapshotTests/__Snapshots__/GallerySnapshotTests/sessionDetail.1.png) |
+
+_两个界面均由合成测试数据渲染。原始会话文件只按只读方式处理；应用只保存自己的本地索引，
+以及用户主动写入的项目记忆。_
+
 ## CodeReentry 聚焦的问题
 
 同时维护多个本地项目、使用多个 AI 编程工具时，启动一个工具并不难；真正昂贵的是
