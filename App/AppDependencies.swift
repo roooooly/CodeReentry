@@ -54,6 +54,8 @@ final class AppDependencies {
     private(set) var pasteboardHelper: any PasteboardHandling
     /// 订阅用量与成本扫描器（纯本地解析 Claude/Codex JSONL，无网络/无凭据）。
     public let usageScanner: UsageScanner
+    /// 用户显式触发的恢复价值测量；标准模式写本地匿名 CSV，演示模式仅驻内存。
+    let reentryTrials: ReentryTrialCoordinator
 
     /// 测试用：替换 TerminalController（Core final class，只能整体替换引用）。
     func _replaceTerminalController(_ c: TerminalController) { terminalController = c }
@@ -141,6 +143,11 @@ final class AppDependencies {
                 let projects = (try? ctx.fetch(FetchDescriptor<Project>())) ?? []
                 return projects.map(\.path).filter { !$0.isEmpty }
             }
+        )
+        self.reentryTrials = ReentryTrialCoordinator(
+            store: ReentryTrialStore(
+                fileURL: runtimeMode == .demo ? nil : ReentryTrialStore.defaultFileURL
+            )
         )
         // OpenCode 仅发现 SQLite 元数据；Gemini/Copilot 使用有界 JSONL reader。
         // 聚合只由用户显式刷新触发。

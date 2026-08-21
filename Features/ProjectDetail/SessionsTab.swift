@@ -40,6 +40,7 @@ struct SessionsTab: View {
                     session: session,
                     reader: deps.sessionReader(forToolId: session.tool)
                 ),
+                onMeasureRecovery: { measureAndResume(session) },
                 onOpenOriginal: { Task { await resume(session); detailSession = nil } }
             )
         }
@@ -190,6 +191,32 @@ struct SessionsTab: View {
         do {
             try await viewModel.resumeInOriginalTool(session)
             statusMessage = String(localized: "已在原工具中打开")
+        } catch {
+            launchFailure = TerminalLaunchFailure(error)
+        }
+    }
+
+    @MainActor
+    private func measureAndResume(_ session: SessionIndex) {
+        do {
+            try deps.reentryTrials.start(
+                projectStableID: project.stableId,
+                toolIdentifier: session.tool,
+                sessionStartedAt: session.startedAt
+            )
+            Task {
+                do {
+                    try await viewModel.resumeInOriginalTool(session)
+                    statusMessage = String(localized: "已在原工具中打开")
+                    detailSession = nil
+                    deps.selectedGlobalDestination = .evidence
+                } catch {
+                    // Keep this view alive so the Terminal fallback alert stays
+                    // actionable. The active timer can still be recorded as a
+                    // launch failure or discarded from Recovery Evidence.
+                    launchFailure = TerminalLaunchFailure(error)
+                }
+            }
         } catch {
             launchFailure = TerminalLaunchFailure(error)
         }

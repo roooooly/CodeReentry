@@ -16,7 +16,7 @@ usage() {
     '' \
     'Accepted values:' \
     '  project slot: p1, p2, ... (anonymous; never use a project name)' \
-    '  tool: claude-code | codex | zcode | opencode | kimi' \
+    '  tool: claude-code | codex | zcode | opencode | kimi | gemini-cli | github-copilot' \
     '  session age: recent | older' \
     '  outcome: correct | wrong-project | wrong-session | unusable-context | launch-failed' \
     '  reduction band: 0 | 1-29 | 30-69 | 70-99 | 100' \
@@ -75,7 +75,7 @@ ensure_data_file() {
       valid = valid && ($2 != "")
       valid = valid && ($3 ~ /^[0-9]+$/ && $3 > 0)
       valid = valid && ($4 ~ /^p[1-9][0-9]*$/)
-      valid = valid && ($5 ~ /^(claude-code|codex|zcode|opencode|kimi)$/)
+      valid = valid && ($5 ~ /^(claude-code|codex|zcode|opencode|kimi|gemini-cli|github-copilot)$/)
       valid = valid && ($6 ~ /^(recent|older)$/)
       valid = valid && ($7 ~ /^[0-9]+$/ && $7 > 0)
       valid = valid && ($8 ~ /^[0-9]+$/ && $8 > 0)
@@ -130,7 +130,7 @@ record_trial() {
       ;;
     *) fail 'project slot must be an anonymous value such as p1 or p2' ;;
   esac
-  validate_enum tool "$devhub_tool" claude-code codex zcode opencode kimi
+  validate_enum tool "$devhub_tool" claude-code codex zcode opencode kimi gemini-cli github-copilot
   validate_enum 'session age' "$devhub_session_age" recent older
   validate_positive_integer 'baseline seconds' "$devhub_baseline_seconds"
   validate_positive_integer 'DevHub seconds' "$devhub_elapsed_seconds"
@@ -233,12 +233,12 @@ summary() {
   test "$devhub_span_days" -eq 1 && devhub_day_label=day
 
   printf '%s\n' \
-    'DevHub privacy-safe re-entry summary' \
+    'CodeReentry privacy-safe re-entry summary' \
     "Attempts: $devhub_attempts (coverage gate: $devhub_trial_gate)" \
     "Recorded span: $devhub_span_days $devhub_day_label" \
     "Anonymous project slots: $devhub_projects; tools: $devhub_tools; recent: $devhub_recent; older: $devhub_older" \
     "Correct project/session/context: $devhub_correct/$devhub_attempts ($devhub_correct_percent%)" \
-    "Median time: ${devhub_elapsed_median}s with DevHub vs ${devhub_baseline_median}s baseline; relative improvement: $devhub_improvement%" \
+    "Median time: ${devhub_elapsed_median}s with CodeReentry vs ${devhub_baseline_median}s baseline; relative improvement: $devhub_improvement%" \
     "Approximate median repeated-background reduction: $devhub_reduction_median%" \
     "Cross-project context incidents: $devhub_cross_project" \
     "Initial outcome targets: $devhub_outcome_gate" \

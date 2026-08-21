@@ -45,7 +45,7 @@ devhub_summary=$(DEVHUB_REENTRY_DATA_FILE="$devhub_test_file" "$devhub_recorder"
 case "$devhub_summary" in *'Attempts: 10 (coverage gate: COVERAGE MET)'*) ;; *) exit 1 ;; esac
 case "$devhub_summary" in *'Recorded span: 7 days'*) ;; *) exit 1 ;; esac
 case "$devhub_summary" in *'Correct project/session/context: 9/10 (90%)'*) ;; *) exit 1 ;; esac
-case "$devhub_summary" in *'Median time: 45s with DevHub vs 120s baseline; relative improvement: 62%'*) ;; *) exit 1 ;; esac
+case "$devhub_summary" in *'Median time: 45s with CodeReentry vs 120s baseline; relative improvement: 62%'*) ;; *) exit 1 ;; esac
 case "$devhub_summary" in *'Approximate median repeated-background reduction: 85%'*) ;; *) exit 1 ;; esac
 case "$devhub_summary" in *'Cross-project context incidents: 0'*) ;; *) exit 1 ;; esac
 case "$devhub_summary" in *'Initial outcome targets: TARGETS MET'*) ;; *) exit 1 ;; esac
@@ -100,5 +100,20 @@ fi
 
 devhub_header=$(sed -n '1p' "$devhub_test_file")
 case "$devhub_header" in *path*|*prompt*|*content*|*notes*) exit 1 ;; esac
+
+devhub_new_tools_file="$devhub_test_root/new-tools.csv"
+DEVHUB_REENTRY_DATA_FILE="$devhub_new_tools_file" DEVHUB_REENTRY_NOW_EPOCH=1700000000 \
+  "$devhub_recorder" record \
+    --project-slot p1 --tool gemini-cli --session-age recent \
+    --baseline-seconds 120 --devhub-seconds 45 --outcome correct \
+    --reduction-band 70-99 --cross-project no --failure none >/dev/null
+DEVHUB_REENTRY_DATA_FILE="$devhub_new_tools_file" DEVHUB_REENTRY_NOW_EPOCH=1700000001 \
+  "$devhub_recorder" record \
+    --project-slot p2 --tool github-copilot --session-age older \
+    --baseline-seconds 120 --devhub-seconds 45 --outcome correct \
+    --reduction-band 70-99 --cross-project no --failure none >/dev/null
+test "$(wc -l < "$devhub_new_tools_file" | tr -d ' ')" -eq 3
+grep -q ',gemini-cli,' "$devhub_new_tools_file"
+grep -q ',github-copilot,' "$devhub_new_tools_file"
 
 printf '%s\n' 'reentry-trial tests: passed'

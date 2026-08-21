@@ -83,6 +83,8 @@ Release performance is tracked separately with a
   CLI, OpenCode, and Kimi metadata
 - Bounded streaming readers for large JSONL histories
 - On-demand conversation loading and original-tool resume where supported
+- Explicit, local recovery measurement from session detail, with a privacy-safe evidence
+  dashboard and no project names, paths, session IDs, prompts, or conversation content
 - Guarded one-click resume that selects the latest usable session, falls back from a moved
   session subdirectory to the registered project root, and honors the saved tool command
 - Recoverable Terminal launch failures: when macOS blocks Automation, copy a one-time

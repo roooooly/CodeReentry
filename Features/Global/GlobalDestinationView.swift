@@ -15,6 +15,8 @@ struct GlobalDestinationView: View {
                 GlobalSubscriptionsView()
             case .sessions:
                 AllSessionsView()
+            case .evidence:
+                ReentryEvidenceView()
             case .platforms:
                 GlobalPlatformsView()
             }
