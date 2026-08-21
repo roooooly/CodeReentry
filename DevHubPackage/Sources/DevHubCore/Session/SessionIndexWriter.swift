@@ -354,6 +354,37 @@ public actor SessionIndexWriter {
         return true
     }
 
+    /// Links previously indexed, unclassified sessions after the user registers projects.
+    ///
+    /// An incremental reader may skip unchanged source files, so running discovery again is
+    /// not enough to attach rows that were indexed before any projects existed. Match those
+    /// cached rows by cwd without disturbing an explicit manual classification.
+    @discardableResult
+    public func linkUnclassifiedSessionsToRegisteredProjects() throws -> Int {
+        let sessions = try modelContext.fetch(FetchDescriptor<SessionIndex>())
+        let projects = try modelContext.fetch(FetchDescriptor<Project>())
+        let candidates = projects
+            .map { project in
+                (
+                    path: (project.path as NSString).standardizingPath,
+                    project: project
+                )
+            }
+            .sorted { $0.path.count > $1.path.count }
+
+        var linkedCount = 0
+        for session in sessions where session.project == nil && !session.projectCwd.isEmpty {
+            let cwd = (session.projectCwd as NSString).standardizingPath
+            guard let match = candidates.first(where: {
+                cwd == $0.path || cwd.hasPrefix($0.path + "/")
+            }) else { continue }
+            session.project = match.project
+            linkedCount += 1
+        }
+        if linkedCount > 0 { try modelContext.save() }
+        return linkedCount
+    }
+
     /// 清除项目关系。保留 reader 提供的非空 cwd，方便用户看到未注册的来源路径。
     @discardableResult
     public func unlinkProject(identityKey: String) throws -> Bool {

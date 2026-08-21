@@ -58,7 +58,7 @@ struct OnboardingViewTests {
         // 只勾选 projA（b 之前没被默认勾选）
         let aPath = flow.candidates.first { $0.name == "projA" }?.path ?? ""
         flow.selectedCandidates = [aPath]
-        try flow.confirmRegistration(deps: env.deps)
+        try await flow.confirmRegistration(deps: env.deps)
 
         let all = try env.ctx.fetch(FetchDescriptor<Project>())
         #expect(all.count == 1)
@@ -76,7 +76,7 @@ struct OnboardingViewTests {
     }
 
     @Test("没有候选或未勾选项目时可以跳过并继续")
-    func confirmAllowsSkippingRegistration() throws {
+    func confirmAllowsSkippingRegistration() async throws {
         let env = try OnboardingViewTests.makeOnboardingEnv()
         defer { try? FileManager.default.removeItem(at: env.root) }
         let flow = OnboardingFlow()
@@ -84,7 +84,7 @@ struct OnboardingViewTests {
         flow.candidates = []
         flow.selectedCandidates = []
 
-        try flow.confirmRegistration(deps: env.deps)
+        try await flow.confirmRegistration(deps: env.deps)
 
         #expect(try env.ctx.fetch(FetchDescriptor<Project>()).isEmpty)
         #expect(flow.step == .permissions)
@@ -93,7 +93,7 @@ struct OnboardingViewTests {
     }
 
     @Test("批量注册跳过身份重复的归档副本并继续处理其他项目")
-    func confirmSkipsIdentityConflictAndContinues() throws {
+    func confirmSkipsIdentityConflictAndContinues() async throws {
         let env = try OnboardingViewTests.makeOnboardingEnv()
         defer { try? FileManager.default.removeItem(at: env.root) }
         let live = env.root.appendingPathComponent("live")
@@ -117,7 +117,7 @@ struct OnboardingViewTests {
         ]
         flow.selectedCandidates = [archivedCopy.path, fresh.path]
 
-        try flow.confirmRegistration(deps: env.deps)
+        try await flow.confirmRegistration(deps: env.deps)
 
         let projects = try env.ctx.fetch(FetchDescriptor<Project>())
         #expect(projects.map(\.name).sorted() == ["fresh", "live"])
@@ -133,6 +133,71 @@ struct OnboardingViewTests {
         )
         #expect(flow.registrationSummary?.message.contains(identityConflictMessage) == true)
         #expect(flow.registrationSummary?.message.contains("identityConflictNames") == false)
+    }
+
+    @Test("会话优先路径从 cwd 推断仓库、合并子目录并在注册后关联")
+    func sessionFirstDiscoveryRegistersAndLinks() async throws {
+        let env = try OnboardingViewTests.makeOnboardingEnv()
+        defer { try? FileManager.default.removeItem(at: env.root) }
+        let repository = env.root.appendingPathComponent("session-project", isDirectory: true)
+        let nested = repository.appendingPathComponent("Sources/Feature", isDirectory: true)
+        try FileManager.default.createDirectory(at: nested, withIntermediateDirectories: true)
+        try FileManager.default.createDirectory(
+            at: repository.appendingPathComponent(".git", isDirectory: true),
+            withIntermediateDirectories: true
+        )
+        try "{}".write(
+            to: nested.appendingPathComponent("package.json"),
+            atomically: true,
+            encoding: .utf8
+        )
+        let now = Date()
+        let rootSession = SessionIndex(
+            tool: "codex", toolSessionId: "root-session", sourcePath: "/tmp/root.jsonl",
+            projectCwd: repository.path, startedAt: now, updatedAt: now,
+            messageCount: 2, title: "Root", preview: "Root"
+        )
+        let nestedSession = SessionIndex(
+            tool: "claude-code", toolSessionId: "nested-session", sourcePath: "/tmp/nested.jsonl",
+            projectCwd: nested.path, startedAt: now, updatedAt: now.addingTimeInterval(-60),
+            messageCount: 2, title: "Nested", preview: "Nested"
+        )
+        let missingSession = SessionIndex(
+            tool: "codex", toolSessionId: "missing-session", sourcePath: "/tmp/missing.jsonl",
+            projectCwd: env.root.appendingPathComponent("missing").path,
+            startedAt: now, updatedAt: now.addingTimeInterval(-120),
+            messageCount: 1, title: "Missing", preview: "Missing"
+        )
+        env.ctx.insert(rootSession)
+        env.ctx.insert(nestedSession)
+        env.ctx.insert(missingSession)
+        try env.ctx.save()
+
+        let flow = OnboardingFlow()
+        var scanCount = 0
+        await flow.discoverProjectsFromSessions(
+            deps: env.deps,
+            operation: { scanCount += 1 }
+        )
+
+        #expect(scanCount == 1)
+        #expect(flow.step == .confirm)
+        #expect(flow.discoveredProjectsFromSessions == true)
+        #expect(flow.candidates.count == 1)
+        #expect(flow.candidates.first?.path == repository.path)
+        #expect(flow.candidates.first?.sessionCount == 2)
+        #expect(flow.selectedCandidates == Set([repository.path]))
+
+        try await flow.confirmRegistration(deps: env.deps)
+
+        let projects = try env.ctx.fetch(FetchDescriptor<Project>())
+        let project = try #require(projects.first)
+        let writer = SessionIndexWriter(modelContainer: env.container)
+        #expect(projects.count == 1)
+        #expect(flow.linkedSessionCount == 2)
+        #expect(try await writer.fetchProjectStableId(identityKey: rootSession.identityKey) == project.stableId)
+        #expect(try await writer.fetchProjectStableId(identityKey: nestedSession.identityKey) == project.stableId)
+        #expect(try await writer.fetchProjectStableId(identityKey: missingSession.identityKey) == nil)
     }
 
     @Test("完成 → 写 onboardingCompleted=true 并触发回调")

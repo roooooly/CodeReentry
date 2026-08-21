@@ -29,7 +29,7 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-7D1727" alt="MIT 许可证"></a>
 </p>
 
-> **源码 Beta：**当前源码版本为 v0.3.0。CodeReentry 暂时没有经过 Developer ID 签名和
+> **源码 Beta：**当前源码版本为 v0.3.1。CodeReentry 暂时没有经过 Developer ID 签名和
 > Apple 公证的公开安装包。
 > 当前请从源码构建体验，不要安装非官方镜像提供的二进制文件。只有满足
 > [RELEASE.md](RELEASE.md) 中的签名与公证条件后，才会提供公开下载。
@@ -59,6 +59,7 @@ Release 性能另用[可复现的合成基线](docs/performance-baseline.md)跟�
 ## 当前能力
 
 - 项目总览、状态、标签、Git 状态、脚本识别和快速启动
+- 会话优先引导：先从本地 cwd 元数据提出项目根目录，确认后才注册
 - 聚合 Claude Code、Codex、ZCode 的本地会话，以及 Kimi 状态元数据
 - 面向大型 JSONL 历史记录的流式、限量读取
 - 按需加载会话正文，并在工具支持时回到原会话
@@ -120,6 +121,10 @@ cd CodeReentry
 会先校验应用包；除非你在应用内主动操作，否则不会扫描项目或会话。传入
 `--build-only` 可以只构建、不启动。首次构建需要解析和编译 Swift 依赖，可能需要
 几分钟。
+
+首次启动时，选择**从会话发现项目**是获得价值最短的路径。CodeReentry 只在你点击后
+执行一次元数据扫描，最多提出 20 个最近项目根目录，并在注册任何内容前等待确认。
+如果更愿意按目录设置，仍可选择**手动选择目录**。
 
 如果要在 Xcode 中开发，请安装 [XcodeGen](https://github.com/yonaskolb/XcodeGen)，
 运行 `xcodegen generate` 后打开 `DevHub.xcodeproj`。工程由 `project.yml` 生成；修改

@@ -825,3 +825,15 @@
 "仍发送这份总结" = "Send this summary anyway";
 "项目中存在更新时间更晚的会话。这份总结可能遗漏后续决定；你可以只发送稳定的 context.md，或确认仍发送旧总结。" = "A session was updated after this summary's source session. It may omit later decisions. Send only the stable context.md, or confirm that you still want to send the older summary.";
 "这份总结来自旧版本或手工文件，CodeReentry 无法确认它对应哪次会话。建议只发送稳定的 context.md，或在“会话”页重新生成总结。" = "This summary came from an older CodeReentry version or a manually created file, so its source session cannot be verified. Send only the stable context.md, or regenerate the summary from the Sessions tab.";
+"手动选择目录" = "Choose folders manually";
+"从会话发现项目" = "Find projects from sessions";
+"明确触发一次只读会话元数据扫描，并在注册前确认发现的项目" = "Run one explicit, read-only metadata scan and confirm every project before registration";
+"正在从本地会话发现项目…" = "Finding projects from local sessions…";
+"只读取受支持工具的有界元数据；不会读取源码，也不会注册任何目录。" = "Reads bounded metadata from supported tools only; it does not read source code or register folders.";
+"确认会话中的项目" = "Confirm projects from sessions";
+"%lld 条会话" = "%lld sessions";
+"改为手动选择" = "Choose manually instead";
+"受支持工具中没有带有效工作目录的会话。你可以改为手动选择项目目录。" = "No supported session has a valid working directory. You can choose project folders manually instead.";
+"项目与已有会话已经关联，可以直接从首页继续最近的工作。" = "Your projects are linked to existing sessions. Continue the latest work directly from the home screen.";
+"开始使用（已关联 %lld 条会话）" = "Get started (%lld sessions linked)";
+"正在关联会话…" = "Linking sessions…";

@@ -10,7 +10,15 @@ struct OnboardingCandidate: Identifiable, Hashable {
     let path: String
     let name: String
     let hasGit: Bool
+    let sessionCount: Int
     var id: String { path }
+
+    init(path: String, name: String, hasGit: Bool, sessionCount: Int = 0) {
+        self.path = path
+        self.name = name
+        self.hasGit = hasGit
+        self.sessionCount = sessionCount
+    }
 }
 
 struct OnboardingRegistrationSummary: Equatable {
@@ -69,6 +77,11 @@ final class OnboardingFlow {
     var registrationSummary: OnboardingRegistrationSummary?
     private(set) var isScanningSessions = false
     private(set) var sessionScanError: String?
+    private(set) var isDiscoveringSessionProjects = false
+    private(set) var discoveredProjectsFromSessions = false
+    private(set) var discoveredSessionCount = 0
+    private(set) var linkedSessionCount = 0
+    private(set) var isRegisteringProjects = false
 
     func goToPickRoot() { step = .pickRoot }
     func goToWelcome() { step = .welcome }
@@ -76,6 +89,9 @@ final class OnboardingFlow {
     func scan(deps: AppDependencies) async {
         step = .scanning
         registrationSummary = nil
+        discoveredProjectsFromSessions = false
+        discoveredSessionCount = 0
+        linkedSessionCount = 0
         do {
             let expanded = NSString(string: projectsRoot).expandingTildeInPath
             let rootURL = URL(fileURLWithPath: expanded)
@@ -97,7 +113,84 @@ final class OnboardingFlow {
         }
     }
 
-    func confirmRegistration(deps: AppDependencies) throws {
+    /// Explicit, privacy-safe fast path: index bounded local session metadata first, then
+    /// infer project roots from reader-provided cwd values. The user still confirms every
+    /// candidate before registration.
+    func discoverProjectsFromSessions(
+        deps: AppDependencies,
+        operation: @MainActor () async throws -> Void
+    ) async {
+        guard !isDiscoveringSessionProjects else { return }
+        step = .scanning
+        registrationSummary = nil
+        scanError = nil
+        discoveredProjectsFromSessions = true
+        discoveredSessionCount = 0
+        linkedSessionCount = 0
+        isDiscoveringSessionProjects = true
+        defer { isDiscoveringSessionProjects = false }
+
+        var aggregationError: String?
+        do {
+            try await operation()
+        } catch {
+            // The aggregator commits successful readers before reporting partial failures.
+            // Keep those useful results visible and explain the incomplete source separately.
+            aggregationError = error.localizedDescription
+        }
+
+        var descriptor = FetchDescriptor<SessionIndex>(
+            sortBy: [SortDescriptor(\.updatedAt, order: .reverse)]
+        )
+        descriptor.fetchLimit = 500
+        let readContext = ModelContext(deps.modelContainer)
+        readContext.autosaveEnabled = false
+        let sessions = (try? readContext.fetch(descriptor)) ?? []
+        var orderedPaths: [String] = []
+        var countsByPath: [String: Int] = [:]
+        var inferredPathsByCwd: [String: String] = [:]
+        var rejectedCwds: Set<String> = []
+        let candidateLimit = 20
+
+        for session in sessions where !session.projectCwd.isEmpty {
+            let path: String
+            if let cached = inferredPathsByCwd[session.projectCwd] {
+                path = cached
+            } else {
+                guard !rejectedCwds.contains(session.projectCwd) else { continue }
+                guard let inferred = Self.inferredProjectPath(from: session.projectCwd) else {
+                    rejectedCwds.insert(session.projectCwd)
+                    continue
+                }
+                inferredPathsByCwd[session.projectCwd] = inferred
+                path = inferred
+            }
+            if countsByPath[path] == nil {
+                guard orderedPaths.count < candidateLimit else { continue }
+                orderedPaths.append(path)
+                countsByPath[path] = 0
+            }
+            countsByPath[path, default: 0] += 1
+        }
+
+        candidates = orderedPaths.map { path in
+            OnboardingCandidate(
+                path: path,
+                name: URL(fileURLWithPath: path).lastPathComponent,
+                hasGit: FileManager.default.fileExists(atPath: path + "/.git"),
+                sessionCount: countsByPath[path, default: 0]
+            )
+        }
+        selectedCandidates = Set(candidates.map(\.path))
+        discoveredSessionCount = candidates.reduce(0) { $0 + $1.sessionCount }
+        scanError = aggregationError
+        step = .confirm
+    }
+
+    func confirmRegistration(deps: AppDependencies) async throws {
+        guard !isRegisteringProjects else { return }
+        isRegisteringProjects = true
+        defer { isRegisteringProjects = false }
         let ctx = deps.modelContainer.mainContext
         let registry = deps.projectRegistry(in: ctx)
         let expandedRoot = (projectsRoot as NSString).expandingTildeInPath
@@ -131,6 +224,15 @@ final class OnboardingFlow {
         let settings = try deps.ensureAppSettings(in: ctx)
         settings.projectsRoot = (expandedRoot as NSString).standardizingPath
         try ctx.save()
+        if discoveredProjectsFromSessions,
+           summary.registeredCount + summary.alreadyRegisteredCount > 0 {
+            let writer = SessionIndexWriter(modelContainer: deps.modelContainer)
+            linkedSessionCount = try await writer.linkUnclassifiedSessionsToRegisteredProjects()
+        } else if discoveredProjectsFromSessions {
+            // Do not claim that the fast path succeeded when the user skipped every
+            // candidate or every selected directory was unavailable.
+            discoveredProjectsFromSessions = false
+        }
         NotificationCenter.default.post(
             name: Notification.Name("DevHubProjectsChanged"),
             object: nil
@@ -168,5 +270,53 @@ final class OnboardingFlow {
     func complete(deps: AppDependencies, onComplete: () -> Void) {
         deps.onboardingCompleted = true
         onComplete()
+    }
+
+    private static func inferredProjectPath(from cwd: String) -> String? {
+        let fileManager = FileManager.default
+        let standardized = (cwd as NSString).standardizingPath
+        var isDirectory: ObjCBool = false
+        guard fileManager.fileExists(atPath: standardized, isDirectory: &isDirectory),
+              isDirectory.boolValue else { return nil }
+
+        let original = URL(fileURLWithPath: standardized, isDirectory: true)
+            .resolvingSymlinksInPath()
+            .standardizedFileURL
+        let home = fileManager.homeDirectoryForCurrentUser
+            .resolvingSymlinksInPath()
+            .standardizedFileURL
+        guard original.path != "/", original.path != home.path else { return nil }
+
+        var current = original
+        var nearestManifestRoot: URL?
+        while current.path != "/" {
+            if fileManager.fileExists(atPath: current.appendingPathComponent(".git").path) {
+                return current.path
+            }
+            if nearestManifestRoot == nil,
+               containsManifestSignal(at: current, fileManager: fileManager) {
+                nearestManifestRoot = current
+            }
+            if current.path == home.path { break }
+            let parent = current.deletingLastPathComponent()
+            guard parent.path != current.path else { break }
+            current = parent
+        }
+        return nearestManifestRoot?.path ?? original.path
+    }
+
+    private static func containsManifestSignal(at directory: URL, fileManager: FileManager) -> Bool {
+        let markers = ["package.json", "Cargo.toml", "go.mod", "pyproject.toml"]
+        if markers.contains(where: {
+            fileManager.fileExists(atPath: directory.appendingPathComponent($0).path)
+        }) {
+            return true
+        }
+        let children = (try? fileManager.contentsOfDirectory(
+            at: directory,
+            includingPropertiesForKeys: nil,
+            options: [.skipsHiddenFiles]
+        )) ?? []
+        return children.contains { $0.pathExtension == "xcodeproj" }
     }
 }
