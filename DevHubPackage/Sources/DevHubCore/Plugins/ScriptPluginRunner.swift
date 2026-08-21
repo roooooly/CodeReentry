@@ -146,6 +146,7 @@ public struct ScriptPluginRunner: Sendable {
         let stdinPipe = Pipe()
         let stdoutPipe = Pipe()
         let stderrPipe = Pipe()
+        try Self.preventSIGPIPE(on: stdinPipe.fileHandleForWriting)
         process.standardInput = stdinPipe
         process.standardOutput = stdoutPipe
         process.standardError = stderrPipe
@@ -215,6 +216,15 @@ public struct ScriptPluginRunner: Sendable {
         // 只保留执行结果元数据，具体动作仍由当前 UI 反馈。
         logger.info("rail-c action completed exit=\(code)")
         return ScriptPluginResult(exitCode: code, stdout: stdout, stderr: stderr)
+    }
+
+    /// A plugin can exit or close stdin before CodeReentry finishes writing its
+    /// context. macOS sends SIGPIPE by default in that race, which would terminate
+    /// the whole app instead of letting FileHandle report EPIPE to this call.
+    private static func preventSIGPIPE(on handle: FileHandle) throws {
+        guard Darwin.fcntl(handle.fileDescriptor, F_SETNOSIGPIPE, 1) != -1 else {
+            throw POSIXError(POSIXErrorCode(rawValue: errno) ?? .EIO)
+        }
     }
 
     private func validate(context: ScriptPluginContext, for scope: ActionScope) throws {
