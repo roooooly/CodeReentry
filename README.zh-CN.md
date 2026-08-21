@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="DevHub/Assets.xcassets/AppIcon.appiconset/icon_512x512.png" width="112" height="112" alt="DevHub 应用图标">
+  <img src="DevHub/Assets.xcassets/AppIcon.appiconset/icon_512x512.png" width="112" height="112" alt="CodeReentry 应用图标">
 </p>
 
-<h1 align="center">DevHub</h1>
+<h1 align="center">CodeReentry</h1>
 
 <p align="center"><strong>从项目继续，而不是从工具重新开始。</strong></p>
 
@@ -13,7 +13,7 @@
 
 <p align="center">
   <a href="README.md">English</a> ·
-  <a href="https://github.com/roooooly/DevHub/releases">源码 Beta</a> ·
+  <a href="https://github.com/roooooly/CodeReentry/releases">源码 Beta</a> ·
   <a href="#从源码运行">从源码运行</a> ·
   <a href="PRIVACY.md">隐私边界</a> ·
   <a href="ROADMAP.md">路线图</a> ·
@@ -21,35 +21,35 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/roooooly/DevHub/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/roooooly/DevHub/ci.yml?branch=main&label=CI" alt="CI 状态"></a>
-  <a href="https://github.com/roooooly/DevHub/releases"><img src="https://img.shields.io/github/v/release/roooooly/DevHub?include_prereleases&label=%E6%BA%90%E7%A0%81%20Beta" alt="最新源码 Beta"></a>
+  <a href="https://github.com/roooooly/CodeReentry/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/roooooly/CodeReentry/ci.yml?branch=main&label=CI" alt="CI 状态"></a>
+  <a href="https://github.com/roooooly/CodeReentry/releases"><img src="https://img.shields.io/github/v/release/roooooly/CodeReentry?include_prereleases&label=%E6%BA%90%E7%A0%81%20Beta" alt="最新源码 Beta"></a>
   <img src="https://img.shields.io/badge/macOS-14%2B-111111?logo=apple" alt="macOS 14 或更高版本">
   <img src="https://img.shields.io/badge/Swift-6-F05138?logo=swift&logoColor=white" alt="Swift 6">
   <img src="https://img.shields.io/badge/data-local--first-1F7A67" alt="本地优先">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-7D1727" alt="MIT 许可证"></a>
 </p>
 
-> **源码 Beta：**当前源码版本为 v0.2.0。DevHub 暂时没有经过 Developer ID 签名和
+> **源码 Beta：**当前源码版本为 v0.3.0。CodeReentry 暂时没有经过 Developer ID 签名和
 > Apple 公证的公开安装包。
 > 当前请从源码构建体验，不要安装非官方镜像提供的二进制文件。只有满足
 > [RELEASE.md](RELEASE.md) 中的签名与公证条件后，才会提供公开下载。
 
-![使用合成测试数据渲染的 DevHub 项目总览](Tests/SnapshotTests/__Snapshots__/GallerySnapshotTests/projectsOverview.1.png)
+![使用合成测试数据渲染的 CodeReentry 项目总览](Tests/SnapshotTests/__Snapshots__/GallerySnapshotTests/projectsOverview.1.png)
 
-_截图中的项目、路径和数据均为合成测试数据。DevHub 内置简体中文与英文界面。_
+_截图中的项目、路径和数据均为合成测试数据。CodeReentry 内置简体中文与英文界面。_
 
-## DevHub 聚焦的问题
+## CodeReentry 聚焦的问题
 
 同时维护多个本地项目、使用多个 AI 编程工具时，启动一个工具并不难；真正昂贵的是
-找回**正确的项目、会话和工作上下文**。DevHub 把项目作为稳定的工作单位：
+找回**正确的项目、会话和工作上下文**。CodeReentry 把项目作为稳定的工作单位：
 
-1. 注册本地项目，不把源代码复制进 DevHub。
+1. 注册本地项目，不把源代码复制进 CodeReentry。
 2. 由用户触发，轻量索引受支持工具的本地会话记录。
 3. 在受限范围内查看会话正文，或回到原工具继续工作。
-4. 由用户主动把会话总结写入项目记忆，为下一次交接保留上下文。DevHub 会记录来源；
+4. 由用户主动把会话总结写入项目记忆，为下一次交接保留上下文。CodeReentry 会记录来源；
    若存在更新会话，再次发送前会明确提醒。
 
-DevHub 面向同时维护多个本地仓库、使用多个开发工具的独立开发者和小团队。它不是
+CodeReentry 面向同时维护多个本地仓库、使用多个开发工具的独立开发者和小团队。它不是
 云端会话托管服务，也不宣称可以在不同工具之间无损迁移完整对话。
 
 项目使用一套[隐私安全的真实复访协议](docs/reentry-validation.md)验证恢复假设。工程测试
@@ -70,7 +70,7 @@ Release 性能另用[可复现的合成基线](docs/performance-baseline.md)跟�
 
 ### 工具兼容情况
 
-| 工具 | 本地会话发现 | DevHub 内查看正文 | 继续或打开 | 项目记忆交接 |
+| 工具 | 本地会话发现 | CodeReentry 内查看正文 | 继续或打开 | 项目记忆交接 |
 | --- | --- | --- | --- | --- |
 | Claude Code | 支持 | 按需、限量读取 | 恢复会话 | 追加系统提示文件 |
 | Codex | 支持 | 按需、限量读取 | 恢复会话 | 作为新用户消息发送 |
@@ -82,20 +82,20 @@ Release 性能另用[可复现的合成基线](docs/performance-baseline.md)跟�
 表格描述的是当前源码已经实现的路径。第三方工具的存储格式和命令行行为可能变化，
 兼容性修改必须同时提供脱敏测试样本和版本说明。
 
-OpenCode 兼容性以 v1.18.19 为验证基准。DevHub 从默认的
+OpenCode 兼容性以 v1.18.19 为验证基准。CodeReentry 从默认的
 `~/.local/share/opencode/opencode.db`、`OPENCODE_DB` 自定义路径以及有上限的
 `opencode-<channel>.db` 同级数据库发现会话元数据。数据库会先校验 `session`
 表，再以只读方式打开；每个数据库最多索引最近 1,000 个未归档会话，不读取消息正文。
 
 ## 隐私边界
 
-DevHub 的设计目标是让项目与会话数据留在 Mac 上。
+CodeReentry 的设计目标是让项目与会话数据留在 Mac 上。
 
 - 不包含遥测或分析 SDK。
 - 会话发现以元数据为先；只有打开会话时才加载消息正文。
 - 原始会话文件按只读方式处理。
 - 工具凭据保存在 macOS 钥匙串中，备份不包含凭据值。
-- 诊断导出必须由用户主动触发，只包含 DevHub 日志，并遮罩常见凭据格式。
+- 诊断导出必须由用户主动触发，只包含 CodeReentry 日志，并遮罩常见凭据格式。
 - 仓库检查会拦截本地数据库、历史文件、私人路径、签名文件和常见密钥格式。
 
 完整说明见 [PRIVACY.md](PRIVACY.md)。安全问题请按照 [SECURITY.md](SECURITY.md)
@@ -111,8 +111,8 @@ DevHub 的设计目标是让项目与会话数据留在 Mac 上。
 克隆后用一个命令完成本机临时签名构建、校验并启动：
 
 ```bash
-git clone https://github.com/roooooly/DevHub.git
-cd DevHub
+git clone https://github.com/roooooly/CodeReentry.git
+cd CodeReentry
 ./scripts/run-source.sh
 ```
 
@@ -147,9 +147,9 @@ xcodebuild \
 范围清楚的 Issue。测试和文档只能使用合成的项目名、路径、会话、截图和凭据。
 
 使用问题和设计提案请进入
-[Discussions](https://github.com/roooooly/DevHub/discussions)；可以复现的缺陷和已确认工作
+[Discussions](https://github.com/roooooly/CodeReentry/discussions)；可以复现的缺陷和已确认工作
 请使用 Issues。
 
 ## 许可证
 
-DevHub 使用 [MIT License](LICENSE)。
+CodeReentry 使用 [MIT License](LICENSE)。

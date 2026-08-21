@@ -213,7 +213,7 @@ struct MCPSettingsSection: View {
                         .font(.caption.monospaced())
                         .foregroundStyle(.secondary)
                         .textSelection(.enabled)
-                    Text(String(localized: "DevHub 不会覆盖该文件。请在外部修复 JSON 后重新读取。"))
+                    Text(String(localized: "CodeReentry 不会覆盖该文件。请在外部修复 JSON 后重新读取。"))
                         .font(.caption)
                         .foregroundStyle(.secondary)
                     Button(String(localized: "重新读取配置")) {

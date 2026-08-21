@@ -85,7 +85,7 @@ struct SidebarView: View {
                 .accessibilityHint(String(localized: "打开插件设置"))
             }
         }
-        .navigationTitle(String(localized: "DevHub"))
+        .navigationTitle(String(localized: "CodeReentry"))
         .navigationSplitViewColumnWidth(min: 220, ideal: 250, max: 300)
         .safeAreaInset(edge: .bottom) {
             sidebarFooter
@@ -122,7 +122,7 @@ struct SidebarView: View {
                 viewModel.pendingRemoval = nil
             }
         } message: { _ in
-            Text(String(localized: "只会从 DevHub 中移除注册信息、关联会话与绑定；磁盘上的项目文件不会被删除。"))
+            Text(String(localized: "只会从 CodeReentry 中移除注册信息、关联会话与绑定；磁盘上的项目文件不会被删除。"))
         }
         .alert(
             String(localized: "项目操作失败"),
@@ -178,7 +178,7 @@ struct SidebarView: View {
             }
             .buttonStyle(.plain)
             .padding(.top, 2)
-            .accessibilityHint(String(localized: "打开 DevHub 设置"))
+            .accessibilityHint(String(localized: "打开 CodeReentry 设置"))
         }
         .padding(14)
         .background(.ultraThinMaterial)
@@ -297,7 +297,7 @@ struct SidebarView: View {
         guard let removal = viewModel.pendingRemoval else {
             return String(localized: "移除项目？")
         }
-        return String(localized: "从 DevHub 移除“\(removal.name)”？")
+        return String(localized: "从 CodeReentry 移除“\(removal.name)”？")
     }
 
     private func selectDestination(_ selection: String?) {

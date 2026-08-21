@@ -240,7 +240,7 @@ final class MCPClient {
                 processTransport = transport
 
                 let stdio = StdioTransport(input: transport.transportInput, output: transport.transportOutput)
-                let client = Client(name: "DevHub", version: "1.0.0")
+                let client = Client(name: "CodeReentry", version: "1.0.0")
                 try await connect(client: client, stdio: stdio, processTransport: transport)
                 sdkClient = client
                 status = .connected

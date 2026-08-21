@@ -4,7 +4,7 @@ set -euo pipefail
 DEVHUB_APP="${1:-}"
 DEVHUB_EXPECTED_ARCH="${2:-arm64}"
 if [[ -z "$DEVHUB_APP" || ! -d "$DEVHUB_APP" ]]; then
-  echo "usage: $0 /path/to/DevHub.app [arm64|x86_64]" >&2
+  echo "usage: $0 /path/to/CodeReentry.app [arm64|x86_64]" >&2
   exit 64
 fi
 
@@ -43,7 +43,7 @@ DEVHUB_EXPECTED_BUILD="$(plist_value "$DEVHUB_SOURCE_PLIST" CFBundleVersion)"
 DEVHUB_EXPECTED_MINIMUM_SYSTEM="$(plist_value "$DEVHUB_SOURCE_PLIST" LSMinimumSystemVersion)"
 
 require_equal "$(optional_plist_value "$DEVHUB_BUNDLE_PLIST" CFBundleIdentifier)" "io.github.roooooly.devhub" "bundle identifier"
-require_equal "$(optional_plist_value "$DEVHUB_BUNDLE_PLIST" CFBundleExecutable)" "DevHub" "bundle executable"
+require_equal "$(optional_plist_value "$DEVHUB_BUNDLE_PLIST" CFBundleExecutable)" "CodeReentry" "bundle executable"
 require_equal "$(optional_plist_value "$DEVHUB_BUNDLE_PLIST" CFBundlePackageType)" "APPL" "bundle package type"
 require_equal "$(optional_plist_value "$DEVHUB_BUNDLE_PLIST" CFBundleShortVersionString)" "$DEVHUB_EXPECTED_VERSION" "marketing version"
 require_equal "$(optional_plist_value "$DEVHUB_BUNDLE_PLIST" CFBundleVersion)" "$DEVHUB_EXPECTED_BUILD" "build version"
@@ -54,7 +54,7 @@ if /usr/libexec/PlistBuddy -c 'Print :SUFeedURL' "$DEVHUB_BUNDLE_PLIST" >/dev/nu
   exit 1
 fi
 
-test -x "$DEVHUB_APP/Contents/MacOS/DevHub"
+test -x "$DEVHUB_APP/Contents/MacOS/CodeReentry"
 if ! codesign --verify --deep --strict=all "$DEVHUB_APP" >/dev/null 2>&1; then
   codesign --verify --deep --strict=all --verbose=4 "$DEVHUB_APP"
   exit 1
@@ -81,11 +81,11 @@ if /usr/libexec/PlistBuddy -c 'Print :com.apple.security.get-task-allow' "$DEVHU
   }
 fi
 
-DEVHUB_ARCHS="$(lipo -archs "$DEVHUB_APP/Contents/MacOS/DevHub")"
+DEVHUB_ARCHS="$(lipo -archs "$DEVHUB_APP/Contents/MacOS/CodeReentry")"
 [[ " $DEVHUB_ARCHS " == *" $DEVHUB_EXPECTED_ARCH "* ]] || {
   echo "error: $DEVHUB_EXPECTED_ARCH slice missing ($DEVHUB_ARCHS)" >&2
   exit 1
 }
 
 test -f "$DEVHUB_APP/Contents/Resources/AppIcon.icns"
-echo "Verified DevHub.app (architectures: $DEVHUB_ARCHS)"
+echo "Verified CodeReentry.app (architectures: $DEVHUB_ARCHS)"

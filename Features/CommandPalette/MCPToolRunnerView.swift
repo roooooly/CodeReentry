@@ -118,7 +118,7 @@ struct MCPToolRunnerSheet: View {
                 .accessibilityIdentifier("mcp-tool-arguments")
 
             Label(
-                String(localized: "MCP server 可能读写文件、访问网络或启动进程。DevHub 只会在你检查参数并再次确认后发起调用。"),
+                String(localized: "MCP server 可能读写文件、访问网络或启动进程。CodeReentry 只会在你检查参数并再次确认后发起调用。"),
                 systemImage: "exclamationmark.shield.fill"
             )
             .font(.caption)

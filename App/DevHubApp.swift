@@ -85,7 +85,7 @@ struct DevHubApp: App {
             )) { note in
                 if let theme = note.object as? String { appearanceTheme = theme }
             }
-            .alert(String(localized: "DevHub 数据存储提示"),
+            .alert(String(localized: "CodeReentry 数据存储提示"),
                    isPresented: Binding(get: { startupWarning != nil }, set: { if !$0 { startupWarning = nil } })) {
                 Button(String(localized: "好")) { startupWarning = nil }
             } message: {
@@ -128,7 +128,7 @@ struct DevHubApp: App {
             let doc = try await exporter.export()
             let name = exporter.fileName(for: Date())
             let panel = NSSavePanel()
-            panel.title = String(localized: "导出 DevHub 备份")
+            panel.title = String(localized: "导出 CodeReentry 备份")
             panel.message = String(localized: "备份包含项目配置与索引，但不会包含 Keychain 中的密钥值；在新设备导入后需要重新录入密钥。")
             panel.nameFieldStringValue = name
             panel.allowedContentTypes = [.json]
@@ -147,7 +147,7 @@ struct DevHubApp: App {
         do {
             let result = try ModelContainerFactory.makeRecoveringContainer()
             let warning = result.recoveredStoreDirectory.map {
-                String(localized: "原数据库无法打开，已保留到 \($0.path)，并创建了一个新数据库。你可以从 DevHub 备份重新导入数据。")
+                String(localized: "原数据库无法打开，已保留到 \($0.path)，并创建了一个新数据库。你可以从 CodeReentry 备份重新导入数据。")
             }
             return (result.container, warning)
         } catch {

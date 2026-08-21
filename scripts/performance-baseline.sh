@@ -125,8 +125,8 @@ trap cleanup EXIT HUP INT TERM
 echo "Building the verified Release app…"
 "$devhub_repo_root/scripts/run-source.sh" --build-only
 devhub_derived_data=${DEVHUB_DERIVED_DATA_PATH:-"$devhub_repo_root/build/SourceDerivedData"}
-devhub_app="$devhub_derived_data/Build/Products/Release/DevHub.app"
-devhub_executable="$devhub_app/Contents/MacOS/DevHub"
+devhub_app="$devhub_derived_data/Build/Products/Release/CodeReentry.app"
+devhub_executable="$devhub_app/Contents/MacOS/CodeReentry"
 test -x "$devhub_executable"
 
 echo "Building and creating the $devhub_scale deterministic fixture…"

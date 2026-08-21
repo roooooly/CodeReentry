@@ -262,7 +262,7 @@ enum PerformanceScenarioRunner {
         NSApp.activate(ignoringOtherApps: true)
         let userActivity = ProcessInfo.processInfo.beginActivity(
             options: .userInitiated,
-            reason: "DevHub synthetic user-initiated session scan"
+            reason: "CodeReentry synthetic user-initiated session scan"
         )
         defer { ProcessInfo.processInfo.endActivity(userActivity) }
         try await pause(milliseconds: 250)

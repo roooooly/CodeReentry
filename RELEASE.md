@@ -1,6 +1,6 @@
-# DevHub local development release
+# CodeReentry local development release
 
-DevHub can be built as a local, ad-hoc-signed macOS application for development and
+CodeReentry can be built as a local, ad-hoc-signed macOS application for development and
 evaluation. This path does not require an Apple Developer ID or notarization credentials.
 
 For the shortest source-evaluation path, run `./scripts/run-source.sh`. It builds,
@@ -12,7 +12,7 @@ XcodeGen. The packaging flow below is intended for maintainers who need a local 
 Requirements: macOS 14 or newer, Xcode, and `xcodegen`.
 
 ```bash
-cd /path/to/DevHub
+cd /path/to/CodeReentry
 ./scripts/release-local.sh
 ```
 
@@ -22,10 +22,11 @@ then writes a DMG, ZIP, and SHA-256 file under `dist/`.
 
 Before handing off a package, mount the final DMG and launch the contained app for a
 smoke test. Static `codesign` verification does not exercise dyld's library-validation
-policy, so confirm that the process remains alive and that no new DevHub crash report
+policy, so confirm that the process remains alive and that no new CodeReentry crash report
 appears under `~/Library/Logs/DiagnosticReports`.
 
-The local ad-hoc build uses `DevHub.local-release.entitlements`. Ad-hoc signatures
+The local ad-hoc build uses the legacy-compatible internal file
+`DevHub.local-release.entitlements`. Ad-hoc signatures
 have no Apple Team ID, so this local-only profile disables library validation in order
 to load the embedded, separately signed Sparkle framework. Hardened runtime remains
 enabled, `get-task-allow` is rejected by the verification script, and the normal
@@ -59,11 +60,11 @@ failed controls remain in the baseline so performance improvements can be audite
 
 ## Install
 
-Open the DMG and drag DevHub to Applications. Because this personal build is not
+Open the DMG and drag CodeReentry to Applications. Because this personal build is not
 notarized, macOS may require the first launch through Finder's **Open** context-menu
 action. Do not disable Gatekeeper globally.
 
-DevHub requests Automation access only when it opens Terminal for a CLI tool. Project
+CodeReentry requests Automation access only when it opens Terminal for a CLI tool. Project
 folders outside the normal user-visible locations may also require Files and Folders
 or Full Disk Access in System Settings.
 

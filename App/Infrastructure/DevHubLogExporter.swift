@@ -70,7 +70,7 @@ enum DevHubLogExportError: LocalizedError, Equatable {
     var errorDescription: String? {
         switch self {
         case .commandFailed(let exitCode, let message):
-            return String(localized: "读取 DevHub 日志失败（退出码 \(exitCode)）：\(message)")
+            return String(localized: "读取 CodeReentry 日志失败（退出码 \(exitCode)）：\(message)")
         case .invalidDestination:
             return String(localized: "请选择一个存在且可写入的文件夹来保存日志。")
         }

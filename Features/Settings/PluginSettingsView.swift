@@ -154,7 +154,7 @@ struct PluginSettingsSection: View {
                 Text(err).font(.caption).foregroundStyle(.red)
             }
             if vm.plugins.isEmpty {
-                Text(String(localized: "未发现插件。将插件放入 ~/Library/Application Support/DevHub/plugins/<name>/（含 manifest.json）。"))
+                Text(String(localized: "未发现插件。为兼容已有数据，插件目录仍为 ~/Library/Application Support/DevHub/plugins/<name>/（含 manifest.json）。"))
                     .font(.callout)
                     .foregroundStyle(.secondary)
                     .padding()

@@ -245,7 +245,7 @@ public enum OpenCodeReaderError: LocalizedError, Sendable, Equatable {
         case .queryFailed(let path, let detail):
             return "读取 OpenCode 会话元数据失败：\(path)（\(detail)）"
         case .conversationUnavailable:
-            return "DevHub 当前只索引 OpenCode 会话元数据；请在 OpenCode 中继续该会话。"
+            return "CodeReentry 当前只索引 OpenCode 会话元数据；请在 OpenCode 中继续该会话。"
         }
     }
 }

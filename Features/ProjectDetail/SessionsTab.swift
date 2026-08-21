@@ -305,7 +305,7 @@ struct SessionRow: View {
                     }
                     .buttonStyle(.bordered)
                     .controlSize(.small)
-                    .accessibilityHint(String(localized: "在 DevHub 内查看完整对话正文"))
+                    .accessibilityHint(String(localized: "在 CodeReentry 内查看完整对话正文"))
                 }
                 Button(action: onResume) {
                     Label(

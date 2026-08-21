@@ -109,11 +109,11 @@ struct OnboardingView: View {
                     .frame(width: 74, height: 74)
                     .background(DevHubTheme.accent.opacity(0.10), in: RoundedRectangle(cornerRadius: 18))
                 VStack(alignment: .leading, spacing: 8) {
-                    Text(String(localized: "DEVHUB / LOCAL WORKSPACE"))
+                    Text(String(localized: "CODEREENTRY / LOCAL WORKSPACE"))
                         .font(.system(size: 10, weight: .bold, design: .rounded))
                         .tracking(1.6)
                         .foregroundStyle(DevHubTheme.accent)
-                    Text(String(localized: "欢迎使用 DevHub"))
+                    Text(String(localized: "欢迎使用 CodeReentry"))
                         .font(.system(size: 30, weight: .bold, design: .rounded))
                         .foregroundStyle(DevHubTheme.ink)
                     Text(String(localized: "一个以项目为核心的本地开发资源管理器。把工具、会话、记忆、订阅与发布账号放回同一个工作上下文。"))
@@ -123,7 +123,7 @@ struct OnboardingView: View {
             }
             VStack(alignment: .leading, spacing: 12) {
                 welcomeBenefit(icon: "arrow.uturn.forward", title: String(localized: "更快继续工作"), detail: String(localized: "从项目或最近会话直接回到原工具"))
-                welcomeBenefit(icon: "lock.shield", title: String(localized: "默认本地、只读"), detail: String(localized: "会话留在磁盘；DevHub 只建立轻量索引"))
+                welcomeBenefit(icon: "lock.shield", title: String(localized: "默认本地、只读"), detail: String(localized: "会话留在磁盘；CodeReentry 只建立轻量索引"))
                 welcomeBenefit(icon: "gauge.with.dots.needle.50percent", title: String(localized: "按需扫描"), detail: String(localized: "不用时不在后台反复读取历史记录"))
             }
             .padding(18)
@@ -298,7 +298,7 @@ struct OnboardingView: View {
                 permissionRow(
                     icon: "lock.shield",
                     title: String(localized: "文件访问 (TCC)"),
-                    desc: String(localized: "读取 ~/.claude/ 等点目录通常无需授权。仅当项目位于 ~/Desktop / ~/Documents / ~/Downloads 时才触发。若被拒，请到「系统设置 → 隐私与安全性 → 完全磁盘访问」手动添加 DevHub。"))
+                    desc: String(localized: "读取 ~/.claude/ 等点目录通常无需授权。仅当项目位于 ~/Desktop / ~/Documents / ~/Downloads 时才触发。若被拒，请到「系统设置 → 隐私与安全性 → 完全磁盘访问」手动添加 CodeReentry。"))
             }
             Spacer()
             Button(String(localized: "继续")) { flow.goToIntro() }
@@ -311,7 +311,7 @@ struct OnboardingView: View {
         VStack(spacing: 16) {
             Text(String(localized: "找回第一条会话"))
                 .font(.title2.bold())
-            Text(String(localized: "项目已就绪。最后由你主动触发一次只读增量扫描，DevHub 才能把本地会话关联到项目。"))
+            Text(String(localized: "项目已就绪。最后由你主动触发一次只读增量扫描，CodeReentry 才能把本地会话关联到项目。"))
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
             VStack(alignment: .leading, spacing: 10) {

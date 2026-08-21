@@ -129,7 +129,7 @@ struct OpsTab: View {
                 viewModel?.cancelPendingExecution()
             }
         } message: { script in
-            Text(String(localized: "DevHub 将在项目目录执行：\(script.command)"))
+            Text(String(localized: "CodeReentry 将在项目目录执行：\(script.command)"))
         }
     }
 

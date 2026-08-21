@@ -1,13 +1,13 @@
 # Privacy-safe project re-entry validation
 
-DevHub's core hypothesis is not proven by test counts: a real developer should reach
+CodeReentry's core hypothesis is not proven by test counts: a real developer should reach
 the correct project, session, and usable context faster, without leaking context across
 projects. This protocol turns that claim into a falsifiable local trial while keeping
 project names, paths, prompts, session text, and source content out of the repository.
 
 ## Record a real attempt
 
-First complete the same task without DevHub, or use a recent comparable attempt as the
+First complete the same task without CodeReentry, or use a recent comparable attempt as the
 baseline. Start the timer when you decide to resume work and stop it when the coding
 tool has the correct project, intended session, and enough context for the first valid
 task. Then record only anonymous categories:
@@ -47,10 +47,10 @@ slots, two tools, and both recent and older sessions, run:
 ./scripts/reentry-trial.sh summary
 ```
 
-The initial targets from [GitHub issue #7](https://github.com/roooooly/DevHub/issues/7) are:
+The initial targets from [GitHub issue #7](https://github.com/roooooly/CodeReentry/issues/7) are:
 
 - at least 9/10 attempts reach the correct project, session, and usable context;
-- median DevHub time is at most 60 seconds and at least 50% faster than the baseline;
+- median CodeReentry time is at most 60 seconds and at least 50% faster than the baseline;
 - approximate median repeated-background reduction is at least 70%;
 - cross-project context incidents remain at zero.
 
@@ -60,7 +60,7 @@ failure category, change the product, and repeat rather than weakening the targe
 
 ## 中文说明
 
-工程测试数量不能证明 DevHub 真能帮助用户。真实复访应从“决定继续旧项目”开始计时，
+工程测试数量不能证明 CodeReentry 真能帮助用户。真实复访应从“决定继续旧项目”开始计时，
 到开发工具进入正确项目、正确会话，并具备执行第一项有效任务所需的上下文时停止。
 
 记录时只使用 `p1`、`p2` 这类匿名项目槽位、工具名、耗时、结果枚举和失败分类。脚本不

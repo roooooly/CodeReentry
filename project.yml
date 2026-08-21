@@ -1,5 +1,4 @@
-# xcodegen spec for DevHub (P0 UI).
-# Regenerate with:  cd DevHub && xcodegen generate
+# xcodegen spec for CodeReentry (internal target/module names stay DevHub-compatible).
 name: DevHub
 options:
   bundleIdPrefix: io.github.roooooly.devhub
@@ -14,8 +13,8 @@ settings:
   base:
     SWIFT_VERSION: "6.0"
     SWIFT_STRICT_CONCURRENCY: complete
-    MARKETING_VERSION: "0.2.0"
-    CURRENT_PROJECT_VERSION: "2"
+    MARKETING_VERSION: "0.3.0"
+    CURRENT_PROJECT_VERSION: "3"
     DEVELOPMENT_TEAM: ""
     CODE_SIGN_IDENTITY: "-"
     CODE_SIGN_STYLE: Automatic
@@ -37,6 +36,7 @@ packages:
 targets:
   DevHub:
     type: application
+    productName: CodeReentry
     platform: macOS
     deploymentTarget: "14.0"
     sources:
@@ -50,7 +50,8 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: io.github.roooooly.devhub
-        PRODUCT_NAME: DevHub
+        PRODUCT_NAME: CodeReentry
+        PRODUCT_MODULE_NAME: DevHub
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         INFOPLIST_FILE: DevHub/Info.plist
         CODE_SIGN_ENTITLEMENTS: DevHub.entitlements
@@ -94,7 +95,7 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: io.github.roooooly.devhub.tests
         GENERATE_INFOPLIST_FILE: YES
         BUNDLE_LOADER: "$(TEST_HOST)"
-        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/DevHub.app/Contents/MacOS/DevHub"
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/CodeReentry.app/Contents/MacOS/CodeReentry"
 
 schemes:
   DevHub:

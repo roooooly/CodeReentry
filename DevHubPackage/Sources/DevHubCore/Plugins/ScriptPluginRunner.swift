@@ -306,7 +306,7 @@ public enum ScriptPluginError: Error, LocalizedError, Equatable {
         case .notConfirmed:
             return String(localized: "此插件尚未确认权限。")
         case .incompatibleAppVersion(let required, let current):
-            return String(localized: "插件要求 DevHub \(required) 或更高版本，当前版本为 \(current)。")
+            return String(localized: "插件要求 CodeReentry \(required) 或更高版本，当前版本为 \(current)。")
         case .missingProjectContext:
             return String(localized: "此动作需要先选择一个项目。")
         case .invalidProjectPath(let path):
