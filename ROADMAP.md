@@ -11,8 +11,8 @@ work areas, not promised dates.
 - [ ] Complete the [privacy-safe repeated real-use checks](docs/reentry-validation.md)
       of the project-to-session recovery flow.
 - [ ] Document tested third-party tool versions and known format limits.
-- [ ] Clear every [Release performance budget](docs/performance-baseline.md); the large
-      post-idle initial scan is the remaining measured failure.
+- [x] Clear every [Release performance budget](docs/performance-baseline.md); the current
+      small, medium, and 20,000-session large scenarios all pass without weakening budgets.
 
 ## Core recovery flow
 

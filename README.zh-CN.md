@@ -13,6 +13,7 @@
 
 <p align="center">
   <a href="README.md">English</a> ·
+  <a href="https://github.com/roooooly/DevHub/releases">源码 Beta</a> ·
   <a href="#从源码运行">从源码运行</a> ·
   <a href="PRIVACY.md">隐私边界</a> ·
   <a href="ROADMAP.md">路线图</a> ·
@@ -21,13 +22,15 @@
 
 <p align="center">
   <a href="https://github.com/roooooly/DevHub/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/roooooly/DevHub/ci.yml?branch=main&label=CI" alt="CI 状态"></a>
+  <a href="https://github.com/roooooly/DevHub/releases"><img src="https://img.shields.io/github/v/release/roooooly/DevHub?include_prereleases&label=%E6%BA%90%E7%A0%81%20Beta" alt="最新源码 Beta"></a>
   <img src="https://img.shields.io/badge/macOS-14%2B-111111?logo=apple" alt="macOS 14 或更高版本">
   <img src="https://img.shields.io/badge/Swift-6-F05138?logo=swift&logoColor=white" alt="Swift 6">
   <img src="https://img.shields.io/badge/data-local--first-1F7A67" alt="本地优先">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-7D1727" alt="MIT 许可证"></a>
 </p>
 
-> **源码 Beta：**DevHub 暂时没有经过 Developer ID 签名和 Apple 公证的公开安装包。
+> **源码 Beta：**当前源码版本为 v0.2.0。DevHub 暂时没有经过 Developer ID 签名和
+> Apple 公证的公开安装包。
 > 当前请从源码构建体验，不要安装非官方镜像提供的二进制文件。只有满足
 > [RELEASE.md](RELEASE.md) 中的签名与公证条件后，才会提供公开下载。
 
