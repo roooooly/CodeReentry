@@ -29,7 +29,7 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-7D1727" alt="MIT license"></a>
 </p>
 
-> **Source beta:** The current source release is v0.4.0. CodeReentry does not have a signed
+> **Source beta:** The current source release is v0.5.0. CodeReentry does not have a signed
 > and notarized public binary yet.
 > Build it from source for evaluation, and do not install binaries from unofficial
 > mirrors. Public distribution remains blocked until the Apple signing and
