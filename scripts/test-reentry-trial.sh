@@ -38,7 +38,7 @@ done
 
 devhub_lines=$(wc -l < "$devhub_test_file" | tr -d ' ')
 test "$devhub_lines" -eq 11
-devhub_permissions=$(stat -f '%Lp' "$devhub_test_file" 2>/dev/null || stat -c '%a' "$devhub_test_file")
+devhub_permissions=$(stat -c '%a' "$devhub_test_file" 2>/dev/null || stat -f '%Lp' "$devhub_test_file")
 test "$devhub_permissions" = 600
 
 devhub_summary=$(DEVHUB_REENTRY_DATA_FILE="$devhub_test_file" "$devhub_recorder" summary)
