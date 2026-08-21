@@ -7,6 +7,8 @@ published a signed public binary.
 
 ## 0.7.0 - 2026-08-21
 
+- Prevent a plugin that exits or closes stdin before reading its JSON context from
+  terminating CodeReentry with SIGPIPE; the write now reports a normal EPIPE error.
 - Add bounded, read-only Pi v0.84.2 JSONL discovery and active-branch text inspection,
   plus exact-file recovery with `pi --session <absolute-session-path>`.
 - Add bounded, read-only Goose v1.46.0 user-session discovery and on-demand text-only

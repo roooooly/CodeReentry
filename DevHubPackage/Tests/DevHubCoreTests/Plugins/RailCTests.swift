@@ -247,6 +247,37 @@ struct ScriptPluginRunnerTests {
         #expect(result.stdout.contains("ok"))
     }
 
+    @Test("a plugin closing stdin reports EPIPE without terminating CodeReentry")
+    func closedPluginStdinDoesNotRaiseSIGPIPE() async throws {
+        let dir = try makeScriptDir()
+        let ref = ScriptPluginActionRef(
+            pluginId: "p",
+            pluginDir: dir,
+            action: ScriptPluginAction(id: "a", title: "A", scope: .global, run: "action.sh")
+        )
+        let runner = ScriptPluginRunner(
+            interpreterFor: { _ in
+                ("/bin/sh", ["-c", "exec 0<&-; /bin/sleep 1"])
+            }
+        )
+        let context = ScriptPluginContext(
+            projectPath: nil,
+            selectedSessionId: nil,
+            env: ["PAYLOAD": String(repeating: "x", count: 512 * 1_024)]
+        )
+
+        do {
+            _ = try await runner.run(action: ref, context: context)
+            Issue.record("a closed plugin stdin must reject the context write")
+        } catch {
+            let error = error as NSError
+            let underlying = error.userInfo[NSUnderlyingErrorKey] as? NSError
+            #expect(error.domain == NSCocoaErrorDomain)
+            #expect(underlying?.domain == NSPOSIXErrorDomain)
+            #expect(underlying?.code == Int(EPIPE))
+        }
+    }
+
     @Test("默认解释器按扩展名选择，显式注入仍可覆盖")
     func defaultInterpreterSelection() {
         let root = URL(fileURLWithPath: "/tmp/plugin")
