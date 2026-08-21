@@ -144,16 +144,16 @@ struct GooseReaderTests {
 
     @Test("path override must be absolute and uses Goose data layout")
     func standardPath() {
-        let home = URL(fileURLWithPath: "/Users/test", isDirectory: true)
+        let home = URL(fileURLWithPath: "/tmp/test-home", isDirectory: true)
         #expect(GooseReader.standardDatabaseURL(
             homeURL: home, environment: [:]
-        ).path == "/Users/test/Library/Application Support/Block/goose/sessions/sessions.db")
+        ).path == "/tmp/test-home/Library/Application Support/Block/goose/sessions/sessions.db")
         #expect(GooseReader.standardDatabaseURL(
             homeURL: home, environment: ["GOOSE_PATH_ROOT": "/tmp/goose"]
         ).path == "/tmp/goose/data/sessions/sessions.db")
         #expect(GooseReader.standardDatabaseURL(
             homeURL: home, environment: ["GOOSE_PATH_ROOT": "relative"]
-        ).path == "/Users/test/Library/Application Support/Block/goose/sessions/sessions.db")
+        ).path == "/tmp/test-home/Library/Application Support/Block/goose/sessions/sessions.db")
     }
 
     @Test("unsupported schemas and unknown sessions fail explicitly")
